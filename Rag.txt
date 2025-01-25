@@ -1,3 +1,42 @@
+import openai
+import requests
+
+# Set up your OpenAI API key
+openai.api_key = "your_openai_api_key"
+
+# Function to extract and process PDF content
+def extract_and_process_pdf(pdf_file_path):
+    # Upload the PDF to the Domino workspace (if applicable)
+    # Use an API call or platform-specific method to upload the PDF
+
+    # Open the PDF and extract its content (you can also extract the text before sending to GPT-4)
+    with open(pdf_file_path, 'rb') as file:
+        pdf_content = file.read()  # Simulate reading the PDF file content (you would process it before)
+
+    # Construct the prompt to send to ChatGPT 4.0
+    prompt = """
+    I have uploaded a PDF document. Please extract all the text from it and return the content in a clean and readable format.
+    If there are any tables, images, or special sections, please indicate them clearly.
+    """
+
+    # Send the request to ChatGPT 4.0 (you could also send raw text if PDF parsing is handled earlier)
+    response = openai.Completion.create(
+        engine="gpt-4",  # or 'gpt-4-domino' if that is available
+        prompt=prompt,
+        max_tokens=1000
+    )
+
+    # Print the response (extracted text)
+    return response.choices[0].text.strip()
+
+# Example usage
+pdf_path = "path_to_your_pdf_file.pdf"
+extracted_text = extract_and_process_pdf(pdf_path)
+print(extracted_text)
+
+
+
+
 import fitz  # PyMuPDF
 import re
 import os
