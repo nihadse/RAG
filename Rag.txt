@@ -1,3 +1,10 @@
+pip install fitz python-docx nltk tiktoken sentence-transformers chromadb openai
+
+
+
+
+
+
 # Import necessary libraries
 import fitz  # PyMuPDF for PDF processing
 from docx import Document  # For Word file processing
