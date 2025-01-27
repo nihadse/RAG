@@ -1,3 +1,30 @@
+# Step 2: Chunk the extracted text using transformers
+
+def chunk_text_with_transformers(text, max_tokens=500):
+    """
+    Chunk text into smaller parts using Hugging Face's tokenizers.
+    :param text: The input text to chunk.
+    :param max_tokens: Maximum number of tokens per chunk.
+    :return: List of text chunks.
+    """
+    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")  # Load GPT2 tokenizer
+    tokens = tokenizer.encode(text)  # Tokenize the text
+    chunks = []
+
+    for i in range(0, len(tokens), max_tokens):
+        chunk_tokens = tokens[i:i + max_tokens]
+        chunk_text = tokenizer.decode(chunk_tokens)
+        chunks.append(chunk_text)
+    
+    return chunk
+
+
+
+
+
+
+
+
 pip install fitz python-docx nltk tiktoken sentence-transformers chromadb openai
 
 
