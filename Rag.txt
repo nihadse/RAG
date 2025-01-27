@@ -1,3 +1,6 @@
+from transformers import GPT2Tokenizer 
+
+
 # Step 2: Chunk the extracted text using transformers
 
 def chunk_text_with_transformers(text, max_tokens=500):
