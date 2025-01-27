@@ -20,6 +20,28 @@ def chunk_text_with_bert(text, max_tokens=512):
 
 
 
+from transformers import BertTokenizer
+
+def chunk_text_with_bert(text, max_tokens=512):
+    """
+    Chunk text using BERT's tokenizer.
+    """
+    tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+    tokens = tokenizer.encode(text)
+    chunks = []
+
+    for i in range(0, len(tokens), max_tokens):
+        chunk_tokens = tokens[i:i + max_tokens]
+        chunk_text = tokenizer.decode(chunk_tokens)
+        chunks.append(chunk_text)
+
+    return chunks
+
+
+
+
+
+
 
 
 
