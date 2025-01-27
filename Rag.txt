@@ -1,3 +1,174 @@
+# Import necessary libraries
+import fitz  # PyMuPDF for PDF processing
+from docx import Document  # For Word file processing
+from nltk.tokenize import sent_tokenize  # For text chunking
+import tiktoken  # For token-based chunking
+from sentence_transformers import SentenceTransformer  # For text embeddings
+import chromadb  # Vector database
+import openai  # For GPT-based generation
+
+# Step 1: Extract text, tables, and images from files
+
+# Extract text and images from a PDF file
+def extract_from_pdf(pdf_path):
+    """
+    Extract text and images from a PDF file.
+    :param pdf_path: Path to the PDF file.
+    :return: Extracted text and images as a list of bytes.
+    """
+    doc = fitz.open(pdf_path)
+    text = ""
+    images = []
+    
+    for page in doc:
+        # Extract text from the page
+        text += page.get_text()
+        # Extract images from the page
+        for img in page.get_images(full=True):
+            xref = img[0]
+            pix = fitz.Pixmap(doc, xref)
+            if pix.n > 4:  # Convert CMYK to RGB
+                pix = fitz.Pixmap(fitz.csRGB, pix)
+            # Save image as PNG bytes
+            images.append(pix.tobytes("png"))
+    return text, images
+
+# Extract text from a Word document
+def extract_from_word(doc_path):
+    """
+    Extract text from a Word document.
+    :param doc_path: Path to the Word document.
+    :return: Extracted text as a string.
+    """
+    doc = Document(doc_path)
+    # Concatenate all paragraph texts
+    text = "\n".join([p.text for p in doc.paragraphs])
+    return text
+
+# Step 2: Chunk the extracted text
+
+def chunk_text(text, max_tokens=500):
+    """
+    Chunk the extracted text into smaller parts for embedding.
+    :param text: The input text to chunk.
+    :param max_tokens: Maximum number of tokens per chunk.
+    :return: List of text chunks.
+    """
+    tokenizer = tiktoken.get_encoding("cl100k_base")  # Tokenizer for counting tokens
+    sentences = sent_tokenize(text)  # Split text into sentences
+    chunks = []
+    current_chunk = []
+    current_length = 0
+
+    for sentence in sentences:
+        tokenized = tokenizer.encode(sentence)
+        # If adding this sentence exceeds max tokens, finalize current chunk
+        if current_length + len(tokenized) > max_tokens:
+            chunks.append(" ".join(current_chunk))
+            current_chunk = []
+            current_length = 0
+        current_chunk.append(sentence)
+        current_length += len(tokenized)
+    
+    # Add the last chunk
+    if current_chunk:
+        chunks.append(" ".join(current_chunk))
+    return chunks
+
+# Step 3: Store chunks in ChromaDB
+
+# Initialize ChromaDB
+client = chromadb.Client()  # Initialize the ChromaDB client
+collection = client.get_or_create_collection("document_chunks")  # Create or get the collection
+
+# Embed text chunks and store them in ChromaDB
+def store_chunks_in_chroma(chunks):
+    """
+    Store text chunks into ChromaDB after embedding them.
+    :param chunks: List of text chunks.
+    """
+    model = SentenceTransformer('all-MiniLM-L6-v2')  # Load the sentence transformer model
+    embeddings = model.encode(chunks)  # Generate embeddings for each chunk
+    for i, chunk in enumerate(chunks):
+        # Add the chunk to the collection
+        collection.add(
+            documents=[chunk],
+            metadatas=[{"chunk_id": i}],  # Optional metadata
+            embeddings=[embeddings[i]]
+        )
+
+# Step 4: Perform RAG-based retrieval and response generation
+
+# Retrieve the most relevant chunks and generate a GPT-based response
+def retrieve_and_generate_response(query):
+    """
+    Retrieve relevant chunks from ChromaDB and generate a GPT response.
+    :param query: User query.
+    :return: Generated response from GPT.
+    """
+    model = SentenceTransformer('all-MiniLM-L6-v2')  # Load the embedding model
+    query_embedding = model.encode([query])  # Embed the query
+    # Search for the most relevant chunks in ChromaDB
+    results = collection.query(
+        query_embeddings=query_embedding,
+        n_results=5  # Number of results to retrieve
+    )
+    
+    # Combine retrieved chunks into a single text
+    retrieved_text = " ".join([doc for doc in results['documents'][0]])
+    
+    # Generate a response using GPT
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are an AI assistant."},
+            {"role": "user", "content": f"Answer based on the following:\n\n{retrieved_text}\n\nQuestion: {query}"}
+        ]
+    )
+    return response['choices'][0]['message']['content']
+
+# Step 5: Putting it all together
+
+def process_file_and_respond(file_path, file_type, query):
+    """
+    Process the file, store its contents in ChromaDB, and generate a response.
+    :param file_path: Path to the input file (PDF/Word).
+    :param file_type: Type of the file ('pdf' or 'word').
+    :param query: User query.
+    :return: GPT-generated response.
+    """
+    if file_type == 'pdf':
+        text, images = extract_from_pdf(file_path)  # Extract text and images from PDF
+    elif file_type == 'word':
+        text = extract_from_word(file_path)  # Extract text from Word document
+        images = []  # Word file images are not handled here
+
+    # Chunk the extracted text
+    chunks = chunk_text(text)
+    # Store the chunks in ChromaDB
+    store_chunks_in_chroma(chunks)
+    # Generate a response for the query
+    return retrieve_and_generate_response(query)
+
+# Example usage:
+if __name__ == "__main__":
+    # File path and type
+    file_path = "sample.pdf"  # Replace with the actual file path
+    file_type = "pdf"  # 'pdf' or 'word'
+    user_query = "What is the content of the document about?"
+    
+    # Process the file and respond to the query
+    response = process_file_and_respond(file_path, file_type, user_query)
+    print("Response:", response)
+
+
+
+
+
+
+
+
+
 import openai
 import requests
 
