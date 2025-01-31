@@ -8,6 +8,123 @@ from tqdm import tqdm
 # Initialize Chroma client with persistent storage
 chroma_client = chromadb.PersistentClient(path="chroma_db")
 
+# Path to local model directory
+model_path = "./models/all-MiniLM-L6-v2"  # Update this path
+
+# Initialize embedding function with local model
+sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
+    model_name=model_path
+)
+
+# Create/load collection with metadata support
+collection = chroma_client.get_or_create_collection(
+    name="pdf_documents",
+    embedding_function=sentence_transformer_ef,
+    metadata={"hnsw:space": "cosine"}  # Optimize for similarity search
+)
+
+# Batch processing parameters
+MAX_BATCH_SIZE = 10000  # Adjust based on your system's RAM
+
+def load_and_split_pdfs(pdf_directory):
+    print(f"Loading PDFs from {pdf_directory}...")
+    loader = PyPDFDirectoryLoader(pdf_directory)
+    documents = loader.load()
+    
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200,
+        length_function=len,
+        add_start_index=True
+    )
+    return text_splitter.split_documents(documents)
+
+def store_chunks_in_chroma(chunks):
+    # Check existing documents to avoid duplicates
+    existing_sources = collection.get()["metadatas"]
+    new_chunks = [chunk for chunk in chunks if chunk.metadata["source"] not in existing_sources]
+
+    if not new_chunks:
+        print("All documents already processed.")
+        return
+
+    print(f"Processing {len(new_chunks)} new chunks...")
+    
+    # Process in batches
+    for i in tqdm(range(0, len(new_chunks), MAX_BATCH_SIZE), desc="Processing batches"):
+        batch = new_chunks[i:i+MAX_BATCH_SIZE]
+        
+        # Extract metadata and texts
+        metadatas = [{"source": chunk.metadata["source"]} for chunk in batch]
+        texts = [chunk.page_content for chunk in batch]
+        
+        # Generate embeddings
+        embeddings = sentence_transformer_ef(texts)
+        
+        # Create unique IDs
+        ids = [f"{md['source']}_{i+j}" for j, md in enumerate(metadatas)]
+        
+        # Add to collection
+        collection.add(
+            documents=texts,
+            embeddings=embeddings,
+            metadatas=metadatas,
+            ids=ids
+        )
+
+def rag_chatbot(pdf_directory):
+    # Load and split PDFs
+    chunks = load_and_split_pdfs(pdf_directory)
+    
+    # Store chunks with batch processing
+    store_chunks_in_chroma(chunks)
+    
+    print("Ready for queries. Type 'exit' to quit.")
+    while True:
+        query = input("\nYou: ")
+        if query.lower() in ["exit", "quit"]:
+            break
+            
+        # Retrieve context
+        results = collection.query(
+            query_texts=[query],
+            n_results=5
+        )
+        context = "\n\n".join(results["documents"][0])
+        
+        # Generate response (replace with your LLM)
+        print(f"\nBot: [Response based on: {context[:500]}...]")
+
+if __name__ == "__main__":
+    pdf_directory = input("Enter PDF directory path: ")
+    if os.path.isdir(pdf_directory):
+        rag_chatbot(pdf_directory)
+    else:
+        print("Invalid directory path!")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import os
+import chromadb
+from chromadb.utils import embedding_functions
+from langchain.document_loaders import PyPDFDirectoryLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from tqdm import tqdm
+
+# Initialize Chroma client with persistent storage
+chroma_client = chromadb.PersistentClient(path="chroma_db")
+
 # Path to your local SentenceTransformer model directory (e.g., "./models/all-MiniLM-L6-v2")
 model_path = "./models/all-MiniLM-L6-v2"  # Replace with your model directory path
 
