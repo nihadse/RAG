@@ -1,4 +1,113 @@
 import os
+import chromadb
+from chromadb.utils import embedding_functions
+import openai
+from langchain.document_loaders import PyPDFDirectoryLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from tqdm import tqdm
+
+# Set up OpenAI API key
+openai.api_key = "your_openai_api_key"
+
+# Initialize Chroma client with persistent storage
+chroma_client = chromadb.PersistentClient(path="chroma_db")  # Data will be stored in the "chroma_db" folder
+
+# Use OpenAI embeddings
+openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+    api_key=openai.api_key,
+    model_name="text-embedding-ada-002"  # OpenAI's default embedding model
+)
+
+# Create or load a collection in Chroma
+collection = chroma_client.get_or_create_collection(
+    name="pdf_documents",
+    embedding_function=openai_ef
+)
+
+# Function to load and split PDFs from a directory
+def load_and_split_pdfs(pdf_directory):
+    print(f"Loading PDFs from {pdf_directory}...")
+    
+    # Use PyPDFDirectoryLoader to load all PDFs in the directory
+    loader = PyPDFDirectoryLoader(pdf_directory)
+    documents = loader.load()
+    
+    # Split documents into smaller chunks
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=500,  # Adjust based on your needs
+        chunk_overlap=100  # Overlap to preserve context
+    )
+    chunks = text_splitter.split_documents(documents)
+    
+    return chunks
+
+# Function to store chunks in Chroma
+def store_chunks_in_chroma(chunks):
+    print("Storing chunks in ChromaDB...")
+    for i, chunk in enumerate(tqdm(chunks, desc="Storing chunks")):
+        # Add each chunk to ChromaDB with a unique ID
+        collection.add(
+            documents=[chunk.page_content],
+            ids=[f"chunk_{i}"]
+        )
+
+# Function to retrieve relevant chunks
+def retrieve_relevant_chunks(query, top_k=3):
+    results = collection.query(
+        query_texts=[query],
+        n_results=top_k
+    )
+    return results["documents"][0]
+
+# Function to generate response using GPT-4
+def generate_response(query, context):
+    prompt = f"Context: {context}\n\nQuestion: {query}\n\nAnswer:"
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return response['choices'][0]['message']['content']
+
+# Main chatbot function
+def rag_chatbot(pdf_directory):
+    # Load and split PDFs
+    chunks = load_and_split_pdfs(pdf_directory)
+    
+    # Store chunks in Chroma
+    store_chunks_in_chroma(chunks)
+    print("PDFs have been processed and stored in Chroma. You can now ask questions.")
+    
+    while True:
+        query = input("You: ")
+        if query.lower() in ["exit", "quit"]:
+            print("Goodbye!")
+            break
+        
+        # Retrieve relevant chunks
+        relevant_chunks = retrieve_relevant_chunks(query)
+        context = "\n".join(relevant_chunks)
+        
+        # Generate response using GPT-4
+        response = generate_response(query, context)
+        print(f"Bot: {response}")
+
+# Example usage
+if __name__ == "__main__":
+    # Ask the user for the PDF directory path
+    pdf_directory = input("Enter the path to the directory containing PDFs: ")
+    
+    # Validate the directory path
+    if not os.path.isdir(pdf_directory):
+        print("Invalid directory path. Please try again.")
+    else:
+        # Start the chatbot
+        rag_chatbot(pdf_directory)
+
+
+import os
 import pdfplumber  # Faster than PyPDF2
 import chromadb
 from chromadb.utils import embedding_functions
