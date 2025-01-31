@@ -1,3 +1,141 @@
+import os
+import pdfplumber  # Faster than PyPDF2
+import chromadb
+from chromadb.utils import embedding_functions
+from sentence_transformers import SentenceTransformer
+import openai
+from multiprocessing import Pool, cpu_count
+from tqdm import tqdm
+
+# Set up OpenAI API key
+openai.api_key = "your_openai_api_key"
+
+# Initialize Chroma client with persistent storage
+chroma_client = chromadb.PersistentClient(path="chroma_db")  # Data will be stored in the "chroma_db" folder
+
+# Create or load a collection in Chroma
+collection = chroma_client.get_or_create_collection(
+    name="pdf_documents",
+    embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(
+        model_name="all-MiniLM-L6-v2"
+    )
+)
+
+# Initialize embedding model (e.g., SentenceTransformer)
+embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# Function to extract text from a single page
+def extract_text_from_page(page):
+    return page.extract_text() or ""
+
+# Function to process a PDF in parallel
+def process_pdf(pdf_path, chunk_size=500):
+    print(f"Processing {pdf_path}...")
+    chunks = []
+    
+    with pdfplumber.open(pdf_path) as pdf:
+        # Use multiprocessing to extract text from pages in parallel
+        with Pool(cpu_count()) as pool:
+            pages = pdf.pages
+            page_texts = list(tqdm(pool.imap(extract_text_from_page, pages), total=len(pages), desc="Extracting text"))
+        
+        # Combine text and chunk it
+        full_text = "".join(page_texts)
+        chunks = [full_text[i:i + chunk_size] for i in range(0, len(full_text), chunk_size)]
+    
+    return chunks
+
+# Function to store chunks in Chroma in batches
+def store_chunks_in_chroma(chunks, pdf_name, batch_size=100):
+    print("Generating embeddings and storing chunks...")
+    for i in tqdm(range(0, len(chunks), batch_size), desc="Storing chunks"):
+        batch_chunks = chunks[i:i + batch_size]
+        embeddings = embedding_model.encode(batch_chunks)
+        
+        # Add chunks to ChromaDB with unique IDs
+        collection.add(
+            documents=batch_chunks,
+            embeddings=embeddings.tolist(),
+            ids=[f"{pdf_name}_chunk_{i + j}" for j in range(len(batch_chunks))]
+        )
+
+# Function to retrieve relevant chunks
+def retrieve_relevant_chunks(query, top_k=3):
+    query_embedding = embedding_model.encode([query])[0].tolist()
+    results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=top_k
+    )
+    return results["documents"][0]
+
+# Function to generate response using GPT-4
+def generate_response(query, context):
+    prompt = f"Context: {context}\n\nQuestion: {query}\n\nAnswer:"
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return response['choices'][0]['message']['content']
+
+# Main chatbot function
+def rag_chatbot(pdf_path):
+    # Check if the PDF has already been processed
+    pdf_name = os.path.basename(pdf_path)
+    existing_ids = collection.get(where={"source": pdf_name})["ids"]
+    
+    if existing_ids:
+        print(f"PDF '{pdf_name}' has already been processed. Skipping extraction.")
+    else:
+        # Process the PDF
+        chunks = process_pdf(pdf_path)
+        
+        # Store chunks in Chroma with metadata
+        store_chunks_in_chroma(chunks, pdf_name)
+        print(f"PDF '{pdf_name}' has been processed and stored in Chroma.")
+    
+    print("You can now ask questions.")
+    
+    while True:
+        query = input("You: ")
+        if query.lower() in ["exit", "quit"]:
+            print("Goodbye!")
+            break
+        
+        # Retrieve relevant chunks
+        relevant_chunks = retrieve_relevant_chunks(query)
+        context = "\n".join(relevant_chunks)
+        
+        # Generate response using GPT-4
+        response = generate_response(query, context)
+        print(f"Bot: {response}")
+
+# Example usage
+if __name__ == "__main__":
+    # Ask the user for the PDF file path
+    pdf_path = input("Enter the path to the PDF file: ")
+    
+    # Validate the file path
+    if not os.path.isfile(pdf_path):
+        print("Invalid file path. Please try again.")
+    else:
+        # Start the chatbot
+        rag_chatbot(pdf_path)
+
+
+
+
+
+
+
+
+
+
+
+
+
 pip install PyPDF2 chromadb sentence-transformers openai
 
 
