@@ -1,6 +1,120 @@
 import os
 import chromadb
 from chromadb.utils import embedding_functions
+from langchain.document_loaders import PyPDFDirectoryLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from tqdm import tqdm
+
+# Initialize Chroma client with persistent storage
+chroma_client = chromadb.PersistentClient(path="chroma_db")
+
+# Path to your local SentenceTransformer model directory (e.g., "./models/all-MiniLM-L6-v2")
+model_path = "./models/all-MiniLM-L6-v2"  # Replace with your model directory path
+
+# Initialize embedding function with local model
+sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
+    model_name=model_path  # Use local model directory
+)
+
+# Create or load a collection in Chroma
+collection = chroma_client.get_or_create_collection(
+    name="pdf_documents",
+    embedding_function=sentence_transformer_ef
+)
+
+# Function to load and split PDFs from a directory
+def load_and_split_pdfs(pdf_directory):
+    print(f"Loading PDFs from {pdf_directory}...")
+    loader = PyPDFDirectoryLoader(pdf_directory)
+    documents = loader.load()
+    
+    # Split documents into chunks
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=500,
+        chunk_overlap=100
+    )
+    chunks = text_splitter.split_documents(documents)
+    return chunks
+
+# Function to store chunks in Chroma
+def store_chunks_in_chroma(chunks):
+    print("Storing chunks in ChromaDB...")
+    texts = [chunk.page_content for chunk in chunks]
+    metadatas = [{"source": chunk.metadata["source"]} for chunk in chunks]
+    
+    # Generate embeddings and store in Chroma
+    embeddings = sentence_transformer_ef(texts)  # Uses local model
+    
+    collection.add(
+        documents=texts,
+        embeddings=embeddings,
+        metadatas=metadatas,
+        ids=[f"chunk_{i}" for i in range(len(texts))]
+    )
+
+# Function to retrieve relevant chunks
+def retrieve_relevant_chunks(query, top_k=3):
+    results = collection.query(
+        query_texts=[query],
+        n_results=top_k
+    )
+    return results["documents"][0]
+
+# Main chatbot function
+def rag_chatbot(pdf_directory):
+    # Load and split PDFs
+    chunks = load_and_split_pdfs(pdf_directory)
+    
+    # Store chunks in Chroma
+    store_chunks_in_chroma(chunks)
+    print("PDFs processed and stored. Ask questions now!")
+    
+    while True:
+        query = input("You: ")
+        if query.lower() in ["exit", "quit"]:
+            print("Goodbye!")
+            break
+        
+        # Retrieve relevant chunks
+        context = "\n".join(retrieve_relevant_chunks(query))
+        
+        # Generate response (replace with your LLM, e.g., GPT-4)
+        print(f"Bot: [Response based on context: {context[:100]}...]")
+
+# Run the code
+if __name__ == "__main__":
+    pdf_directory = input("Enter PDF directory path: ")
+    if not os.path.isdir(pdf_directory):
+        print("Invalid directory!")
+    else:
+        rag_chatbot(pdf_directory)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import os
+import chromadb
+from chromadb.utils import embedding_functions
 import openai
 from langchain.document_loaders import PyPDFDirectoryLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
