@@ -1,3 +1,144 @@
+import chromadb
+from chromadb.utils import embedding_functions
+from langchain.document_loaders import DirectoryLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from openai import AzureOpenAI
+import httpx
+import os
+
+# Initialize ChromaDB client and collection
+chroma_client = chromadb.PersistentClient(path="chroma_db")
+sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
+    model_name="all-MiniLM-L6-v2"
+)
+collection = chroma_client.get_or_create_collection(
+    name="pdf_documents",
+    embedding_function=sentence_transformer_ef
+)
+
+MAX_BATCH_SIZE = 1000  # Batch size for Chroma inserts
+
+# --- Query Generation Function ---
+def generate_queries(original_query, num_queries=3):
+    """Generate multiple queries using Azure OpenAI"""
+    client = AzureOpenAI(
+        api_version=os.getenv("AZURE_API_VERSION"),
+        azure_endpoint=os.getenv("APIGEE_ENDPOINT"),
+        api_key=os.getenv("IAΚΕ_ΕΣΥ")
+    )
+    
+    prompt = f"""Generate {num_queries} different search queries that are rephrased variations of:
+    '{original_query}'. Return each query on a new line."""
+    
+    with httpx.Client(verify=False) as http_client:
+        completion = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a query generation assistant."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+    
+    queries = completion.choices[0].message.content.strip().split('\n')
+    return queries[:num_queries]
+
+# --- Modified Retrieval Function with Multi-Query ---
+def retrieve_relevant_chunks(query, top_k=3):
+    """Retrieve chunks using multiple generated queries"""
+    generated_queries = generate_queries(query)
+    all_results = []
+
+    for q in generated_queries:
+        results = collection.query(
+            query_texts=[q],
+            n_results=top_k,
+            include=["documents", "metadatas", "distances"]
+        )
+        # Process results for each query
+        for doc, meta, dist in zip(results["documents"][0],
+                                  results["metadatas"][0],
+                                  results["distances"][0]):
+            all_results.append({
+                "document": doc,
+                "metadata": meta,
+                "distance": dist
+            })
+    
+    # Deduplicate by document content and sort by relevance
+    seen = set()
+    unique_results = []
+    for res in sorted(all_results, key=lambda x: x["distance"]):
+        if res["document"] not in seen:
+            seen.add(res["document"])
+            unique_results.append(res)
+    
+    return unique_results[:top_k]
+
+# --- Modified Response Generation with Source Attribution ---
+def generate_response(query, context_chunks):
+    """Generate answer with source attribution"""
+    context_str = "\n\n".join([
+        f"Source: {chunk['metadata']['source']} (Page {chunk['metadata'].get('page', '?')})\n"
+        f"Content: {chunk['document']}"
+        for chunk in context_chunks
+    ])
+    
+    client = AzureOpenAI(
+        api_version=os.getenv("AZURE_API_VERSION"),
+        azure_endpoint=os.getenv("APIGEE_ENDPOINT"),
+        api_key=os.getenv("IAΚΕ_ΕΣΥ")
+    )
+    
+    prompt = f"""Answer this query: {query}
+    Using ONLY these sources:
+    {context_str}
+    
+    - ALWAYS cite sources using [Source: filename.pdf, Page X]
+    - If unsure, say "I couldn't find relevant information"
+    - List ALL used sources at the end"""
+    
+    with httpx.Client(verify=False) as http_client:
+        completion = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a technical assistant."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+    
+    return completion.choices[0].message.content
+
+# --- Rest of your existing functions remain mostly unchanged ---
+# (Keep your load_and_chunk_pdf, store_chunks_in_chroma, etc.)
+# ... [Your existing PDF loading/chunking code here] ...
+
+def rag_chatbot():
+    while True:
+        query = input("You: ")
+        if query.lower() in ["exit", "quit"]:
+            print("Goodbye!")
+            break
+        
+        # Retrieve with multi-query
+        context_chunks = retrieve_relevant_chunks(query)
+        
+        # Generate response with sources
+        response = generate_response(query, context_chunks)
+        print(f"Bot: {response}\n")
+
+# --- Execution Flow ---
+if __name__ == "__main__":
+    pdf_path = "/mnt/DS/Procedures"
+    chunks = load_and_chunk_pdf(pdf_path)
+    store_chunks_in_chroma(chunks)
+    rag_chatbot()
+
+
+
+
+
+
+
 def rag_chatbot():
     print("PDF has been processed and stored in Chroma. You can now ask questions.")
 
