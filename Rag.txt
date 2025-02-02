@@ -1,3 +1,37 @@
+def rag_chatbot():
+    print("PDF has been processed and stored in Chroma. You can now ask questions.")
+
+    while True:
+        query = input("You: ")
+        
+        if query.lower() in ["exit", "quit"]:
+            print("Goodbye!")
+            break
+
+        # Retrieve relevant chunks
+        relevant_chunks = retrieve_relevant_chunks(query)
+        context = "\n".join(relevant_chunks)
+
+        # Generate response using GPT-4
+        response = generate_response(query, context)
+        
+        print(f"Bot: {response}")
+
+# Load and chunk the PDF
+pdf_path = "your_pdf.pdf"  # Replace with the actual PDF path
+chunks = load_and_chunk_pdf(pdf_path)
+
+# Store chunks in Chroma
+store_chunks_in_chroma(chunks)
+
+# Start chatbot
+rag_chatbot()
+
+
+
+
+
+
 import os
 import chromadb
 from chromadb.utils import embedding_functions
