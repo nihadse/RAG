@@ -1,3 +1,119 @@
+import streamlit as st
+import chromadb
+from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+from langchain_community.document_loaders import DirectoryLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from openai import AzureOpenAI
+import os
+import time
+
+# Configuration
+PDF_PATH = "/mnt/LMMS/Procedures"
+MAX_BATCH_SIZE = 100
+AZURE_AOAI_API_VERSION = "2023-05-15"
+APIGEE_ENDPOINT = "https://your-endpoint.openai.azure.com/"
+model_path = "/path/to/your/sentence-transformers-model"
+
+@st.cache_resource
+def initialize_chroma():
+    """Initialize ChromaDB and preprocess documents once"""
+    client = chromadb.PersistentClient(path="chrome_db")
+    sentence_transformer_ef = SentenceTransformerEmbeddingFunction(model_name=model_path)
+    collection = client.get_or_create_collection(
+        name="pdf_documents",
+        embedding_function=sentence_transformer_ef
+    )
+    return collection
+
+@st.cache_resource
+def load_and_process_documents():
+    """Load and process documents once at startup"""
+    # Loading documents
+    with st.spinner('Loading PDF documents...'):
+        loader = DirectoryLoader(PDF_PATH, glob="**/*.pdf")
+        documents = loader.load()
+        if not documents:
+            st.error("No PDF documents found in the specified directory!")
+            st.stop()
+
+    # Chunking documents
+    with st.spinner('Processing documents...'):
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1260,
+            chunk_overlap=100,
+            add_start_index=True
+        )
+        chunks = text_splitter.split_documents(documents)
+    
+    # Store in ChromaDB
+    with st.spinner('Indexing documents...'):
+        collection = initialize_chroma()
+        existing_sources = set(m["source"] for m in collection.get()["metadatas"])
+        new_chunks = [chunk for chunk in chunks if chunk.metadata["source"] not in existing_sources]
+        
+        for i in range(0, len(new_chunks), MAX_BATCH_SIZE):
+            batch = new_chunks[i:i+MAX_BATCH_SIZE]
+            texts = [chunk.page_content for chunk in batch]
+            metadatas = [{"source": chunk.metadata["source"], "page": chunk.metadata.get("page", 0)} 
+                        for chunk in batch]
+            embeddings = sentence_transformer_ef(texts)
+            
+            ids = [str(i + j) for j, _ in enumerate(batch)]
+            collection.add(
+                documents=texts,
+                embeddings=embeddings,
+                metadatas=metadatas,
+                ids=ids
+            )
+    
+    return collection
+
+# Initialize app once
+collection = load_and_process_documents()
+client = AzureOpenAI(
+    api_version=AZURE_AOAI_API_VERSION,
+    azure_endpoint=APIGEE_ENDPOINT,
+    api_key=os.getenv("AZURE_OPENAI_KEY"),
+)
+
+# Streamlit UI
+st.title("PDF Document Assistant")
+st.write("Ask questions about your PDF documents")
+
+# Chat input
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+if prompt := st.chat_input("Enter your question..."):
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    
+    # Display user message
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # Retrieve relevant chunks
+    with st.spinner('Searching documents...'):
+        relevant_chunks = retrieve_relevant_chunks(prompt)
+    
+    # Generate response
+    with st.spinner('Generating answer...'):
+        response = generate_response(prompt, relevant_chunks)
+    
+    # Display assistant response
+    with st.chat_message("assistant"):
+        st.markdown(response)
+    
+    # Add assistant response to chat history
+    st.session_state.messages.append({"role": "assistant", "content": response})
+
+# (Include the retrieve_relevant_chunks and generate_response functions from previous implementation)
+
+
 import chromadb
 from chromadb.utils import embedding_functions
 from langchain.document_loaders import DirectoryLoader
