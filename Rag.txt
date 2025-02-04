@@ -67,6 +67,75 @@ if st.button("Search"):
 
 
 
+import streamlit as st
+import chromadb
+from chromadb.utils import embedding_functions
+from openai import AzureOpenAI
+import httpx
+
+# Connect to ChromaDB (No Need to Reprocess PDFs)
+chroma_client = chromadb.PersistentClient(path="chroma_db")
+collection = chroma_client.get_collection(name="pdf_documents")
+
+# OpenAI API Client
+client = AzureOpenAI(
+    api_version="AZURE_ADAT_API_VERSION",
+    azure_endpoint="APIGEE_ENDPOINT",
+    api_key="FAKE_KEY",
+    http_client=httpx.Client(verify=False)
+)
+
+# Retrieve Relevant Chunks
+def retrieve_relevant_chunks(query, top_k=3):
+    """Fetch relevant chunks from ChromaDB."""
+    results = collection.query(query_texts=[query], n_results=top_k)
+    return results["documents"][0] if results["documents"] else []
+
+# Generate AI Response
+def generate_response(query, context):
+    """Generate AI response from retrieved chunks."""
+    prompt = f"{context}\n\nQuery: {query}\n\nProvide sources & pages."
+
+    with httpx.Client(verify=False) as http_client:
+        completion = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are an AI assistant."},
+                {"role": "user", "content": prompt},
+            ]
+        )
+    
+    return completion.choices[0].message.content
+
+# ---- STREAMLIT APP ----
+st.title("📄 AI-Powered PDF Search with ChromaDB")
+
+query = st.text_input("🔍 Enter your query:", "")
+
+if st.button("Search"):
+    if query:
+        st.write("⏳ Searching in ChromaDB...")
+        relevant_chunks = retrieve_relevant_chunks(query)
+
+        if relevant_chunks:
+            context = "\n".join(relevant_chunks)
+            response = generate_response(query, context)
+
+            st.subheader("🤖 AI Response:")
+            st.write(response)
+
+            st.subheader("📚 Retrieved Documents:")
+            for i, chunk in enumerate(relevant_chunks):
+                st.write(f"**Chunk {i+1}:** {chunk}")
+        else:
+            st.warning("No relevant documents found.")
+    else:
+        st.warning("Please enter a query.")
+
+
+
+
+
 
 
 
