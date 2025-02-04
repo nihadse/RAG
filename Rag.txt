@@ -1,3 +1,45 @@
+def store_chunks_in_chroma(chunks: List[Document]):
+    """Stores chunks in ChromaDB, avoiding duplicates using stored IDs."""
+
+    # Load stored IDs from file
+    stored_ids = load_from_file(STORED_IDS_FILE) or set()
+
+    # Filter only new chunks
+    new_chunks = [chunk for chunk in chunks if chunk.metadata["source"] not in stored_ids]
+
+    if not new_chunks:
+        print("No new chunks to add to ChromaDB.")
+        return
+
+    # Batch processing
+    for i in tqdm(range(0, len(new_chunks), MAX_BATCH_SIZE), desc="Processing batches"):
+        batch = new_chunks[i:i+MAX_BATCH_SIZE]
+        
+        metadatas = [{
+            "source": chunk.metadata["source"],
+            "page": chunk.metadata.get("page", 0),
+            "start_index": chunk.metadata.get("start_index", 0)
+        } for chunk in batch]
+        
+        texts = [chunk.page_content for chunk in batch]
+        ids = [f"{meta['source']}_{i+j}" for j, meta in enumerate(metadatas)]
+        
+        collection.add(
+            documents=texts,
+            metadatas=metadatas,
+            ids=ids
+        )
+
+    # Update and save stored IDs
+    stored_ids.update([chunk.metadata["source"] for chunk in new_chunks])
+    save_to_file(stored_ids, STORED_IDS_FILE)
+
+    print(f"Stored {len(new_chunks)} new chunks in ChromaDB.")
+
+
+
+
+
 import pickle
 import os
 
