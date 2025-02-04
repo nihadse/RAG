@@ -1,3 +1,74 @@
+import chromadb
+from chromadb.utils import embedding_functions
+from sentence_transformers import SentenceTransformer
+from PyPDF2 import PdfReader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from tqdm import tqdm
+
+# Initialize ChromaDB client
+chroma_client = chromadb.PersistentClient(path="chroma_db")
+
+# Initialize embedding function
+sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
+)
+
+# Create collection (if it doesn't exist)
+collection = chroma_client.get_or_create_collection(
+    name="pdf_documents", embedding_function=sentence_transformer_ef
+)
+
+# PDF Processing
+def load_and_chunk_pdfs(pdf_directory):
+    """Loads and chunks PDFs into smaller parts."""
+    loader = PyPDFDirectoryLoader(pdf_directory)
+    documents = loader.load()
+    
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000, chunk_overlap=200, length_function=len, add_start_index=True
+    )
+    
+    return text_splitter.split_documents(documents)
+
+# Store in ChromaDB (Only if new chunks exist)
+def store_chunks_in_chroma(chunks):
+    """Stores new chunks in ChromaDB while avoiding duplicates."""
+    
+    existing_sources = set()
+    existing_metadata = collection.get(include=["metadatas"])["metadatas"]
+    if existing_metadata:
+        existing_sources = {meta["source"] for meta in existing_metadata}
+
+    new_chunks = [chunk for chunk in chunks if chunk.metadata["source"] not in existing_sources]
+
+    if not new_chunks:
+        print("No new chunks to add.")
+        return
+
+    print(f"Storing {len(new_chunks)} new chunks in ChromaDB...")
+
+    for i in tqdm(range(0, len(new_chunks), 5000), desc="Processing batches"):
+        batch = new_chunks[i:i + 5000]
+
+        metadatas = [{"source": chunk.metadata["source"]} for chunk in batch]
+        texts = [chunk.page_content for chunk in batch]
+        embeddings = sentence_transformer_ef(texts)
+
+        ids = [f"{md['source']}_{i+j}" for j, md in enumerate(metadatas)]
+        collection.add(documents=texts, embeddings=embeddings, metadatas=metadatas, ids=ids)
+
+    print("✅ Chunks successfully stored in ChromaDB!")
+
+# ---- RUN ONCE ----
+pdf_path = "/path/to/your/pdf/folder"
+chunks = load_and_chunk_pdfs(pdf_path)
+store_chunks_in_chroma(chunks)
+
+
+
+
+
+
 if __name__ == "__main__":
     # Load chunks and stored IDs if available
     chunks = load_from_file(CHUNKS_FILE)
