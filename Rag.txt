@@ -1,3 +1,100 @@
+import streamlit as st
+import chromadb
+import httpx
+from openai import AzureOpenAI
+from langchain.embeddings import SentenceTransformerEmbeddings
+
+# ✅ 1️⃣ Initialize ChromaDB Connection
+chroma_client = chromadb.PersistentClient(path="chroma_db")
+collection = chroma_client.get_or_create_collection(name="pdf_documents")
+
+# ✅ 2️⃣ Load Embedding Model
+model_path = "path/to/Sentence_model_transformer"
+sentence_transformer_ef = SentenceTransformerEmbeddings(model_name=model_path)
+
+# ✅ 3️⃣ Function to Retrieve Relevant Chunks
+def retrieve_relevant_chunks(query, top_k=3):
+    """Retrieves the most relevant chunks from ChromaDB."""
+    results = collection.query(
+        query_texts=[query],
+        n_results=top_k,
+        include=["documents", "metadatas", "distances"]
+    )
+
+    retrieved_chunks = []
+    for doc, meta, dist in zip(results["documents"][0], results["metadatas"][0], results["distances"][0]):
+        retrieved_chunks.append({
+            "document": doc,
+            "metadata": meta,
+            "distance": dist
+        })
+
+    return retrieved_chunks
+
+# ✅ 4️⃣ Function to Generate AI Response
+def generate_response(query, context):
+    """Generates AI response using retrieved context."""
+    prompt = f"""
+    {context}
+
+    Query: {query}
+
+    Please provide the sources, extracted pages, and procedure used.
+    """
+
+    client = AzureOpenAI(
+        api_version="AZURE_ADAT_API_VERSION",
+        azure_endpoint="APIGEE_ENDPOINT",
+        api_key="FAKE_KEY",
+        http_client=httpx.Client(verify=False)
+    )
+
+    with httpx.Client(verify=False) as http_client:
+        completion = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are an AI assistant."},
+                {"role": "user", "content": prompt},
+            ]
+        )
+
+    return completion.choices[0].message.content
+
+# ✅ 5️⃣ Streamlit UI
+st.title("📄 AI PDF Chatbot (ChromaDB + GPT-4o)")
+st.write("Ask questions about your stored PDFs!")
+
+query = st.text_input("🔍 Enter your query:")
+if st.button("Search"):
+    if query.strip():
+        # 🔍 Retrieve relevant chunks
+        relevant_chunks = retrieve_relevant_chunks(query)
+
+        if not relevant_chunks:
+            st.warning("No relevant chunks found!")
+        else:
+            # 📌 Display Retrieved Chunks
+            st.subheader("📖 Retrieved Chunks:")
+            for res in relevant_chunks:
+                st.markdown(f"**Source:** {res['metadata']['source']}")
+                st.text_area("Chunk:", res["document"], height=100)
+
+            # 🤖 Generate AI Response
+            context = "\n".join([res["document"] for res in relevant_chunks])
+            response = generate_response(query, context)
+
+            # 💬 Display AI Response
+            st.subheader("🤖 AI Response:")
+            st.write(response)
+    else:
+        st.error("Please enter a query!")
+
+
+
+
+
+
+
 import chromadb
 
 # Connect to ChromaDB
