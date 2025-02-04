@@ -1,3 +1,29 @@
+if __name__ == "__main__":
+    # Load chunks and stored IDs if available
+    chunks = load_from_file(CHUNKS_FILE)
+    stored_ids = load_from_file(STORED_IDS_FILE) or set()
+
+    if chunks is None:
+        print("Processing and saving chunks...")
+        chunks = load_and_chunk_pdf(PDF_DIRECTORY)
+        save_to_file(chunks, CHUNKS_FILE)
+
+    if not stored_ids:  # If no stored IDs, store the chunks
+        print("Storing chunks in ChromaDB for the first time...")
+        store_chunks_in_chroma(chunks)
+        stored_ids = set(collection.get()["ids"])  # Store IDs of inserted chunks
+        save_to_file(stored_ids, STORED_IDS_FILE)
+    else:
+        print("Chunks already stored. Skipping ChromaDB insertion.")
+
+    # Launch chatbot
+    rag_chatbot()
+
+
+
+
+
+
 def store_chunks_in_chroma(chunks: List[Document]):
     """Stores chunks in ChromaDB, avoiding duplicates using stored IDs."""
 
