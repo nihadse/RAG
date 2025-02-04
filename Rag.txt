@@ -1,3 +1,17 @@
+# ✅ Streamlit Chatbot UI
+st.title("🤖 RAG Chatbot with ChromaDB & Azure OpenAI")
+
+query = st.text_input("🔍 Enter your question:")
+
+if query:
+    st.subheader("🤖 AI Response:")
+    response = rag_chatbot(query)
+    st.write(response)
+
+
+
+
+
 import chromadb
 
 try:
