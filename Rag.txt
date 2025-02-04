@@ -1,3 +1,16 @@
+import chromadb
+
+try:
+    chroma_client = chromadb.PersistentClient(path="chroma_db")
+    collection = chroma_client.get_or_create_collection(name="pdf_documents")
+    print("✅ ChromaDB connected successfully!")
+except Exception as e:
+    print("❌ ChromaDB connection failed:", str(e))
+
+
+
+
+
 import streamlit as st
 import chromadb
 import httpx
