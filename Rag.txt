@@ -2,6 +2,32 @@ import pickle
 import os
 
 CHUNKS_FILE = "chunks.pkl"
+STORED_IDS_FILE = "stored_ids.pkl"
+
+def save_to_file(data, file_path):
+    """Generic function to save data to a pickle file."""
+    with open(file_path, "wb") as f:
+        pickle.dump(data, f)
+
+def load_from_file(file_path):
+    """Generic function to load data from a pickle file if it exists."""
+    if os.path.exists(file_path):
+        with open(file_path, "rb") as f:
+            return pickle.load(f)
+    return None
+
+
+
+
+
+
+
+
+
+import pickle
+import os
+
+CHUNKS_FILE = "chunks.pkl"
 
 def save_chunks_to_file(chunks):
     """Saves chunks to a pickle file."""
