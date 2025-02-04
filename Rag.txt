@@ -1,3 +1,97 @@
+import chromadb
+import httpx
+import streamlit as st
+
+# ✅ Connect to ChromaDB
+CHROMA_DB_PATH = "chroma_db"
+chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
+collection = chroma_client.get_or_create_collection(name="pdf_documents")
+
+# ✅ Azure OpenAI Configuration
+AZURE_OPENAI_ENDPOINT = "YOUR_AZURE_OPENAI_ENDPOINT"
+AZURE_API_KEY = "YOUR_AZURE_API_KEY"
+AZURE_API_VERSION = "2023-12-01-preview"
+HEADERS = {
+    "Authorization": f"Bearer {AZURE_API_KEY}",
+    "Content-Type": "application/json"
+}
+
+# ✅ Retrieve Relevant Chunks from ChromaDB
+def retrieve_relevant_chunks(query, top_k=3):
+    results = collection.query(
+        query_texts=[query],
+        n_results=top_k,
+        include=["documents", "metadatas"]
+    )
+
+    relevant_chunks = []
+    for doc, meta in zip(results["documents"][0], results["metadatas"][0]):
+        relevant_chunks.append(f"{doc} (Source: {meta['source']})")
+
+    return "\n".join(relevant_chunks)
+
+# ✅ Generate Conversational Response using Azure OpenAI
+def generate_response(chat_history):
+    prompt = "This is a conversation. Use the provided document context to answer accurately.\n\n"
+    
+    for msg in chat_history:
+        role = "User" if msg["role"] == "user" else "Assistant"
+        prompt += f"{role}: {msg['content']}\n"
+
+    prompt += "Assistant:"
+
+    payload = {
+        "model": "gpt-4-turbo",
+        "messages": [{"role": "system", "content": "You are an AI assistant that keeps track of conversations."},
+                     {"role": "user", "content": prompt}]
+    }
+
+    try:
+        response = httpx.post(f"{AZURE_OPENAI_ENDPOINT}/openai/deployments/gpt-4-turbo/chat/completions",
+                              headers=HEADERS, json=payload, timeout=10)
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"]
+    except Exception as e:
+        return f"❌ Error: {str(e)}"
+
+
+# ✅ Streamlit Conversational Chatbot
+st.title("💬 Conversational RAG Chatbot with ChromaDB & Azure OpenAI")
+
+# ✅ Initialize session state for chat history
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+# ✅ User Input
+query = st.chat_input("Type your message...")
+
+if query:
+    # ✅ Retrieve relevant chunks
+    relevant_chunks = retrieve_relevant_chunks(query)
+
+    # ✅ Add user message to chat history
+    st.session_state.chat_history.append({"role": "user", "content": query})
+
+    # ✅ Generate response with full conversation history
+    response = generate_response(st.session_state.chat_history)
+
+    # ✅ Add AI response to chat history
+    st.session_state.chat_history.append({"role": "assistant", "content": response})
+
+# ✅ Display Chat History
+for msg in st.session_state.chat_history:
+    if msg["role"] == "user":
+        st.chat_message("user").write(msg["content"])
+    else:
+        st.chat_message("assistant").write(msg["content"])
+
+
+
+
+
+
+
+
 # ✅ Streamlit Chatbot UI
 st.title("🤖 RAG Chatbot with ChromaDB & Azure OpenAI")
 
