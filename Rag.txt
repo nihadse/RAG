@@ -1,3 +1,23 @@
+import chromadb
+
+# Connect to ChromaDB
+chroma_client = chromadb.PersistentClient(path="chroma_db")
+collection = chroma_client.get_collection(name="pdf_documents")
+
+# Retrieve stored document count
+stored_data = collection.get()
+print(f"✅ ChromaDB contains {len(stored_data['documents'])} stored chunks.")
+
+# Preview some stored documents
+if stored_data["documents"]:
+    print("\n🔹 Sample stored document:\n", stored_data["documents"][:1])
+else:
+    print("⚠️ No stored data found. You may need to reprocess PDFs.")
+
+
+
+
+
 import streamlit as st
 import chromadb
 from chromadb.utils import embedding_functions
