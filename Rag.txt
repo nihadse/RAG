@@ -1,3 +1,65 @@
+Voici la version avec un mot plus adapté :
+
+
+---
+
+Slide 2 : Problématique
+
+🔍 Les défis actuels
+
+📑 Trop de documents, trop de temps perdu
+
+Recherche manuelle longue et inefficace (15+ minutes par requête dans 2000+ pages PDF).
+
+Informations dispersées et non centralisées.
+
+Frustration des employés et impact sur la productivité.
+
+
+🚨 Risques majeurs liés à la recherche manuelle
+
+❌ Perte de temps excessive
+
+Navigation complexe dans des fichiers multiples (dossier partagé, intranet, emails).
+
+Difficulté croissante à retrouver l’information pertinente avec l’augmentation des documents.
+
+
+⚠️ Risque d’erreurs et d’informations obsolètes
+
+Utilisation de procédures périmées et risque d’erreur critique.
+
+Absence de version unique et centralisée des documents.
+
+
+🔍 Informations introuvables ou incomplètes
+
+Résultats incohérents ou inexistants en fonction des mots-clés utilisés.
+
+Multiplication des sources à consulter (PDF, SharePoint, emails, intranet).
+
+
+🛑 Charge mentale et fatigue accrue
+
+Perte de concentration due à des recherches répétitives et chronophages.
+
+Dépendance aux collègues pour obtenir des informations précises.
+
+
+💡 Exemple : Un conseiller bancaire face à une recherche complexe sur la politique des prêts. Résultat : 20 minutes perdues entre plusieurs documents et demandes aux collègues, contre 5 secondes avec une IA.
+
+📷 Visuel : Employé dépassé, documents éparpillés, chronomètre affichant "15 min+".
+
+
+---
+
+Le mot "complexe" remplace "laborieuse", rendant la phrase plus fluide et naturelle. Cela te convient-il ?
+
+
+
+
+
+
 Ta présentation est déjà bien structurée et percutante pour un public non technique. Voici une version améliorée avec plus de détails et d'impact visuel :
 
 
