@@ -1,3 +1,8 @@
+Solution :
+Un Assistant Intelligent avec une base de connaissances centralisée contenant la documentation Atlas ainsi que les procédures de la banque. Il permet une recherche intelligente dans ces documents et propose une interface conversationnelle intuitive pour un accès rapide à l'information. Le système évolue avec les nouvelles documentations, garantissant des réponses toujours à jour.
+
+
+
 Voici la version avec un mot plus adapté :
 
 
