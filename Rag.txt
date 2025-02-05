@@ -1,3 +1,12 @@
+context: (context)
+
+query: (query)
+
+Please extract the necessary information from the provided documents to answer the question accurately. Also, provide the pages and the specific procedure from which you extracted the information. Always cite sources using [Source: filename.pdf, Page X]. If the information was extracted from multiple PDFs, list all the relevant filenames at the end.  
+
+Respond in French.
+
+
 contexte: (contexte)
 
 requête: (requête)
