@@ -1,3 +1,240 @@
+Ta présentation est déjà bien structurée et percutante pour un public non technique. Voici une version améliorée avec plus de détails et d'impact visuel :
+
+
+---
+
+Slide 1 : Titre
+
+🦸‍♂️ Assistant Intelligent pour la Documentation Technique
+"Posez une question, obtenez une réponse instantanée, appuyée par les documents internes."
+✅ Réduction du temps de recherche
+✅ Accès rapide aux bonnes procédures
+✅ Moins d'erreurs et de frustration
+Visuel : Un employé posant une question à un chatbot avec une réponse instantanée liée à un document
+
+
+---
+
+Slide 2 : Problématique
+
+🔍 Les défis actuels
+📑 Trop de documents, trop de temps perdu
+
+Les équipes passent 15+ minutes par recherche dans 2000+ pages PDF
+
+Informations dispersées, pas toujours à jour
+
+Frustration des employés + impact sur la productivité
+
+
+🚨 Risques
+
+Utilisation de procédures obsolètes → erreurs critiques
+
+Apprentissage difficile pour les nouveaux employés
+
+Temps perdu = coûts cachés pour l’entreprise
+
+
+💡 Imaginez : Un technicien doit trouver comment redémarrer un serveur… Il passe 20 minutes à chercher alors qu’une IA aurait répondu en 10 secondes.
+
+Visuel : Chronomètre affichant "15 min" + icône d’un employé cherchant dans des fichiers
+
+
+---
+
+Slide 3 : Solution en image
+
+🤖 Notre Assistant Intelligent
+
+🏛️ Base de connaissances centralisée
+
+🔍 Recherche intelligente sur les documents
+
+💬 Interface conversationnelle intuitive
+
+🛠️ Système qui évolue avec les nouvelles documentations
+
+
+📌 C’est comme un Google interne, conçu pour nos documents techniques.
+
+📷 Visuel : Un diagramme avec [Documents PDF] → [Base de Connaissance IA] → [Chatbot] → [Réponse pertinente]
+
+
+---
+
+Slide 4 : Fonctionnement simplifié (3 étapes)
+
+🔧 Sous le capot, un assistant ultra-performant
+
+1️⃣ Bibliothèque Numérique
+
+Regroupe, classe et met à jour les documents automatiquement
+
+📚 Un bibliothécaire digital
+
+
+2️⃣ Moteur de Recherche Intelligent
+
+Analyse les intentions derrière les questions
+
+🧠 Comme un expert qui comprend vraiment votre besoin
+
+
+3️⃣ Expert Virtuel
+
+Génère des réponses claires avec références aux documents sources
+
+🎯 Transparence totale : toujours une source vérifiable
+
+
+📷 Infographie illustrant les trois étapes avec des icônes
+
+
+---
+
+Slide 5 : Processus Visuel
+
+🔄 Flux de Travail en un coup d'œil
+
+📑 [Documents PDF] → 📥 [Extraction et indexation] → 🤖 [IA Recherche] → 💬 [Interface Chat] → ✅ [Réponse avec sources]
+
+📌 Chaque réponse est accompagnée d’un lien direct vers la source.
+
+📷 Diagramme avec des flèches montrant le parcours d’une requête utilisateur
+
+
+---
+
+Slide 6 : Avantages Concrets
+
+🚀 Pourquoi c’est révolutionnaire ?
+
+⏱️ Gain de temps massif
+
+70% de temps économisé par rapport à une recherche manuelle
+
+
+✅ Fiabilité garantie
+
+Toutes les réponses sont sourcées et à jour
+
+
+📈 Adoption des procédures facilitée
+
+Moins d’erreurs, meilleure conformité aux processus internes
+
+
+🌱 Scalable et adaptable
+
+Ajout automatique des nouveaux documents sans effort manuel
+
+
+📷 Graphique en bulles mettant en avant ces bénéfices
+
+
+---
+
+Slide 7 : Démo Visuelle
+
+🎥 Cas d’usage concret
+
+Exemple de conversation :
+🔍 Question : "Comment escalader un incident technique ?"
+💬 Réponse IA :
+"Procédure en 3 étapes :
+
+1. Connectez-vous à Atlas
+
+
+2. Remplissez le formulaire X
+
+
+3. Notifiez l’équipe IT via l’email Y
+📌 Source : Procédure_V2.pdf (page 12)"*
+
+
+
+📌 L’IA répond en moins de 2 secondes et donne la source exacte !
+
+📷 Mockup d’interface avec une conversation entre un utilisateur et l’assistant IA
+
+
+---
+
+Slide 8 : Prochaines Étapes
+
+📅 Roadmap d’intégration
+
+🚀 Phase 1 : Déploiement IT (Q3 2024)
+👨‍💻 Test sur les procédures techniques
+
+📑 Phase 2 : Extension aux RH (Q4 2024)
+📋 Gestion des demandes administratives
+
+📡 Phase 3 : Intégration Microsoft Teams (Q1 2025)
+💬 Accessible directement via Teams & intranet
+
+📷 Timeline visuelle avec des jalons clairs
+
+
+---
+
+Slide 9 : Questions & Discussion
+
+💡 Et Maintenant ?
+"Comment voyez-vous cette solution s’intégrer dans vos équipes ?"
+
+📌 Possibilités :
+
+Démonstration en live
+
+Cas d’usage spécifique à votre entreprise
+
+Retours et suggestions
+
+
+📷 Visuel d’une équipe en brainstorming autour d’un écran affichant l’IA en action
+
+
+---
+
+Ajouts Bonus :
+
+📌 Conseils pour renforcer l’impact de la présentation :
+✔ Utiliser des analogies → “C’est un GPS pour nos documents.”
+✔ Montrer un vrai cas d’usage en live
+✔ Illustrer l’économie de temps → “15 min économisées par requête = X heures gagnées par an.”
+✔ Souligner la sécurité → “Données entièrement internes.”
+✔ Storytelling → “Jean, nouveau technicien, cherche une procédure…”
+
+📄 Version imprimable à laisser aux participants :
+
+🗺️ Schéma simplifié de l’architecture
+
+🗣️ Témoignage utilisateur fictif
+
+📊 ROI estimé en temps et argent économisé
+
+
+
+---
+
+Cette version améliore la clarté et l’impact en ajoutant plus d’exemples concrets et visuels. Est-ce que ça correspond à ce que tu voulais ?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import chromadb
 import httpx
 import streamlit as st
