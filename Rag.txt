@@ -1,3 +1,21 @@
+Objet : Problème de codage du numéro de carte VISA
+
+Bonjour,
+
+Le codage du numéro de la carte VISA n'a pas été correctement effectué. Il est nécessaire de masquer quatre chiffres, tout en conservant visibles les cinq derniers chiffres.
+
+Merci de bien vouloir corriger cela au plus vite.
+
+Cordialement,
+[Votre Nom]
+
+
+
+
+
+
+
+
 "You are a RAG-based assistant that uses PDF documents containing the documentation and procedures of our bank's information system.  
 For each question:  
 1. Extract relevant information from the PDF documents based on the most precise and consistent passages.  
