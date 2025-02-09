@@ -1,3 +1,8 @@
+perspective" vs. "perception." Here's
+
+
+
+
 # Fetch all documents and their metadata
 results = collection.get(include=["metadatas"])
 
