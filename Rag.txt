@@ -1,4 +1,21 @@
-Objet : Problème de codage du numéro de carte VISA
+# Fetch all documents and their metadata
+results = collection.get(include=["metadatas"])
+
+# Extract filenames from metadata
+filenames = list(set([metadata["source"] for metadata in results["metadatas"]]))
+
+# Print the list of filenames
+print("All documents in the collection:")
+for filename in filenames:
+    print(f"- {filename}")
+
+
+
+
+
+
+
+.Objet : Problème de codage du numéro de carte VISA
 
 Bonjour,
 
