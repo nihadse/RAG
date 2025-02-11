@@ -1,3 +1,158 @@
+import streamlit as st
+import httpx
+from openai import AzureOpenAI
+
+# Initialize Azure OpenAI client
+client = AzureOpenAI(
+    api_version="AZURE_API_VERSION",  # Replace with your Azure API version
+    azure_endpoint="AZURE_ENDPOINT",  # Replace with your Azure endpoint
+    api_key="AZURE_API_KEY",  # Replace with your Azure API key
+    http_client=httpx.Client(verify=False)
+)
+
+# Initialize session state for chat history
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+# Function to generate queries
+def generate_queries(original_query, num_queries=5):
+    prompt = f"""
+    You are an AI Language Model assistant. Your task is to generate {num_queries} different versions of the given user question to retrieve relevant documents from a vector database. By generating multiple perspectives on the user question, your goal is to help the user overcome some of the limitations of distance-based similarity search.
+
+    Provide these alternative questions separated by newlines. Original Query: {original_query}
+    """
+    
+    completion = client.chat.completions.create(
+        model="gpt-4",  # Replace with your model name
+        messages=[
+            {"role": "system", "content": "You are a query generation assistant."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    queries = completion.choices[0].message.content.strip().split("\n")
+    return queries[:num_queries]
+
+# Function to retrieve relevant chunks (placeholder - implement your actual retrieval)
+def retrieve_relevant_chunks(query, top_k=10):
+    # This should be replaced with your actual vector DB retrieval logic
+    return [{"document": "Sample document text", "metadata": {"source": "doc.pdf", "page": 1}}]
+
+# Function to generate response
+def generate_response(query, context):
+    prompt = f"""
+    Context: {context}\n\nQuery: {query}\n\nAnswer the query based on the provided facts. 
+    Extract the information and provide the pages and the procedure you have used to extract the information. 
+    ALWAYS cite the page and the document using (source: filename.pdf, Page x). 
+    Respond in French.
+    """
+    
+    completion = client.chat.completions.create(
+        model="gpt-4",  # Replace with your model name
+        messages=[
+            {"role": "system", "content": "You are an assistant based on RAG (Retrieval-Augmented Generation)."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return completion.choices[0].message.content
+
+# Streamlit app layout
+st.title("Chat with Documents 💬")
+
+# CSS for chat interface
+st.markdown("""
+<style>
+.chat-container {
+    height: 500px;
+    overflow-y: auto;
+    border: 1px solid #e1e4e8;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+}
+
+.user-message {
+    background-color: #007bff;
+    color: white;
+    border-radius: 15px;
+    padding: 10px 15px;
+    margin: 10px 0;
+    max-width: 80%;
+    float: right;
+    clear: both;
+}
+
+.bot-message {
+    background-color: #e9ecef;
+    color: black;
+    border-radius: 15px;
+    padding: 10px 15px;
+    margin: 10px 0;
+    max-width: 80%;
+    float: left;
+    clear: both;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Chat container
+chat_placeholder = st.empty()
+
+# Input form at bottom
+with st.form("chat_form"):
+    col1, col2 = st.columns([5, 1])
+    user_input = col1.text_input("Type your message:", key="input", label_visibility="collapsed")
+    send_button = col2.form_submit_button("Send")
+
+# Handle user input
+if send_button and user_input.strip():
+    # Add user message to history
+    st.session_state.chat_history.append({"role": "user", "content": user_input})
+    
+    # Retrieve relevant information
+    relevant_chunks = retrieve_relevant_chunks(user_input)
+    
+    # Generate AI response
+    try:
+        bot_response = generate_response(user_input, relevant_chunks)
+        st.session_state.chat_history.append({"role": "assistant", "content": bot_response})
+    except Exception as e:
+        st.session_state.chat_history.append({"role": "assistant", "content": f"Error: {str(e)}"})
+    
+    # Rerun to update display
+    st.rerun()
+
+# Display chat history
+with chat_placeholder.container():
+    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+    
+    for message in st.session_state.chat_history:
+        if message["role"] == "user":
+            st.markdown(f'<div class="user-message">You: {message["content"]}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="bot-message">Assistant: {message["content"]}</div>', unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# Auto-scroll to bottom using JavaScript
+st.markdown("""
+<script>
+window.addEventListener('load', function() {
+    const chatContainer = document.querySelector('.chat-container');
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+});
+</script>
+""", unsafe_allow_html=True)
+
+
+
+
+
+
+
+
+
+
 perspective" vs. "perception." Here's
 
 
