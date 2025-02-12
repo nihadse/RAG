@@ -1,3 +1,39 @@
+from langchain.document_loaders import PyPDFDirectoryLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+def load_and_chunk_pdf(pdf_directory, output_file="output.txt"):
+    # Load PDFs from the directory
+    loader = PyPDFDirectoryLoader(pdf_directory)
+    documents = loader.load()
+
+    # Split text into chunks
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200,
+        length_function=len,
+        add_start_index=True
+    )
+
+    chunks = text_splitter.split_documents(documents)
+
+    # Save extracted text into a file
+    with open(output_file, "w", encoding="utf-8") as f:
+        for chunk in chunks:
+            f.write(chunk.page_content + "\n\n")  # Ensure separation between chunks
+
+    return chunks  # Returning chunks if needed for further processing
+
+# Example usage
+pdf_directory = "path/to/your/pdf/folder"  # Change this to your actual path
+output_file = "extracted_text.txt"
+chunks = load_and_chunk_pdf(pdf_directory, output_file)
+
+print(f"Extracted text saved to {output_file}")
+
+
+
+
+
 import PyPDF2
 
 def extract_text_pypdf2(pdf_path):
