@@ -1,3 +1,16 @@
+import PyPDF2
+
+def extract_text_pypdf2(pdf_path):
+    with open(pdf_path, "rb") as file:
+        reader = PyPDF2.PdfReader(file)
+        text = "\n".join(page.extract_text() for page in reader.pages if page.extract_text())
+    return text
+
+pdf_text = extract_text_pypdf2("example.pdf")
+print(pdf_text)
+
+
+
 import streamlit as st
 import httpx
 from openai import AzureOpenAI
