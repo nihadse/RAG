@@ -1,3 +1,12 @@
+Bonjour,
+
+J'ai besoin d'accéder au dépôt pour y déposer des fichiers. Pouvez-vous m'accorder les autorisations nécessaires ?
+
+Merci d'avance.
+
+
+
+
 Objet : Demande d'accès en lecture et écriture au dépôt F
 
 Bonjour [Nom],
