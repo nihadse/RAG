@@ -1,1 +1,8 @@
+Bonjour [Nom],
+
+Dans le cadre du projet Decad AI, j’ai besoin d’un accès éditeur au dépôt F afin d’ajouter et supprimer des fichiers pour mon cas d’utilisation. Pouvez-vous me l’accorder ? Merci d’avance.
+
+Cordialement,
+Nihad Senhadji
+
 
