@@ -1,3 +1,15 @@
+Objet : Demande d'accès en lecture et écriture au dépôt F
+
+Bonjour [Nom],
+
+Dans le cadre du projet Decad AI, j’ai besoin d’un accès en lecture et écriture au dépôt F afin de gérer les fichiers nécessaires à mon cas d’utilisation. Pouvez-vous me l’accorder ? Merci d’avance.
+
+Cordialement,
+Nihad Senhadji
+
+
+
+
 Bonjour [Nom],
 
 Dans le cadre du projet Decad AI, j’ai besoin d’un accès éditeur au dépôt F afin d’ajouter et supprimer des fichiers pour mon cas d’utilisation. Pouvez-vous me l’accorder ? Merci d’avance.
