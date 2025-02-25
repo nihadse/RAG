@@ -1,3 +1,29 @@
+def generate_response(query, context):
+    # Extract unique sources from the context
+    sources = list(set([chunk["metadata"]["source"] for chunk in context]))
+    
+    # Create a prompt that asks for sources
+    prompt = f"Context: {context}\n\nQuery: {query}\n\nAnswer the query based on ALL the provided files. Please provide the pages and the procedure you have extracted the information from. Always cite the page and the document using [Source: filename.pdf, Page X]. If you have extracted information from another PDF, add the PDF name after giving the answer. Respond in French. Additionally, list all the sources you used: {', '.join(sources)}."
+    
+    client = AzureOpenAI(
+        api_version="AZURE_AOAI_API_VERSION",
+        azure_endpoint="APIGEE_ENDPOINT",
+        api_key="FAKE_KEY",
+        http_client=httpx.Client(auth=auth, verify=False))
+    
+    with httpx.Client(verify=False) as http_client:
+        completion = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are an assistant based on RAG (Retrieval-Augmented Generation). Use ALL the provided documents to answer the query."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+    
+    return completion.choices[0].message.content
+
+
+
 Bonjour,
 
 J'ai besoin d'accéder au dépôt pour y déposer des fichiers. Pouvez-vous m'acco
