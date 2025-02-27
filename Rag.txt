@@ -1,3 +1,15 @@
+Bonjour [Nom du destinataire],
+
+Je vous informe que tous les fichiers ont été déposés dans le répertoire X. N’hésitez pas à me faire savoir si vous avez besoin de quoi que ce soit.
+
+Cordialement,
+Nihad
+
+
+
+
+
+
 def generate_response(query, context):
     # Extract unique sources from the context
     sources = list(set([chunk["metadata"]["source"] for chunk in context]))
