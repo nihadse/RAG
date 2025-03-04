@@ -1,3 +1,9 @@
+DateTimeFormat(DateTimeParse([YourColumn], "%d-%b-%Y"), "%d-%m-%Y")
+
+
+
+
+
 Objet : Correction du format de la date d’expiration
 
 Bonjour [Nom du destinataire],
