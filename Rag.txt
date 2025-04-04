@@ -1,52 +1,23 @@
-Objet : Demande de RIB
+import openai
+import os
 
-Madame/Monsieur [Nom],
+# Disable SSL verification (use with caution!)
+os.environ["REQUESTS_CA_BUNDLE"] = ""
+openai.verify_ssl_certs = False
 
-Je vous prie de bien vouloir me transmettre le RIB de mon compte à vue. Merci par avance pour votre retour.
-
-Cordialement,
-Nihad Senhadji
-
-
-
-
-Objet : Re: Fichier DECAD - Février 2025
-
-Bonjour,
-
-Les résultats du mois de février 2025 sont disponibles sur le SharePoint indiqué.
-
-Cordialement,
-Nihed
+# Test the embedding
+openai.Embedding.create(input="test", model="text-embedding-3-small")
 
 
+pip install --upgrade certifi
 
 
-Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(
-[YourColumn], "-Jan-", "-01-"), "-Feb-", "-02-"), "-Mar-", "-03-"), "-Apr-", "-04-"),
-"-May-", "-05-"), "-Jun-", "-06-"), "-Jul-", "-07-"), "-Aug-", "-08-"), "-Sep-", "-09-"),
-"-Oct-", "-10-"), "-Nov-", "-11-"), "-Dec-", "-12-")Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(
-[YourColumn], "-Jan-", "-01-"), "-Feb-", "-02-"), "-Mar-", "-03-"), "-Apr-", "-04-"),
-"-May-", "-05-"), "-Jun-", "-06-"), "-Jul-", "-07-"), "-Aug-", "-08-"), "-Sep-", "-09-"),
-"-Oct-", "-10-"), "-Nov-", "-11-"), "-Dec-", "-12-")
+import tiktoken
+
+# Replace with your local path Manually download the cl100k_base.tiktoken file from a trusted network and load it locally:
 
 
-
-
-DateTimeFormat(DateTimeParse([YourColumn], "%d-%b-%Y"), "%d-%m-%Y")
-
-
-
-
-
-Objet : Correction du format de la date d’expiration
-
-Bonjour [Nom du destinataire],
-
-Le format de la date d’expiration n’est pas le même que les mois précédents. Il était en chiffres et non en lettres. S’il te plaît, peux-tu le corriger en suivant le même format de colonnes avant de me le renvoyer ?
-
-Merci par avance pour ton aide.
-
-Bien cordialement,
-Nihad
-
+encoding = tiktoken.get_encoding(
+    "cl100k_base",
+    pathex_to_tiktoken_encouraged_dir="path/to/local/cl100k_base.tiktoken"
+)
