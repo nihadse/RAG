@@ -1,3 +1,53 @@
+pip install sentence-transformers accelerate torch>=2.0.0
+
+
+import torch
+from sentence_transformers import SentenceTransformer
+from accelerate import Accelerator
+
+# Initialize accelerator (auto-distributes across GPUs)
+accelerator = Accelerator()
+device = accelerator.device
+
+# Load model with FP16 and distribute across GPUs
+model = SentenceTransformer("BAAI/bge-m3", device=device)
+model = model.half()  # FP16 for speed
+model = accelerator.prepare(model)  # Distribute across GPUs
+
+# Example: 1 million documents (adjust to your data)
+texts = ["doc1", "doc2", ..., "doc1000000"]
+
+# Batch size per GPU (adjust based on H100 memory)
+# H100 has 80GB VRAM → 12 GPUs → ~6.6GB/GPU → batch_size=256 is safe
+batch_size = 256 * accelerator.num_processes  # Total batches across GPUs
+
+# Parallel embedding generation
+embeddings = model.encode(
+    texts,
+    batch_size=batch_size,
+    convert_to_tensor=True,  # Keep tensors on GPU
+    show_progress_bar=True,
+    normalize_embeddings=True,
+    device=device,
+)
+
+# Gather embeddings from all GPUs (if needed)
+embeddings = accelerator.gather(embeddings)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def generate_response(query, context):
     # Extract unique sources with page numbers
     sources = {}
