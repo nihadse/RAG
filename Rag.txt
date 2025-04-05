@@ -1,3 +1,24 @@
+def retrieve_relevant_chunks(query, top_k=35):
+    """GPU-accelerated retrieval with proper error handling"""
+    query_embedding = model.encode([query], convert_to_tensor=True)
+    query_embedding = accelerator.gather(query_embedding).cpu().numpy().tolist()
+    
+    results = collection.query(
+        query_embeddings=query_embedding,
+        n_results=top_k,
+        include=["documents", "metadatas", "distances"]
+    )
+    
+    return [
+        {"document": doc, "metadata": meta, "distance": dist}
+        for doc, meta, dist in zip(results["documents"][0],
+                                  results["metadatas"][0],
+                                  results["distances"][0])
+    ]
+
+
+
+
 def retrieve_relevant_chunks(query: str, top_k: int = 35) -> list:
     """Retrieve relevant document chunks using multiple generated queries.
     
