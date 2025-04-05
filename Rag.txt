@@ -1,3 +1,75 @@
+import chromadb
+from chromadb.config import Settings
+from chromadb.utils import embedding_functions
+from accelerate import Accelerator
+import torch
+
+# Initialize Accelerator for multi-GPU
+accelerator = Accelerator()
+device = accelerator.device
+
+# 1. Load BGE-M3 model with GPU acceleration
+model_path = '/domino/edv/modelhub/Model Hub-model-huggingface-BAAI/bge-m3/main'
+model = embedding_functions.SentenceTransformerEmbeddingFunction(
+    model_name=model_path,
+    device=device,
+    normalize_embeddings=True
+).model
+
+# Prepare model for multi-GPU and FP16
+model = model.half().to(device)
+model = accelerator.prepare(model)
+
+# 2. Custom Embedding Function with Accelerator
+class AcceleratedBGEEmbeddingFunction:
+    def __init__(self, model, accelerator):
+        self.model = model
+        self.accelerator = accelerator
+        
+    def __call__(self, texts):
+        with torch.no_grad():
+            inputs = self.model.tokenize(texts)
+            inputs = {k:v.to(self.accelerator.device) for k,v in inputs.items()}
+            outputs = self.model.model(**inputs)
+            embeddings = self.accelerator.gather(outputs.last_hidden_state[:, 0])
+            return embeddings.cpu().numpy()
+
+# 3. Initialize Chroma with Accelerated Embeddings
+chroma_client = chromadb.PersistentClient(
+    path="chroma_db",
+    settings=Settings(allow_reset=True, anonymized_telemetry=False)
+    
+# 4. Create/Get Collection with Proper Configuration
+collection = chroma_client.get_or_create_collection(
+    name="pdf_documents3",
+    metadata={
+        "hnsw:space": "cosine",
+        "hnsw:dimension": 1024  # Must match bge-m3 output
+    },
+    embedding_function=AcceleratedBGEEmbeddingFunction(model, accelerator)
+)
+
+# 5. Usage Example
+documents = ["Document français...", "Another French doc..."]
+collection.add(
+    documents=documents,
+    ids=["1", "2"],
+    metadatas=[{"source": "doc1"}, {"source": "doc2"}]
+)
+
+# Query with GPU acceleration
+results = collection.query(
+    query_texts=["Recherche de documents techniques"],
+    n_results=2
+)
+
+
+
+
+
+
+
+
 pip install sentence-transformers accelerate torch>=2.0.0
 
 
