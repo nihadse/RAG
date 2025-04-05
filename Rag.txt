@@ -1,3 +1,57 @@
+def generate_response(query, context):
+    # Extract unique sources with page numbers
+    sources = {}
+    for chunk in context:
+        source = chunk["metadata"]["source"]
+        page = chunk["metadata"].get("page", "N/A")  # Handle missing page numbers
+        if source not in sources:
+            sources[source] = set()
+        sources[source].add(page)
+    
+    # Format sources string
+    sources_str = "\n".join([
+        f"- [Source: {source}, Pages: {', '.join(sorted(pages))}]"
+        for source, pages in sources.items()
+    ])
+
+    # Improved French prompt with strict formatting
+    prompt = f"""Vous êtes un assistant spécialisé en architecture bancaire. Répondez en français avec:
+1. Une réponse précise basée exclusivement sur les documents fournis
+2. La procédure d'extraction des informations
+3. Les références exactes des documents utilisés
+
+Documents disponibles:
+{context}
+
+Question: {query}
+
+Exigez le format de réponse suivant:
+[Procédure]
+1. J'ai identifié les informations pertinentes dans...
+2. J'ai croisé les données entre...
+3. Conclusion tirée de...
+
+[Sources]
+{sources_str}"""
+
+    client = AzureOpenAI(
+        api_version="AZURE_API_VERSION",
+        azure_endpoint="APIGEE_ENDPOINT",
+        http_client=httpx.Client(verify=False)
+    
+    with httpx.Client(verify=False) as http_client:
+        completion = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Assistant expert en systèmes bancaires français utilisant RAG."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3  # Lower for more factual responses
+        )
+    
+    return completion.choices[0].message.content
+
+
 import openai
 import os
 
