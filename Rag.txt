@@ -4,6 +4,76 @@ from chromadb.utils import embedding_functions
 from accelerate import Accelerator
 import torch
 
+# 1. Initialize Accelerator for multi-GPU
+accelerator = Accelerator()
+device = accelerator.device
+
+# 2. Load BGE-M3 model with GPU acceleration
+model_path = '/domino/edv/modelhub/Model Hub-model-huggingface-BAAI/bge-m3/main'
+model = embedding_functions.SentenceTransformerEmbeddingFunction(
+    model_name=model_path,
+    device=device,
+    normalize_embeddings=True
+).model
+
+# Prepare model for multi-GPU and FP16
+model = model.half().to(device)
+model = accelerator.prepare(model)
+
+# 3. Custom Embedding Function with Chroma 0.4.x+ Compatibility
+class AcceleratedBGEEmbeddingFunction:
+    def __init__(self, model, accelerator):
+        self.model = model
+        self.accelerator = accelerator
+        
+    def __call__(self, input):  # <-- Chroma expects parameter named "input"
+        with torch.no_grad():
+            # Convert input to device and process
+            inputs = self.model.tokenize(input)
+            inputs = {k: v.to(self.accelerator.device) for k, v in inputs.items()}
+            
+            # Forward pass with multi-GPU support
+            outputs = self.model.model(**inputs)
+            
+            # Gather embeddings from all GPUs
+            embeddings = self.accelerator.gather(outputs.last_hidden_state[:, 0])
+            
+            # Convert to numpy and normalize
+            embeddings = embeddings.cpu().numpy()
+            return embeddings.tolist()  # Chroma expects List[List[float]]
+
+# 4. Initialize Chroma Client
+chroma_client = chromadb.PersistentClient(
+    path="chroma_db",
+    settings=Settings(allow_reset=True, anonymized_telemetry=False)
+)
+
+# 5. Create/Get Collection with Correct Configuration
+collection = chroma_client.get_or_create_collection(
+    name="pdf_documents3",
+    metadata={
+        "hnsw:space": "cosine",
+        "hnsw:dimension": 1024  # Must match bge-m3's output size
+    },
+    embedding_function=AcceleratedBGEEmbeddingFunction(model, accelerator)
+)
+
+# Usage example
+collection.add(
+    documents=["Document en français...", "Autre document..."],
+    ids=["1", "2"],
+    metadatas=[{"source": "doc1"}, {"source": "doc2"}]
+)
+\
+
+
+
+import chromadb
+from chromadb.config import Settings
+from chromadb.utils import embedding_functions
+from accelerate import Accelerator
+import torch
+
 # Initialize Accelerator for multi-GPU
 accelerator = Accelerator()
 device = accelerator.device
