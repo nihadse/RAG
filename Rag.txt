@@ -1,3 +1,72 @@
+def retrieve_relevant_chunks(query: str, top_k: int = 35) -> list:
+    """Retrieve relevant document chunks using multiple generated queries.
+    
+    Args:
+        query: Input query in French
+        top_k: Number of results to return after deduplication
+    
+    Returns:
+        List of unique results sorted by relevance
+    """
+    from accelerate import Accelerator
+    import torch
+
+    # Initialize accelerator for multi-GPU consistency
+    accelerator = Accelerator()
+    
+    # Generate multiple query variations
+    generated_queries = generate_queries(query)
+    
+    all_results = []
+    
+    # Process each query variation
+    for q in generated_queries:
+        try:
+            # Query using accelerator-aware collection
+            results = collection.query(
+                query_texts=[q],
+                n_results=top_k * 2,  # Over-fetch to account for deduplication
+                include=["documents", "metadatas", "distances"]
+            )
+            
+            # Process results with GPU-aware tensors
+            with torch.no_grad():
+                for doc, meta, dist in zip(results["documents"][0],
+                                         results["metadatas"][0],
+                                         results["distances"][0]):
+                    all_results.append({
+                        "document": doc,
+                        "metadata": meta,
+                        "distance": accelerator.gather(torch.tensor(dist, device=device))
+                    })
+        
+        except Exception as e:
+            print(f"Error processing query '{q}': {str(e)}")
+            continue
+
+    # Deduplicate and sort using accelerator-aware operations
+    seen_documents = set()
+    unique_results = []
+    
+    # Sort by distance (lower is better)
+    for result in sorted(all_results, key=lambda x: x["distance"].item()):
+        doc_content = result["document"]
+        if doc_content not in seen_documents:
+            seen_documents.add(doc_content)
+            
+            # Convert tensor to Python native type for serialization
+            unique_results.append({
+                "document": doc_content,
+                "metadata": result["metadata"],
+                "score": 1 - result["distance"].cpu().item()  # Convert to similarity score
+            })
+    
+    # Free GPU memory
+    torch.cuda.empty_cache()
+    
+    return unique_results[:top_k]
+
+
 import chromadb
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
