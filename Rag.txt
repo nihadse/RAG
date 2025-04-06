@@ -1,3 +1,105 @@
+from typing import List, Dict, Optional
+import chromadb
+from sentence_transformers import SentenceTransformer
+import torch
+
+class AutoMergeRetriever:
+    def __init__(self, collection_name: str, model_path: str):
+        self.client = chromadb.PersistentClient(path="chroma_db")
+        self.collection = self.client.get_collection(collection_name)
+        self.model = SentenceTransformer(model_path).half().cuda()  # GPU acceleration
+
+    def retrieve(
+        self,
+        query: str,
+        exact_match_field: Optional[str] = None,
+        exact_match_value: Optional[str] = None,
+        top_k: int = 5,
+        boost_exact: float = 2.0,
+        boost_contains: float = 1.5
+    ) -> List[Dict]:
+        """
+        Auto-merging retrieval with exact match prioritization
+        
+        Args:
+            query: Search query
+            exact_match_field: Metadata field for exact matching (e.g., "doc_id")
+            exact_match_value: Value to exactly match (e.g., "DW016")
+            top_k: Number of results to return
+            boost_exact: Score multiplier for exact matches
+            boost_contains: Score multiplier for text containing match value
+        """
+        # Stage 1: Get exact matches if specified
+        exact_results = []
+        if exact_match_field and exact_match_value:
+            exact_results = self.collection.get(
+                where={exact_match_field: {"$eq": exact_match_value}},
+                include=["documents", "metadatas"]
+            )
+        
+        # Stage 2: Semantic search
+        semantic_results = self.collection.query(
+            query_texts=[query],
+            n_results=top_k*3,  # Over-fetch for merging
+            include=["documents", "metadatas", "distances"]
+        )
+        
+        # Merge and re-score results
+        merged = []
+        
+        # Add exact matches with boosted scores
+        if exact_results.get("ids"):
+            for doc, meta in zip(exact_results["documents"], exact_results["metadatas"]):
+                merged.append({
+                    "text": doc,
+                    "metadata": meta,
+                    "score": 1.0 * boost_exact,
+                    "match_type": "exact"
+                })
+        
+        # Add semantic results with conditional boosting
+        for doc, meta, dist in zip(semantic_results["documents"][0],
+                                 semantic_results["metadatas"][0],
+                                 semantic_results["distances"][0]):
+            score = 1 - dist  # Convert distance to similarity
+            
+            # Apply boosts
+            if exact_match_value and exact_match_value in doc:
+                score *= boost_contains
+            if (exact_match_field and exact_match_value and 
+                meta.get(exact_match_field) == exact_match_value):
+                score *= boost_exact
+                
+            merged.append({
+                "text": doc,
+                "metadata": meta,
+                "score": score,
+                "match_type": "semantic"
+            })
+        
+        # De-duplicate and sort
+        seen = set()
+        final_results = []
+        for res in sorted(merged, key=lambda x: x["score"], reverse=True):
+            doc_hash = hash(res["text"][:512])  # First 512 chars as hash
+            if doc_hash not in seen:
+                seen.add(doc_hash)
+                final_results.append(res)
+                if len(final_results) >= top_k:
+                    break
+        
+        return final_results[:top_k]
+
+
+
+
+
+
+
+
+
+
+
 def retrieve_relevant_chunks(query, top_k=35):
     """GPU-accelerated retrieval with proper error handling"""
     query_embedding = model.encode([query], convert_to_tensor=True)
