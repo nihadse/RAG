@@ -1,3 +1,15 @@
+
+# Initialize once (typically at service startup)
+retriever = AutoMergeRetriever(
+    collection_name="your_collection_name",  # Your ChromaDB collection
+    model_path="BAAI/bge-m3"  # or your local path
+)
+
+
+
+
+
+
 from typing import List, Dict, Optional
 import chromadb
 from sentence_transformers import SentenceTransformer
