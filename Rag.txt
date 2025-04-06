@@ -1,3 +1,202 @@
+import chromadb
+import torch
+from typing import List, Dict, Optional
+from chromadb.config import Settings
+from sentence_transformers import SentenceTransformer
+from accelerate import Accelerator
+
+class AutoMergeRetriever:
+    def __init__(self, collection_name: str, model_path: str, persist_dir: str = "chroma_db"):
+        """
+        Initialize retriever with error handling for all components
+        
+        Args:
+            collection_name: Name of ChromaDB collection
+            model_path: Path to SentenceTransformer model
+            persist_dir: Directory for ChromaDB persistence
+        """
+        # Initialize Accelerator for multi-GPU
+        self.accelerator = Accelerator()
+        self.device = self.accelerator.device
+        
+        try:
+            # Initialize ChromaDB client with explicit settings
+            self.client = chromadb.PersistentClient(
+                path=persist_dir,
+                settings=Settings(
+                    anonymized_telemetry=False,
+                    allow_reset=False,
+                    is_persistent=True
+                )
+            )
+            
+            # Verify collection exists
+            if collection_name not in [col.name for col in self.client.list_collections()]:
+                raise ValueError(f"Collection '{collection_name}' not found. Available collections: {[col.name for col in self.client.list_collections()]}")
+                
+            self.collection = self.client.get_collection(collection_name)
+            
+            # Initialize model with GPU support
+            self.model = SentenceTransformer(model_path)
+            self.model = self.model.half().to(self.device)
+            self.model = self.accelerator.prepare(self.model)
+            
+            # Warmup GPU
+            with torch.no_grad():
+                _ = self.model.encode(["warmup"], convert_to_tensor=True)
+                
+            print(f"Retriever initialized successfully on {self.device}")
+            
+        except Exception as e:
+            raise RuntimeError(f"Initialization failed: {str(e)}")
+
+    def retrieve(
+        self,
+        query: str,
+        exact_match_field: Optional[str] = None,
+        exact_match_value: Optional[str] = None,
+        lang: Optional[str] = None,
+        top_k: int = 5,
+        boost_exact: float = 2.0,
+        boost_contains: float = 1.5
+    ) -> List[Dict]:
+        """
+        Robust retrieval with auto-merging and error handling
+        
+        Args:
+            query: Search query
+            exact_match_field: Metadata field for exact matching
+            exact_match_value: Value to match exactly
+            lang: Language filter (e.g., 'fr', 'en')
+            top_k: Number of results
+            boost_exact: Score multiplier for exact matches
+            boost_contains: Score multiplier for text contains
+        """
+        try:
+            # Build query filters
+            where_filter = {}
+            if exact_match_field and exact_match_value:
+                where_filter[exact_match_field] = {"$eq": exact_match_value}
+            if lang:
+                where_filter["language"] = {"$eq": lang}
+                
+            # Stage 1: Exact matches
+            exact_results = []
+            if exact_match_field and exact_match_value:
+                exact_results = self.collection.get(
+                    where=where_filter,
+                    include=["documents", "metadatas"]
+                )
+            
+            # Stage 2: Semantic search
+            semantic_results = self.collection.query(
+                query_texts=[query],
+                n_results=top_k * 3,
+                where=where_filter if where_filter else None,
+                include=["documents", "metadatas", "distances"]
+            )
+            
+            # Merge results with GPU acceleration
+            with torch.no_grad():
+                # Process exact matches
+                merged = []
+                if exact_results.get("ids"):
+                    for doc, meta in zip(exact_results["documents"], exact_results["metadatas"]):
+                        merged.append({
+                            "text": doc,
+                            "metadata": meta,
+                            "score": 1.0 * boost_exact,
+                            "match_type": "exact"
+                        })
+                
+                # Process semantic matches
+                query_embedding = self.model.encode([query], convert_to_tensor=True)
+                doc_embeddings = self.model.encode(
+                    semantic_results["documents"][0],
+                    batch_size=512,
+                    convert_to_tensor=True
+                )
+                
+                scores = torch.nn.functional.cosine_similarity(
+                    query_embedding,
+                    doc_embeddings
+                )
+                
+                for idx, (doc, meta) in enumerate(zip(
+                    semantic_results["documents"][0],
+                    semantic_results["metadatas"][0]
+                )):
+                    score = scores[idx].item()
+                    
+                    # Apply boosts
+                    if exact_match_value and exact_match_value in doc:
+                        score *= boost_contains
+                    if (exact_match_field and exact_match_value and 
+                        meta.get(exact_match_field) == exact_match_value):
+                        score *= boost_exact
+                        
+                    merged.append({
+                        "text": doc,
+                        "metadata": meta,
+                        "score": score,
+                        "match_type": "semantic"
+                    })
+            
+            # Deduplicate and sort
+            seen = set()
+            final_results = []
+            for res in sorted(merged, key=lambda x: x["score"], reverse=True):
+                doc_hash = hash(res["text"][:512])  # First 512 chars as hash
+                if doc_hash not in seen:
+                    seen.add(doc_hash)
+                    final_results.append(res)
+                    if len(final_results) >= top_k:
+                        break
+            
+            return final_results[:top_k]
+            
+        except Exception as e:
+            self.accelerator.print(f"Retrieval error: {str(e)}")
+            return []
+
+# Usage Example
+if __name__ == "__main__":
+    try:
+        # Initialize with your settings
+        retriever = AutoMergeRetriever(
+            collection_name="pdf_documents3",
+            model_path="/domino/edv/modelhub/Model Hub-model-huggingface-BAAI/bge-m3/main"
+        )
+        
+        # French document search
+        french_results = retriever.retrieve(
+            query="Où puis-je trouver DW016?",
+            exact_match_field="doc_id",
+            exact_match_value="DW016",
+            lang="fr",
+            boost_exact=3.0
+        )
+        
+        # English fallback
+        english_results = retriever.retrieve(
+            query="Technical specifications",
+            top_k=3
+        )
+        
+        print("French Results:", [r["metadata"] for r in french_results])
+        print("English Results:", [r["text"][:100] for r in english_results])
+        
+    except Exception as e:
+        print(f"Fatal initialization error: {str(e)}")
+
+
+
+
+
+
+
+
+
 
 # Initialize once (typically at service startup)
 retriever = AutoMergeRetriever(
