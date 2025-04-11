@@ -1,3 +1,8 @@
+https://docs.google.com/spreadsheets/d/1wJJrMHGs2WjRZbh0odWm8jSbkQx_dhPkHW-uflAuxYg/edit?fbclid=IwY2xjawJmUZlleHRuA2FlbQIxMAABHuilyz8eRjkA5x-fRt0uQ_DX3utPYvikm1SRco72eyCDIb_ESvY6QbFk0mnr_aem_ob096nmUzHLPC2tKpC_X2w&gid=0#gid=0
+
+
+
+
 import chromadb
 import torch
 from typing import List, Dict, Optional
