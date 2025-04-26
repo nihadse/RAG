@@ -1,3 +1,18 @@
+from sentence_transformers import SentenceTransformer
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
+# Load BGE-M3 model
+bge_model = SentenceTransformer("BAAI/bge-m3")
+
+embeddings = HuggingFaceEmbeddings(
+    model_name="BAAI/bge-m3",
+    model=bge_model,
+    encode_kwargs={"normalize_embeddings": True}
+)
+
+
+
+
 with open("all_documents.txt", "w", encoding="utf-8") as f: f.write("\n\n".join(doc.page_content for doc in docs))
 
 
