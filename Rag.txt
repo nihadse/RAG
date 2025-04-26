@@ -2,6 +2,10 @@ with open("all_documents.txt", "w", encoding="utf-8") as f: f.write("\n\n".join(
 
 
 
+with open("all_documents.txt", "w", encoding="utf-8") as f: f.write("\n\n".join(doc.page_content for doc in docs))
+
+
+
 
 
 
