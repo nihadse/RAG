@@ -1,3 +1,11 @@
+import weaviate
+
+client = weaviate.Client(
+    embedded_options=weaviate.embedded.EmbeddedOptions()
+)
+
+
+
 from sentence_transformers import SentenceTransformer
 import weaviate
 
