@@ -1,3 +1,72 @@
+import httpx
+from azure.identity import DefaultAzureCredential
+
+# Initialize Azure OpenAI client
+import openai
+
+openai.api_type = "azure"
+openai.api_version = "AZURE_ADAI_API_VERSION"  # <- Replace with your version
+openai.api_base = "APIGEE_ENDPOINT"             # <- Replace with your endpoint
+openai.api_key = "FAKE_KEY"                      # <- Replace with your key
+
+def prepare_response(query, context, chat_history):
+    # 1. Extract sources
+    sources = list(set([chunk["metadata"]["source"] for chunk in context]))
+    sources_list = "\n".join(sources)
+    
+    # 2. Prepare context text
+    context_text = "\n\n".join([chunk["content"] for chunk in context])
+
+    # 3. Prepare chat history text
+    chat_history_text = ""
+    if chat_history:
+        chat_history_text = "\n".join([f"Q: {q}\nA: {a}" for q, a in chat_history])
+    
+    # 4. Build the prompt
+    prompt = f"""Vous êtes un assistant expert en documentation de base de données bancaire.
+Votre objectif est de fournir des informations précises et spécifiques sur l'emplacement des données dans le système de base de données de la banque.
+
+Informations contextuelles issues de la documentation de la base de données ci-dessous:
+{context_text}
+
+Compte tenu des informations contextuelles et de la question, fournissez une réponse détaillée qui indique clairement:
+1. La ou les table(s) exacte(s) où se trouvent les données demandées
+2. Les noms spécifiques des colonnes
+3. Les relations avec d'autres tables
+4. Les types de données et les contraintes si pertinent
+
+Important: À la fin de votre réponse, indiquez clairement les sources d'où proviennent ces informations en listant les noms des fichiers PDF sources suivants:
+{sources_list}
+
+Soyez précis et technique. Si les informations ne peuvent pas être trouvées dans le contexte, reconnaissez-le clairement. N'inventez pas d'informations sur les noms de tables ou les structures.
+
+Historique de la conversation:
+{chat_history_text}
+
+Question:
+{query}
+"""
+
+    # 5. Call Azure OpenAI
+    response = openai.ChatCompletion.create(
+        engine="YOUR_DEPLOYMENT_NAME",  # <- Replace with your model deployment name
+        messages=[
+            {"role": "system", "content": "You are an assistant based on RAG (Retrieval-Augmented Generation)."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.5
+    )
+    
+    # 6. Return the generated text
+    return response['choices'][0]['message']['content']
+
+
+
+
+
+
+
+
 from sentence_transformers import SentenceTransformer
 import chromadb
 
