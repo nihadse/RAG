@@ -1,3 +1,79 @@
+def extract_source_files(documents):
+    """Extract source files from document metadata"""
+    sources = []
+    for doc in documents:
+        if "source_file" in doc.metadata:
+            sources.append(doc.metadata["source_file"])
+        elif "source" in doc.metadata:
+            sources.append(doc.metadata["source"])
+    return list(set(sources))
+
+def process_query(query: str):
+    """Process a user query by generating alternatives and picking the best answer."""
+    alt_queries = generate_alternative_queries(query)
+    all_results = []
+    
+    for q in alt_queries:
+        res = rag_chain({"question": q, "chat_history": retriever.chat_history})  # Change here
+        all_results.append(res)
+    
+    # Pick best result (optional: here just pick the one with the longest answer)
+    best_result = max(all_results, key=lambda x: len(x['source_documents']))
+    answer, sources = best_result['answer'], best_result['source_documents']
+    
+    # Generate additional context
+    explanation = generate_answer_explanation(query, answer, sources)
+    commentary = generate_technical_commentary(query, answer)
+    evaluation = evaluate_rag_response(query, answer, sources)
+    
+    # Add source files if needed
+    source_files = extract_source_files(sources)
+    if source_files and "Sources:" not in answer:
+        answer += f"\n\nSources: {', '.join(source_files)}"
+
+    # Update chat history
+    retriever.update_history(query, answer)
+    retriever.save_history()
+    
+    return {
+        'answer': answer,
+        'sources': sources,
+        'source_files': source_files,
+        'explanation': explanation,
+        'commentary': commentary,
+        'evaluation': evaluation
+    }
+
+def submit_feedback(query, answer, rating, comment=None):
+    """Submit user feedback for a response."""
+    return feedback_tracker.save_feedback(query, answer, rating, comment)
+
+# Usage example
+user_query = "Dans quelle table puis-je trouver les informations sur les transactions clients ?"
+result = process_query(user_query)
+
+print('Réponse:', result['answer'])
+print('\nExplication:', result['explanation'])
+print('\nCommentaire technique:', result['commentary'])
+print('\nÉvaluation:', result['evaluation'])
+print('\nSources des documents:', result['source_files'])
+
+# Example feedback
+# submit_feedback(user_query, result['answer'], 5, "Excellente réponse!")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import json
 import datetime
 
