@@ -1,3 +1,32 @@
+from sentence_transformers import SentenceTransformer
+import chromadb
+
+# Step 1: Correct embedding function
+embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+def embed_function(texts):
+    return embedding_model.encode(texts, normalize_embeddings=True).tolist()
+
+# Step 2: Connect Chroma
+chroma_client = chromadb.Client()
+
+# Step 3: Get or create collection
+collection = chroma_client.get_collection(
+    "your_collection_name",
+    embedding_function=embed_function
+)
+
+# Step 4: Now you can use collection.query() without any error!
+results = collection.query(
+    query_texts=["example query"],
+    n_results=5,
+    include=["documents"]
+)
+
+print(results)
+
+
+
 from rank_bm25 import BM25Okapi
 import json
 import datetime
