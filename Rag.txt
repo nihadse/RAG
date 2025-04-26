@@ -1,3 +1,110 @@
+import json
+import datetime
+
+def evaluate_rag_response(query, answer, retrieved_docs, feedback=None):
+    """
+    Evaluate the quality of a RAG (Retrieval-Augmented Generation) response based on various metrics.
+    """
+    evaluation = {}
+
+    # 1. Document relevance score - Compare query with retrieved documents
+    query_tokens = set(query.lower().split())
+    relevant_docs = 0
+
+    for doc in retrieved_docs:
+        doc_tokens = set(doc.page_content.lower().split())
+        overlap = len(query_tokens.intersection(doc_tokens)) / len(query_tokens) if query_tokens else 0
+        if overlap > 0.2:  # Simple relevance threshold
+            relevant_docs += 1
+
+    doc_relevance = relevant_docs / len(retrieved_docs) if retrieved_docs else 0
+    evaluation["document_relevance"] = round(doc_relevance * 10, 2)  # Score out of 10
+
+    # 2. Source diversity - Are we pulling from different sources?
+    sources = set()
+    for doc in retrieved_docs:
+        if "source_file" in doc.metadata:
+            sources.add(doc.metadata["source_file"])
+
+    source_diversity = min(len(sources) / 3, 1.0)  # Normalize to maximum of 1
+    evaluation["source_diversity"] = round(source_diversity * 10, 2)  # Score out of 10
+
+    # 3. Answer relevance - Analyze how well the answer matches the query
+    answer_tokens = set(answer.lower().split())
+    query_answer_overlap = len(query_tokens.intersection(answer_tokens)) / len(query_tokens) if query_tokens else 0
+    evaluation["answer_query_alignment"] = round(query_answer_overlap * 10, 2)  # Score out of 10
+
+    # 4. User feedback score, if available
+    if feedback is not None:
+        evaluation["user_feedback"] = feedback  # Expected to be between 1-5
+
+    # 5. Hallucination risk - Check if answer cites sources properly
+    contains_source_citation = any(keyword in answer.lower() for keyword in ["source", "pdf", "provien", "extract"])
+    evaluation["hallucination_risk"] = "Low" if contains_source_citation else "Medium"
+
+    # Overall score (weighted average)
+    weights = {
+        "document_relevance": 0.4,
+        "source_diversity": 0.3,
+        "answer_query_alignment": 0.3
+    }
+    overall_score = sum(evaluation[key] * weights[key] for key in weights.keys())
+    evaluation["overall_score"] = round(overall_score, 2)  # Score out of 10
+
+    return evaluation
+
+class UserFeedbackTracker:
+    """Track user feedback for RAG responses."""
+    
+    def __init__(self, feedback_file="user_feedback.json"):
+        self.feedback_file = feedback_file
+        self.feedback_history = self._load_feedback()
+
+    def _load_feedback(self):
+        """Load feedback history from a JSON file."""
+        try:
+            with open(self.feedback_file, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return []
+        except Exception as e:
+            print(f"Error loading feedback: {e}")
+            return []
+
+    def save_feedback(self, query, answer, rating, comment=None):
+        """Save new user feedback entry."""
+        feedback_entry = {
+            "timestamp": str(datetime.datetime.now()),
+            "query": query,
+            "answer": answer[:100] + "...",  # Store a shortened version of the answer
+            "rating": rating,
+            "comment": comment
+        }
+
+        self.feedback_history.append(feedback_entry)
+
+        with open(self.feedback_file, 'w') as f:
+            json.dump(self.feedback_history, f, indent=2)
+
+        print(f"Feedback saved. Current rating: {rating}/5")
+        return rating
+
+    def get_average_rating(self):
+        """Calculate the average rating from the stored feedback."""
+        if not self.feedback_history:
+            return None
+
+        ratings = [entry["rating"] for entry in self.feedback_history if "rating" in entry]
+        return sum(ratings) / len(ratings) if ratings else None
+
+# Initialize feedback tracker
+feedback_tracker = UserFeedbackTracker()
+
+
+
+
+
+
 import httpx
 from openai import AzureOpenAI
 
