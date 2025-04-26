@@ -1,3 +1,33 @@
+# Text cleaning function
+def clean_text(text, lowercase=False):
+    """Cleans raw text: removes unwanted characters, extra spaces, fixes multiple dots"""
+    
+    # Remove non-printable characters
+    text = ''.join(filter(lambda x: x in string.printable, text))
+    
+    # Replace multiple consecutive dots (...) with a single dot (.)
+    text = re.sub(r'\.{2,}', '.', text)
+    
+    # Replace multiple line breaks and spaces
+    text = re.sub(r'\n+', '\n', text)  # collapse multiple newlines
+    text = re.sub(r'[ \t]+', ' ', text)  # collapse multiple spaces
+
+    # Remove leading/trailing spaces on each line
+    text = "\n".join(line.strip() for line in text.splitlines())
+    
+    # Remove empty lines
+    text = "\n".join([line for line in text.splitlines() if line.strip() != ""])
+    
+    if lowercase:
+        text = text.lower()
+    
+    return text
+
+
+
+
+
+
 from langchain_community.document_loaders import PyPDFLoader, CSVLoader, UnstructuredExcelLoader
 from langchain.schema import Document
 import os
