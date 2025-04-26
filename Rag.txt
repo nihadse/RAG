@@ -1,4 +1,113 @@
 import httpx
+from openai import AzureOpenAI
+
+# Initialize AzureOpenAI client globally
+client = AzureOpenAI(
+    api_version="AZURE_AOAI_API_VERSION",
+    azure_endpoint="APIGEE_ENDPOINT",
+    api_key="FAKE_KEY",
+    http_client=httpx.Client(verify=False)
+)
+
+def generate_alternative_queries(query: str) -> list:
+    """Generate 3 alternative versions of the user query."""
+    
+    prompt = f"""Génère 3 façons alternatives de poser la question suivante à propos d'une base de données bancaire.
+Rends les alternatives spécifiques et concentrées sur la structure de la base de données et l'emplacement des données.
+
+Question originale: {query}
+
+Retourne uniquement les questions, une par ligne."""
+    
+    completion = client.chat.completions.create(
+        model="gpt-4-32k",
+        messages=[
+            {"role": "system", "content": "You are a query generation assistant."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.7
+    )
+    
+    result = completion.choices[0].message.content.strip()
+    alts = [q.strip() for q in result.split('\n') if q.strip()]
+    
+    return alts + [query]  # Add original query at the end
+
+def generate_answer_explanation(query: str, answer: str, sources: list) -> str:
+    """Generate an explanation on how the answer was formulated based on the sources."""
+    
+    sources_summary = "\n".join([doc.page_content[:300] for doc in sources[:2]])  # only first 2 sources
+    
+    prompt = f"""En tant qu'expert en base de données bancaire, explique comment tu as formulé la réponse suivante à la question posée.
+Fais référence aux données spécifiques et à la structure de la base de données bancaire.
+
+Question: {query}
+Réponse: {answer}
+
+Sources principales:
+{sources_summary}
+
+Explique ton raisonnement en français en te concentrant sur:
+1. Comment les sources ont influencé ta réponse
+2. Les éléments clés de la structure de la base de données mentionnés
+3. Les relations entre les tables identifiées
+4. Toute implication ou considération technique importante
+
+Explication (en 3-5 phrases):"""
+    
+    completion = client.chat.completions.create(
+        model="gpt-4-32k",
+        messages=[
+            {"role": "system", "content": "You are a banking database expert."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.5
+    )
+    
+    explanation = completion.choices[0].message.content.strip()
+    return explanation
+
+def generate_technical_commentary(query: str, answer: str) -> str:
+    """Generate a short technical commentary on the database structure mentioned."""
+    
+    prompt = f"""En tant qu'expert en bases de données bancaires, fournis un commentaire technique bref
+sur les aspects de la structure de la base de données mentionnés dans cette question et réponse.
+
+Question: {query}
+Réponse: {answer}
+
+Fournis un commentaire technique (2-3 phrases) qui pourrait aider un développeur ou un analyste de données
+à mieux comprendre les implications techniques de cette information:"""
+    
+    completion = client.chat.completions.create(
+        model="gpt-4-32k",
+        messages=[
+            {"role": "system", "content": "You are a technical database analyst."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.5
+    )
+    
+    commentary = completion.choices[0].message.content.strip()
+    return commentary
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import httpx
 from azure.identity import DefaultAzureCredential
 
 # Initialize Azure OpenAI client
