@@ -1,3 +1,12 @@
+from langchain_community.document_loaders import PyPDFDirectoryLoader, CSVLoader, UnstructuredExcelLoader
+from langchain.schema import Document
+import glob
+import os
+import re
+import string
+
+DOCS_DIR = "/mnt/LLMS/Procedures"  # Your corrected path ✅
+
 # Text cleaning function
 def clean_text(text, lowercase=False):
     """Cleans raw text: removes unwanted characters, extra spaces, fixes multiple dots"""
@@ -23,79 +32,77 @@ def clean_text(text, lowercase=False):
     
     return text
 
+# Apply cleaning to list of documents
+def clean_documents(documents, lowercase=False):
+    cleaned_docs = []
+    for doc in documents:
+        cleaned_text = clean_text(doc.page_content, lowercase=lowercase)
+        cleaned_doc = Document(page_content=cleaned_text, metadata=doc.metadata)
+        cleaned_docs.append(cleaned_doc)
+    return cleaned_docs
 
-
-
-
-
-from langchain_community.document_loaders import PyPDFLoader, CSVLoader, UnstructuredExcelLoader
-from langchain.schema import Document
-import os
-import glob
-
-# Your real documents directory
-DOCS_DIR = "/mnt/LLMS/Procedures"
-
+# Loader function
 def load_documents():
     documents = []
     
-    # === Load PDFs ===
-    pdf_dir = os.path.join(DOCS_DIR, "pdfs")
-    if os.path.exists(pdf_dir):
-        for file in glob.glob(os.path.join(pdf_dir, "*.pdf")):
+    # PDFs
+    if os.path.exists(os.path.join(DOCS_DIR, "pdfs")):
+        for file in glob.glob(os.path.join(DOCS_DIR, "pdfs", "*.pdf")):
             try:
-                loader = PyPDFLoader(file_path=file)  # Load single PDF file
+                loader = PyPDFDirectoryLoader(os.path.dirname(file))
                 docs = loader.load()
                 file_name = os.path.basename(file)
-
-                # Add metadata
+                
                 for doc in docs:
                     doc.metadata["source_file"] = file_name
                     doc.metadata["source_type"] = "pdf"
-
+                
                 documents.extend(docs)
                 print(f"Loaded {file_name}")
             except Exception as e:
                 print(f"Error loading {file}: {e}")
 
-    # === Load CSVs ===
+    # CSVs
     csv_dir = os.path.join(DOCS_DIR, "csv")
     if os.path.exists(csv_dir):
-        for file in glob.glob(os.path.join(csv_dir, "*.csv")):
+        for file in glob.glob(os.path.join(csv_dir, '*.csv')):
             try:
-                loader = CSVLoader(file_path=file)
-                docs = loader.load()
+                docs = CSVLoader(file_path=file).load()
                 file_name = os.path.basename(file)
-
+                
                 for doc in docs:
                     doc.metadata["source_file"] = file_name
                     doc.metadata["source_type"] = "csv"
-
+                    
                 documents.extend(docs)
                 print(f"Loaded {file_name}")
             except Exception as e:
                 print(f"Error loading {file}: {e}")
 
-    # === Load Excels ===
-    excel_dir = os.path.join(DOCS_DIR, "excel")
-    if os.path.exists(excel_dir):
-        for file in glob.glob(os.path.join(excel_dir, "*.xls*")):
+    # Excels
+    xls_dir = os.path.join(DOCS_DIR, "excel")
+    if os.path.exists(xls_dir):
+        for file in glob.glob(os.path.join(xls_dir, '*.xls*')):
             try:
-                loader = UnstructuredExcelLoader(file_path=file)
-                docs = loader.load()
+                docs = UnstructuredExcelLoader(file_path=file).load()
                 file_name = os.path.basename(file)
-
+                
                 for doc in docs:
                     doc.metadata["source_file"] = file_name
                     doc.metadata["source_type"] = "excel"
-
+                    
                 documents.extend(docs)
                 print(f"Loaded {file_name}")
             except Exception as e:
                 print(f"Error loading {file}: {e}")
 
-    print(f"\nLoaded {len(documents)} documents in total.")
-    return documents
+    print(f"Loaded {len(documents)} documents in total")
+    
+    # ✨ Clean the documents immediately after loading
+    cleaned_documents = clean_documents(documents)
+    
+    print(f"Cleaned {len(cleaned_documents)} documents.")
+    return cleaned_documents
 
 # Call the function
 docs = load_documents()
