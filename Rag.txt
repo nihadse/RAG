@@ -1,3 +1,24 @@
+def evaluate_rag_response(query, answer, retrieved_docs, feedback=None):
+    evaluation = {}
+
+    # --- Safety check for answer ---
+    if isinstance(answer, list):
+        answer = " ".join(str(a) for a in answer)
+
+    # --- Safety check for query ---
+    if isinstance(query, list):
+        query = " ".join(str(q) for q in query)
+
+    # Tokenize
+    query_tokens = set(query.lower().split())
+    answer_tokens = set(answer.lower().split())
+    
+    # (then your logic continues normally...)
+
+
+
+
+
 if "metadata" in doc and "source_file" in doc["metadata"]:                                                                                                                                 
                   # Example usage of the function with mock data
 sources = [
