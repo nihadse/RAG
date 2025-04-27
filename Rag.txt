@@ -1,3 +1,24 @@
+# Example context with metadata and content
+context = [
+    {"content": "La table des transactions contient les informations relatives aux opérations bancaires.", "metadata": {"source": "transactions.pdf"}},
+    {"content": "La table des clients stocke les informations personnelles des clients.", "metadata": {"source": "clients.pdf"}}
+]
+
+# Example chat history
+chat_history = [
+    {"question": "Où se trouvent les informations sur les transactions?", "answer": "Les informations sur les transactions sont dans la table 'transactions'."},
+    {"question": "Où puis-je trouver les informations des clients?", "answer": "Les informations des clients sont dans la table 'clients'."}
+]
+
+# Example query
+query = "Dans quelle table puis-je trouver les informations sur les comptes clients?"
+
+# Get the response
+response = prepare_response(query, context, chat_history)
+
+
+
+
 def extract_source_files(documents):
     """Extract source files from document metadata"""
     sources = []
