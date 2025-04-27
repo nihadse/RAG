@@ -1,3 +1,84 @@
+import httpx
+
+def prepare_response(query, chat_history=None):
+    """
+    Prepare a response to a user's query, with or without chat history, and track sources when available.
+    """
+    # 1. Prepare chat history text (if available)
+    chat_history_text = ""
+    if chat_history:
+        chat_history_text = "\n".join([f"Q: {entry['question']}\nA: {entry['answer']}" for entry in chat_history])
+    
+    # 2. Extract sources from chat history (if available)
+    sources = []
+    if chat_history:
+        for entry in chat_history:
+            if 'metadata' in entry and 'source' in entry['metadata']:
+                sources.append(entry['metadata']['source'])
+    
+    # Ensure sources are unique
+    sources = list(set(sources))  # Remove duplicates
+
+    # 3. Build the prompt
+    prompt = f"""
+    You are an expert assistant specializing in database documentation.
+
+    Your objective is to provide accurate and specific information about the location of data based on the query and conversation history. The conversation history is as follows:
+    {chat_history_text if chat_history_text else 'No previous conversation history.'}
+
+    Question: {query}
+
+    Please provide a detailed response, indicating the exact table(s) where the data is located, the specific column names, and data types and constraints if relevant. If this information cannot be found, clearly state that the information is not available.
+
+    Be precise and technical in your response.
+
+    Sources: {', '.join(sources) if sources else 'No sources available'}
+    """
+
+    # 4. Use Azure OpenAI to generate a response
+    with httpx.Client(verify=False) as client:
+        response = client.post(
+            url="https://api.openai.com/v1/chat/completions",
+            headers={"Authorization": "Bearer YOUR_API_KEY"},
+            json={
+                "model": "gpt-4",  # Replace with your actual model name
+                "messages": [
+                    {"role": "system", "content": "You are an assistant based on RAG (Retrieval-Augmented Generation)."},
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": 0.7,
+            }
+        )
+
+    # 5. Return the generated text response
+    response_json = response.json()
+    return response_json['choices'][0]['message']['content'].strip(), sources
+
+
+# Usage example (with and without chat history):
+
+# Example 1: With chat history
+chat_history = [
+    {"question": "Where can I find information about transactions?", "answer": "The transaction data is in the 'transactions' table.", "metadata": {"source": "transactions.pdf"}},
+    {"question": "Where can I find client information?", "answer": "Client data is in the 'clients' table.", "metadata": {"source": "clients.pdf"}}
+]
+query = "Where can I find customer transaction details?"
+
+response, sources = prepare_response(query, chat_history)
+print(f"Response: {response}")
+print(f"Sources: {sources}")
+
+# Example 2: Without chat history
+query = "What is the structure of the transactions table?"
+
+response, sources = prepare_response(query)
+print(f"Response: {response}")
+print(f"Sources: {sources}")
+
+
+
+
+
 import json
 
 def save_chat_history(chat_history, filename="chat_history.json"):
