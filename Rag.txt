@@ -1,4 +1,5 @@
-# Example usage of the function with mock data
+if "metadata" in doc and "source_file" in doc["metadata"]:                                                                                                                                 
+                  # Example usage of the function with mock data
 sources = [
     {'content': 'La table des clients contient des informations sur les clients, y compris leurs identifiants, noms, et adresses.'},
     {'content': 'Les informations de transaction sont stockées dans la table des transactions, incluant le montant et la date des opérations.'}
