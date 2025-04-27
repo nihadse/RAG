@@ -1,3 +1,77 @@
+def process_and_submit_feedback(query: str, context: list, chat_history: list, rating: int, comment=None):
+    # Generate alternative phrasings of the query
+    alt_queries = generate_alternative_queries(query)
+    all_results = []
+    
+    # Process each alternative query
+    for q in alt_queries:
+        # Prepare the prompt for each alternative query
+        response = prepare_response(q, context, chat_history)
+        all_results.append({
+            "answer": response,
+            "source_documents": context  # assuming context provides the source documents
+        })
+    
+    # Pick the result with the most source documents
+    best_result = max(all_results, key=lambda x: len(x['source_documents']))
+    answer, sources = best_result['answer'], best_result['source_documents']
+    
+    # Generate additional context
+    explanation = generate_answer_explanation(query, answer, sources)
+    commentary = generate_technical_commentary(query, answer)
+    evaluation = evaluate_rag_response(query, answer, sources)
+    
+    # Add source files information if not already in the answer
+    source_files = extract_source_files(sources)
+    if source_files and "Sources:" not in answer:
+        answer += f"\n\nSources: {', '.join(source_files)}"
+    
+    # Update chat history
+    chat_history.append({'question': query, 'answer': answer})  # Save the current Q&A pair
+    save_chat_history(chat_history)  # Assuming there's a function to save the history
+    
+    # Submit the feedback
+    feedback_tracker.save_feedback(query, answer, rating, comment)
+
+    return {
+        'answer': answer,
+        'sources': sources,
+        'source_files': source_files,
+        'explanation': explanation,
+        'commentary': commentary,
+        'evaluation': evaluation
+    }
+
+# Usage example:
+user_query = "Dans quelle table puis-je trouver les informations sur les transactions clients ?"
+context = [
+    {"content": "La table des transactions contient les informations relatives aux opérations bancaires.", "metadata": {"source": "transactions.pdf"}},
+    {"content": "La table des clients stocke les informations personnelles des clients.", "metadata": {"source": "clients.pdf"}}
+]
+chat_history = [
+    {"question": "Où se trouvent les informations sur les transactions?", "answer": "Les informations sur les transactions sont dans la table 'transactions'."},
+    {"question": "Où puis-je trouver les informations des clients?", "answer": "Les informations des clients sont dans la table 'clients'."}
+]
+
+# Get the response and submit feedback
+result = process_and_submit_feedback(user_query, context, chat_history, rating=5, comment="Excellente réponse!")
+
+print('Réponse:', result['answer'])
+print('\nExplication:', result['explanation'])
+print('\nCommentaire technique:', result['commentary'])
+print('\nÉvaluation:', result['evaluation'])
+print('\nSources des documents:', result['source_files'])
+
+
+
+
+
+
+
+
+
+
+
 # Example context with metadata and content
 context = [
     {"content": "La table des transactions contient les informations relatives aux opérations bancaires.", "metadata": {"source": "transactions.pdf"}},
