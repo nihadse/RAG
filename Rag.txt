@@ -1,3 +1,24 @@
+# Example usage of the function with mock data
+sources = [
+    {'content': 'La table des clients contient des informations sur les clients, y compris leurs identifiants, noms, et adresses.'},
+    {'content': 'Les informations de transaction sont stockées dans la table des transactions, incluant le montant et la date des opérations.'}
+]
+
+query = "Où se trouvent les informations sur les clients?"
+answer = "Les informations sur les clients se trouvent dans la table 'clients'."
+
+# Generate the explanation
+explanation = generate_answer_explanation(query, answer, sources)
+
+# Print the explanation
+print("Generated Explanation:", explanation)
+
+
+
+
+
+
+
 def process_and_submit_feedback(query: str, context: list, chat_history: list, rating: int, comment=None):
     # Generate alternative phrasings of the query
     alt_queries = generate_alternative_queries(query)
