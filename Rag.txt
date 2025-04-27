@@ -1,3 +1,29 @@
+def extract_source_files(documents):
+    """Extract source files from document metadata"""
+    sources = []
+    for doc in documents:
+        metadata = doc.get("metadata", {})
+        if "source_file" in metadata:
+            sources.append(metadata["source_file"])
+        elif "source" in metadata:
+            sources.append(metadata["source"])
+    return list(set(sources))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def evaluate_rag_response(query, answer, retrieved_docs, feedback=None):
     evaluation = {}
 
