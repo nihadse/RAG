@@ -1,3 +1,22 @@
+import json
+
+def save_chat_history(chat_history, filename="chat_history.json"):
+    """Save the chat history to a JSON file."""
+    try:
+        with open(filename, 'w') as f:
+            json.dump(chat_history, f, indent=2, ensure_ascii=False)
+        print(f"Chat history saved to {filename}")
+    except Exception as e:
+        print(f"Error saving chat history: {e}")
+save_chat_history(chat_history, filename="chat_history.json")
+
+
+
+
+
+
+
+
 def extract_source_files(documents):
     """Extract source files from document metadata"""
     sources = []
