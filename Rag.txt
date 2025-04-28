@@ -1,3 +1,23 @@
+def extract_source_files(documents):
+    """Extract source files from document metadata."""
+    sources = []
+
+    for doc in documents:
+        # Ensure 'metadata' is accessed properly as a dictionary
+        if "metadata" in doc:
+            metadata = doc["metadata"]
+            # Check for 'source_file' in metadata
+            if "source_file" in metadata:
+                sources.append(metadata["source_file"])
+            elif "source" in metadata:
+                sources.append(metadata["source"])
+
+    # Remove duplicates by converting to a set and then back to a list
+    return list(set(sources))
+
+
+
+
 def evaluate_rag_response(query, answer, retrieved_docs, feedback=None):
     """
     Evaluate the quality of a RAG (Retrieval-Augmented Generation) response based on various metrics.
