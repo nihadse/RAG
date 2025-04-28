@@ -1,3 +1,62 @@
+def evaluate_rag_response(query, answer, retrieved_docs, feedback=None):
+    """
+    Evaluate the quality of a RAG (Retrieval-Augmented Generation) response based on various metrics.
+    """
+    evaluation = {}
+
+    # 1. Document relevance score
+    if isinstance(query, list):
+        query = " ".join(str(q) for q in query)
+    query_tokens = set(query.lower().split())
+
+    relevant_docs = 0
+    for doc in retrieved_docs:
+        text = doc.get('content') or doc.get('page_content') or ''
+        doc_tokens = set(text.lower().split())
+        overlap = len(query_tokens.intersection(doc_tokens)) / len(query_tokens) if query_tokens else 0
+        if overlap > 0.2:  # Simple relevance threshold
+            relevant_docs += 1
+
+    doc_relevance = relevant_docs / len(retrieved_docs) if retrieved_docs else 0
+    evaluation["document_relevance"] = round(doc_relevance * 10, 2)  # Score out of 10
+
+    # 2. Source diversity
+    sources = set()
+    for doc in retrieved_docs:
+        if "metadata" in doc and ("source_file" in doc["metadata"] or "source" in doc["metadata"]):
+            sources.add(doc["metadata"].get("source_file") or doc["metadata"].get("source"))
+
+    source_diversity = min(len(sources) / 3, 1.0)  # Normalize to maximum of 1
+    evaluation["source_diversity"] = round(source_diversity * 10, 2)  # Score out of 10
+
+    # 3. Answer relevance
+    if isinstance(answer, list):
+        answer = " ".join(str(a) for a in answer)
+    answer_tokens = set(answer.lower().split())
+    query_answer_overlap = len(query_tokens.intersection(answer_tokens)) / len(query_tokens) if query_tokens else 0
+    evaluation["answer_query_alignment"] = round(query_answer_overlap * 10, 2)  # Score out of 10
+
+    # 4. User feedback score
+    if feedback is not None:
+        evaluation["user_feedback"] = feedback  # Expected to be between 1-5
+
+    # 5. Hallucination risk
+    contains_source_citation = any(keyword in answer.lower() for keyword in ["source", "doc", "provient", "extrait"])
+    evaluation["hallucination_risk"] = "Low" if contains_source_citation else "Medium"
+
+    # Overall score (weighted average)
+    weights = {
+        "document_relevance": 0.4,
+        "source_diversity": 0.1,
+        "answer_query_alignment": 0.3,
+    }
+    overall_score = sum(evaluation[key] * weights[key] for key in weights.keys() if key in evaluation)
+    evaluation["overall_score"] = round(overall_score, 2)  # Score out of 10
+
+    return evaluation
+
+
+
 # Prepare the documents summary safely
     sources_summary = "\n".join([
         (doc.get('content') or doc.get('page_content') or "")[:300] 
