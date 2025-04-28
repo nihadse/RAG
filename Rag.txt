@@ -1,3 +1,10 @@
+# Prepare the documents summary safely
+    sources_summary = "\n".join([
+        (doc.get('content') or doc.get('page_content') or "")[:300] 
+        for doc in documents[:5]
+    ])
+
+
 # --- FUNCTIONS YOU ADDED ---
 
 def extract_source_files(documents):
