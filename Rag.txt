@@ -1,3 +1,37 @@
+class BM25Reranker:
+    def __init__(self, k=5):
+        self.k = k
+        self.bm25 = None
+        self.documents = None
+
+    def fit(self, documents):
+        # documents: List[dict] with "text" keys
+        tokenized_corpus = [doc["text"].lower().split() for doc in documents]
+        self.documents = documents
+        self.bm25 = BM25Okapi(tokenized_corpus)
+        return self
+
+    def rerank(self, query: str, documents: List[dict]):
+        if not self.bm25:
+            self.fit(documents)
+
+        tokenized_query = query.lower().split()
+        scores = self.bm25.get_scores(tokenized_query)
+
+        if len(scores) != len(documents):
+            raise ValueError(f"Mismatch between scores ({len(scores)}) and documents ({len(documents)})")
+
+        # Correct here:
+        scored_docs = [(score, doc) for score, doc in zip(scores, documents)]
+        sorted_docs = sorted(scored_docs, key=lambda x: x[0], reverse=True)
+
+        return [doc for _, doc in sorted_docs[:self.k]]
+
+
+
+
+
+
 import datetime
 import json
 import os
