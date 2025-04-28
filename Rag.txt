@@ -1,3 +1,75 @@
+import datetime
+import json
+import os
+
+class CustomRetrieverWithHistory:
+    def __init__(self, collection, chat_history=None, reranker=None, top_k=4):
+        self.collection = collection  # ChromaDB collection
+        self.chat_history = chat_history or []
+        self.reranker = reranker or PerRanker(k=top_k)
+
+    def get_relevant_documents(self, query: str):
+        # Step 1: Initial retrieval
+        results = self.collection.query(
+            query_texts=[query],
+            include=["documents", "metadatas"]
+        )
+
+        documents = [{"text": doc, "metadata": meta} for doc, meta in zip(results["documents"][0], results["metadatas"][0])]
+
+        # Step 2: If history exists, expand the query
+        if self.chat_history:
+            recent_history = self.chat_history[-3:] if len(self.chat_history) >= 3 else self.chat_history
+            history_context = " ".join([h["query"] for h in recent_history])
+
+            enhanced_query = query + " " + history_context
+
+            extra_results = self.collection.query(
+                query_texts=[enhanced_query],
+                include=["documents", "metadatas"]
+            )
+
+            extra_docs = [{"text": doc, "metadata": meta} for doc, meta in zip(extra_results["documents"][0], extra_results["metadatas"][0])]
+            documents += extra_docs
+
+        # Step 3: Rerank and return top documents
+        top_docs = self.reranker.rerank(query, documents)
+        return top_docs
+
+    def update_history(self, query, answer):
+        self.chat_history.append({
+            "query": query,
+            "answer": answer,
+            "timestamp": str(datetime.datetime.now())
+        })
+
+    def save_history(self, file_path="chat_history.json"):
+        try:
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(self.chat_history, f, indent=2, ensure_ascii=False)
+            print(f"Saved chat history to {file_path}.")
+        except Exception as e:
+            print(f"Error saving chat history: {e}")
+
+    def load_history(self, file_path="chat_history.json"):
+        if os.path.exists(file_path):
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    state = json.load(f)
+                self.chat_history = state.get("chat_history", [])
+                print(f"Loaded chat history from {file_path}.")
+            except Exception as e:
+                print(f"Error loading chat history: {e}")
+        else:
+            print(f"No chat history file found at {file_path}. Starting fresh.")
+
+
+
+
+
+
+
+
 import json
 
 # --- FUNCTIONS YOU ADDED ---
