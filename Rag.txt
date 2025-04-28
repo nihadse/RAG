@@ -1,3 +1,104 @@
+import json
+
+# --- FUNCTIONS YOU ADDED ---
+
+def extract_source_files(documents):
+    """
+    Extract source files from document metadata.
+    """
+    sources = []
+    for doc in documents:
+        if "source_file" in doc.get("metadata", {}):
+            sources.append(doc["metadata"]["source_file"])
+        elif "source" in doc.get("metadata", {}):
+            sources.append(doc["metadata"]["source"])
+    return list(set(sources))
+
+
+def save_chat_history(chat_history, filename="chat_history.json"):
+    """
+    Save the chat history to a JSON file.
+    """
+    try:
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(chat_history, f, indent=2, ensure_ascii=False)
+        print(f"Chat history saved to {filename}")
+    except Exception as e:
+        print(f"Error saving chat history: {e}")
+
+# --- RAG WORKFLOW ---
+
+# Initial user query
+query = "Explique-moi l'architecture du système bancaire DARA."
+
+# 1. Generate alternative queries
+alternative_queries = generate_alternative_queries(query)
+
+# Always include the original query too
+all_queries = [query] + alternative_queries
+
+all_results = []
+
+# 2. For each query, retrieve context and generate answer
+for q in all_queries:
+    # Retrieve documents
+    context = retriever.get_relevant_documents(q)
+    
+    # Generate answer
+    answer = generate_response(q, context)
+    
+    # Store everything
+    all_results.append({
+        "query": q,
+        "answer": answer,
+        "context": context,
+        "num_sources": len(context)
+    })
+
+# 3. Pick the result with the most source documents
+best_result = max(all_results, key=lambda x: x['num_sources'])
+
+final_query = best_result["query"]
+final_answer = best_result["answer"]
+final_context = best_result["context"]
+
+# 4. Generate explanation of the best answer
+explanation = generate_answer_explanation(final_query, final_answer, final_context)
+
+# 5. Evaluate the RAG response
+evaluation = evaluate_rag_response(final_query, final_answer, final_context)
+
+# 6. Extract source files
+sources = extract_source_files(final_context)
+
+# 7. Update and save retriever history
+retriever.update_history(final_query, final_answer)
+retriever.save_history()
+
+# 8. Save full chat history
+chat_history = {
+    "original_query": query,
+    "alternative_queries": alternative_queries,
+    "final_query_used": final_query,
+    "answer": final_answer,
+    "explanation": explanation,
+    "evaluation": evaluation,
+    "sources": sources
+}
+save_chat_history(chat_history)
+
+# --- OUTPUT ---
+print("\n=== FINAL OUTPUT ===")
+print("Answer:", final_answer)
+print("\nExplanation:", explanation)
+print("\nEvaluation:", evaluation)
+print("\nSources:", sources)
+
+
+
+
+
+
 def extract_source_files(documents):
     """Extract source files from document metadata."""
     sources = []
