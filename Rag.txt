@@ -1,3 +1,13 @@
+Objet : Accès API ChatGPT pour le stagiaire
+
+Bonjour [Nom du collègue],
+Dans le cadre du projet de fin d’études de notre stagiaire, un accès à l’API ChatGPT est nécessaire afin de lui permettre d’avancer dans ses travaux. Merci de nous fournir les identifiants nécessaires.
+
+Bien cordialement,
+Nihad
+
+
+
 class BM25Reranker:
     def __init__(self, k=5):
         self.k = k
