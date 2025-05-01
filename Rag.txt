@@ -1,3 +1,41 @@
+import chromadb
+from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+from FlagEmbedding import FlagModel
+
+# Initialize Chroma client
+chroma_client = chromadb.PersistentClient(path="chroma_db")
+
+# Initialize BGE-M3 model
+model_path = "/domino/edv/modelhub/ModelHub-model-huggingface-BAAI/bge-m3/main"
+model = FlagModel(
+    model_path,
+    query_instruction_for_retrieval="Generate representation for this sentence to retrieve relevant articles:",
+    use_fp16=True  # Enable if using GPU
+)
+
+# Create custom embedding function
+def bge_m3_embedding_function(texts):
+    return model.encode(texts).tolist()
+
+# Create collection with custom embedding function
+collection = chroma_client.get_or_create_collection(
+    name="pdf_documents3",
+    embedding_function=bge_m3_embedding_function
+)
+
+# Query the collection
+results = collection.query(
+    query_texts=["example query"],
+    n_results=20,
+    include=["documents"]
+)
+
+print(results)
+
+
+
+
+
 import streamlit as st
 from your_rag_functions import (  # Replace with your actual imports
     generate_alternative_queries,
