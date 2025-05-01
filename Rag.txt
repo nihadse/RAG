@@ -1,8 +1,11 @@
+from langchain_experimental.text_splitter import SemanticChunker
 def split_documents_semantic(documents):
     """Hybrid semantic+size-based splitting"""
     model = SentenceTransformer("BAAI/bge-m3", device="cuda" if torch.cuda.is_available() else "cpu")
     
     # 1. Semantic chunking
+
+
     semantic_splitter = SemanticChunker(
         embeddings=model,
         breakpoint_threshold=0.82,  # More splits
