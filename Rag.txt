@@ -1,67 +1,26 @@
-j
-import os
-import fitz  # PyMuPDF
-from img2table.document import PDF
-from openai import AzureOpenAI
-import httpx
-
-# === Config ===
-AZURE_OPENAI_ENDPOINT = "https://your-endpoint.openai.azure.com/"
-AZURE_OPENAI_API_KEY = "your-azure-api-key"
-AZURE_OPENAI_API_VERSION = "2024-04-01-preview"
-
-# === 1. Extract tables from a PDF ===
-def extract_pdf_tables(pdf_path):
-    document = PDF(pdf_path)
-    extracted_tables = document.extract_tables()
-    all_tables_text = ""
-    for table in extracted_tables:
-        try:
-            df = table.df  # pandas DataFrame
-            all_tables_text += df.to_csv(index=False) + "\n\n"
-        except:
-            continue
-    return all_tables_text
-
-# === 2. Generate response using GPT based on the tables ===
-def generate_response_from_tables(table_text, question="Can you summarize the content and highlight anomalies or trends?"):
-    prompt = f"""
-You are a data analyst AI assistant. The following tables have been extracted from a document:
-
-{table_text}
-
-Based on this data, please answer the following question:
-
-{question}
-
-If applicable, identify trends, inconsistencies, or anomalies. Provide clear and concise insights.
-"""
-
-    with httpx.Client(verify=False) as http_client:
-        client = AzureOpenAI(
-            api_version=AZURE_OPENAI_API_VERSION,
-            azure_endpoint=AZURE_OPENAI_ENDPOINT,
-            api_key=AZURE_OPENAI_API_KEY,
-            http_client=http_client
-        )
-
-        completion = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "You are an expert assistant specialized in data analysis."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.5
-        )
-
-    return completion.choices[0].message.content
-
-# === 3. Usage ===
-if __name__ == "__main__":
-    pdf_path = "your_pdf_file.pdf"
-    tables_text = extract_pdf_tables(pdf_path)
-    if tables_text:
-        response = generate_response_from_tables(tables_text)
-        print(response)
-    else:
-        print("No tables were extracted from the PDF.")
+def split_documents_semantic(documents):
+    """Hybrid semantic+size-based splitting"""
+    model = SentenceTransformer("BAAI/bge-m3", device="cuda" if torch.cuda.is_available() else "cpu")
+    
+    # 1. Semantic chunking
+    semantic_splitter = SemanticChunker(
+        embeddings=model,
+        breakpoint_threshold=0.82,  # More splits
+        add_start_index=True
+    )
+    semi_chunks = semantic_splitter.split_documents(documents)
+    
+    # 2. Size enforcement
+    size_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1200,
+        chunk_overlap=200,
+        separators=["\n\n## ", "\n\n", ". ", "; "]
+    )
+    
+    final_chunks = size_splitter.split_documents(semi_chunks)
+    
+    # 3. Validate chunks
+    avg_size = sum(len(c.page_content) for c in final_chunks)/len(final_chunks)
+    print(f"Average chunk size: {avg_size:.0f} chars")
+    
+    return final_chunks
