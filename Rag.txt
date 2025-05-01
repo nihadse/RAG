@@ -1,91 +1,108 @@
-prompt = f"""
-[Contexte]
-{context}
+import streamlit as st
+from your_rag_functions import (  # Replace with your actual imports
+    generate_alternative_queries,
+    generate_response,
+    generate_answer_explanation,
+    evaluate_rag_response,
+    extract_source_files
+)
 
-[Requête]
-{query}
+# Initialize session state for chat history
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+if "current_chat" not in st.session_state:
+    st.session_state.current_chat = []
 
-[Instructions]
-1. Répondez en français de manière détaillée et précise en utilisant exclusivement les informations fournies
-2. Pour chaque élément de réponse :
-   - Mentionnez le document source entre crochets IMMÉDIATEMENT après l'information
-   - Format : [Source: {{nom_fichier}}.pdf, Page {{numéro_page}}]
-3. Si plusieurs documents contiennent l'information :
-   - Citez toutes les sources concernées
-4. Structure de réponse :
-   a. Réponse détaillée avec citations inline
-   b. Section "Sources" à la fin listant tous les documents utilisés
-5. Si l'information n'existe pas dans les documents, indiquez-le clairement
+# Initialize chat sessions
+if "chat_sessions" not in st.session_state:
+    st.session_state.chat_sessions = {"New Chat": []}
 
-[Exemple de format]
-Les procédures de vérification d'identité... [Source: procedure_kyc.pdf, Page 12]. 
-Selon le chapitre 3... [Source: reglement_financier.pdf, Page 45].
+def rag_chatbot(query):
+    # Your existing RAG processing logic
+    all_queries = [query] + generate_alternative_queries(query)
+    all_results = []
 
-Sources utilisées : 
-- procedure_kyc.pdf (Pages 12, 15)
-- reglement_financier.pdf (Page 45)
-"""
+    for q in all_queries:
+        context = retriever.get_relevant_documents(q)
+        answer = generate_response(q, context)
+        all_results.append({
+            "query": q,
+            "answer": answer,
+            "context": context,
+            "num_sources": len(context)
+        })
 
-from langchain_experimental.text_splitter import SemanticChunker
-from langchain_community.embeddings import HuggingFaceEmbeddings
-import torch
+    best_result = max(all_results, key=lambda x: x["num_sources"])
+    explanation = generate_answer_explanation(best_result["query"], best_result["answer"], best_result["context"])
+    evaluation = evaluate_rag_response(best_result["query"], best_result["answer"], best_result["context"])
+    sources = extract_source_files(best_result["context"])
 
-def split_documents_semantic(documents):
-    """Semantic chunking with local model"""
-    # Path to your downloaded model
-    model_path = "/path/to/your/bge-m3"  # Replace with your actual path
+    # Update history
+    retriever.update_history(best_result["query"], best_result["answer"])
+    retriever.save_history()
+
+    return {
+        "original_query": query,
+        "alternative_queries": all_queries[1:],
+        "final_query": best_result["query"],
+        "answer": best_result["answer"],
+        "explanation": explanation,
+        "evaluation": evaluation,
+        "sources": sources
+    }
+
+# Sidebar for chat sessions
+with st.sidebar:
+    st.header("Chat Sessions")
     
-    # Initialize embeddings from local files
-    embeddings = HuggingFaceEmbeddings(
-        model_name=model_path,
-        model_kwargs={
-            "device": "cuda" if torch.cuda.is_available() else "cpu",
-            "trust_remote_code": True
-        },
-        encode_kwargs={
-            "normalize_embeddings": True,
-            "batch_size": 32  # Adjust based on VRAM
-        }
+    # Create new chat
+    if st.button("+ New Chat"):
+        new_chat_name = f"Chat {len(st.session_state.chat_sessions) + 1}"
+        st.session_state.chat_sessions[new_chat_name] = []
+        st.session_state.current_chat = new_chat_name
+    
+    # Display existing chats
+    selected_chat = st.radio(
+        "Select Chat",
+        options=list(st.session_state.chat_sessions.keys()),
+        index=0
     )
+    st.session_state.current_chat = selected_chat
 
-    # Configure semantic splitter
-    text_splitter = SemanticChunker(
-        embeddings=embeddings,
-        add_start_index=True,
-        max_chunk_size=1500,  # Target max token count
-        min_chunk_size=300,    # Minimum meaningful chunk size
-        breakpoint_percentile_threshold=92  # 92% similarity threshold
-    )
-    
-    return text_splitter.split_documents(documents)
+# Main chat interface
+st.title("RAG Chatbot")
 
+# Display chat history
+chat_container = st.container()
+with chat_container:
+    for message in st.session_state.chat_sessions[st.session_state.current_chat]:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+            if message["role"] == "assistant":
+                with st.expander("Details"):
+                    st.write("**Sources:**", message["sources"])
+                    st.write("**Evaluation:**", message["evaluation"])
 
-from langchain_experimental.text_splitter import SemanticChunker
-def split_documents_semantic(documents):
-    """Hybrid semantic+size-based splitting"""
-    model = SentenceTransformer("BAAI/bge-m3", device="cuda" if torch.cuda.is_available() else "cpu")
+# Input area
+user_input = st.chat_input("Type your message here...")
+if user_input:
+    # Add user message to chat history
+    st.session_state.chat_sessions[st.session_state.current_chat].append({
+        "role": "user",
+        "content": user_input
+    })
     
-    # 1. Semantic chunking
-
-
-    semantic_splitter = SemanticChunker(
-        embeddings=model,
-        breakpoint_threshold=0.82,  # More splits
-        add_start_index=True
-    )
-    semi_chunks = semantic_splitter.split_documents(documents)
+    # Process query
+    with st.spinner("Thinking..."):
+        response = rag_chatbot(user_input)
     
-    # 2. Size enforcement
-    size_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1200,
-        chunk_overlap=200,
-        separators=["\n\n## ", "\n\n", ". ", "; "]
-    )
+    # Add assistant response to chat history
+    st.session_state.chat_sessions[st.session_state.current_chat].append({
+        "role": "assistant",
+        "content": response["answer"],
+        "sources": response["sources"],
+        "evaluation": response["evaluation"]
+    })
     
-    final_chunks = size_splitter.split_documents(semi_chunks)
-    
-    # 3. Validate chunks
-    avg_size = sum(len(c.page_content) for c in final_chunks)/len(final_chunks)
-    print(f"Average chunk size: {avg_size:.0f} chars")
-    
-    return final_chunks
+    # Rerun to update the chat display
+    st.rerun()
