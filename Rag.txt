@@ -1,4 +1,38 @@
 from langchain_experimental.text_splitter import SemanticChunker
+from langchain_community.embeddings import HuggingFaceEmbeddings
+import torch
+
+def split_documents_semantic(documents):
+    """Semantic chunking with local model"""
+    # Path to your downloaded model
+    model_path = "/path/to/your/bge-m3"  # Replace with your actual path
+    
+    # Initialize embeddings from local files
+    embeddings = HuggingFaceEmbeddings(
+        model_name=model_path,
+        model_kwargs={
+            "device": "cuda" if torch.cuda.is_available() else "cpu",
+            "trust_remote_code": True
+        },
+        encode_kwargs={
+            "normalize_embeddings": True,
+            "batch_size": 32  # Adjust based on VRAM
+        }
+    )
+
+    # Configure semantic splitter
+    text_splitter = SemanticChunker(
+        embeddings=embeddings,
+        add_start_index=True,
+        max_chunk_size=1500,  # Target max token count
+        min_chunk_size=300,    # Minimum meaningful chunk size
+        breakpoint_percentile_threshold=92  # 92% similarity threshold
+    )
+    
+    return text_splitter.split_documents(documents)
+
+
+from langchain_experimental.text_splitter import SemanticChunker
 def split_documents_semantic(documents):
     """Hybrid semantic+size-based splitting"""
     model = SentenceTransformer("BAAI/bge-m3", device="cuda" if torch.cuda.is_available() else "cpu")
