@@ -1,3 +1,170 @@
+import streamlit as st
+import chromadb
+import json
+import datetime
+from typing import List, Dict, Any, Tuple
+
+# ChromaDB Initialization with Streamlit Session State
+@st.cache_resource
+def init_chroma():
+    client = chromadb.PersistentClient(
+        path="chroma_db",
+        settings=chromadb.config.Settings(
+            chroma_db_impl="duckdb+parquet",
+            persist_directory="chroma_db",
+            allow_reset=True,
+            migrations="apply"
+        )
+    )
+    
+    # Get or create collection with metadata segments
+    collection = client.get_or_create_collection(
+        name="pdf_documents3",
+        metadata={
+            "hnsw:space": "cosine",
+            "dimension": 1024,
+            "segments": ["vector", "metadata"]
+        }
+    )
+    
+    # Initialize with dummy document if empty
+    if collection.count() == 0:
+        collection.add(
+            documents=["Initial system document"],
+            metadatas=[{"source": "system"}],
+            ids=["init_id"]
+        )
+    
+    return collection
+
+class CustomRetrieverWithHistory:
+    def __init__(self, collection, chat_history: List[Tuple[str, str]] = None, k: int = 50, rerank_k: int = 50):
+        self.collection = collection
+        self.chat_history = chat_history or []
+        self.k = k
+        self.rerank_k = rerank_k
+        self.reranker = BM25Reranker(k=rerank_k)
+        
+        # Validate collection state
+        self._validate_collection()
+
+    def _validate_collection(self):
+        """Ensure collection has required metadata segments"""
+        try:
+            # Force metadata update
+            self.collection.update_metadata({
+                "hnsw:space": "cosine",
+                "dimension": 1024,
+                "segments": ["vector", "metadata"]
+            })
+        except Exception as e:
+            st.error(f"Collection validation failed: {str(e)}")
+            st.stop()
+
+    def get_relevant_documents(self, query: str) -> List[Dict[str, Any]]:
+        try:
+            # Step 1: Vector search
+            results = self.collection.query(
+                query_texts=[query],
+                n_results=self.k * 2,
+                include=["documents", "metadatas"]
+            )
+            
+            docs = [
+                {"text": doc, "metadata": meta}
+                for doc, meta in zip(results["documents"][0], results["metadatas"][0])
+            ]
+
+            # Step 2: Query expansion with history
+            enhanced_docs = []
+            if self.chat_history:
+                recent_history = self.chat_history[-3:]  # Last 3 exchanges
+                history_context = "\n".join(
+                    [f"Q: {q}\nA: {a}" for q, a in recent_history]
+                )
+                enhanced_query = f"{query}\nContext:\n{history_context}"
+                
+                # Secondary search
+                extra_results = self.collection.query(
+                    query_texts=[enhanced_query],
+                    n_results=100,
+                    include=["documents", "metadatas"]
+                )
+                
+                enhanced_docs = [
+                    {"text": doc, "metadata": meta}
+                    for doc, meta in zip(extra_results["documents"][0], extra_results["metadatas"][0])
+                ]
+
+            # Merge and deduplicate
+            all_docs = {doc["text"]: doc for doc in docs + enhanced_docs}
+            unique_docs = list(all_docs.values())[:self.k*3]
+
+            # Step 3: Rerank
+            return self.reranker.rerank(query, unique_docs)
+            
+        except Exception as e:
+            st.error(f"Retrieval error: {str(e)}")
+            return []
+
+    def update_history(self, query: str, answer: str):
+        self.chat_history.append((query, answer))
+        
+    def save_history(self, file_path: str = "rag_state.json"):
+        state = {
+            "chat_history": self.chat_history,
+            "timestamp": str(datetime.datetime.now())
+        }
+        with open(file_path, "w") as f:
+            json.dump(state, f)
+            
+    def load_history(self, file_path: str = "rag_state.json"):
+        try:
+            with open(file_path, "r") as f:
+                state = json.load(f)
+                self.chat_history = state.get("chat_history", [])
+                st.success(f"Loaded {len(self.chat_history)} previous conversations")
+        except FileNotFoundError:
+            st.warning("No previous history found")
+        except Exception as e:
+            st.error(f"Error loading history: {str(e)}")
+
+# Streamlit App
+def main():
+    st.title("RAG Chatbot")
+    
+    # Initialize components
+    collection = init_chroma()
+    
+    # Initialize retriever in session state
+    if "retriever" not in st.session_state:
+        st.session_state.retriever = CustomRetrieverWithHistory(collection)
+        st.session_state.retriever.load_history()
+    
+    # Chat interface
+    user_input = st.chat_input("Ask a question:")
+    
+    if user_input:
+        with st.spinner("Searching..."):
+            # Retrieve documents
+            context = st.session_state.retriever.get_relevant_documents(user_input)
+            
+            # Generate answer (implement your LLM here)
+            answer = f"Found {len(context)} relevant documents"
+            
+            # Update history
+            st.session_state.retriever.update_history(user_input, answer)
+            st.session_state.retriever.save_history()
+            
+            # Display
+            st.write(f"**Answer:** {answer}")
+            with st.expander("See context"):
+                st.json(context)
+
+if __name__ == "__main__":
+    main()
+
+
 import chromadb
 from typing import List
 from FlagEmbedding import FlagModel
