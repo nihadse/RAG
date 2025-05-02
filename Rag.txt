@@ -1,3 +1,89 @@
+import chromadb
+import shutil
+from typing import List
+from FlagEmbedding import FlagModel
+
+# 1. Clean existing database
+shutil.rmtree("chroma_db", ignore_errors=True)
+
+# 2. Initialize Chroma with proper configuration
+chroma_client = chromadb.PersistentClient(
+    path="chroma_db",
+    settings=chromadb.config.Settings(
+        chroma_db_impl="duckdb+parquet",
+        persist_directory="chroma_db",
+        allow_reset=True,
+        migrations="apply"  # Critical for schema updates
+    )
+)
+
+# 3. Initialize model and embedding function
+model = FlagModel(
+    "/domino/edv/modelhub/ModelHub-model-huggingface-BAAI/bge-m3/main",
+    query_instruction_for_retrieval="Generate representation for this sentence to retrieve relevant articles:",
+    use_fp16=False
+)
+
+class BGE_M3_EmbeddingFunction:
+    def __init__(self, model):
+        self.model = model
+        
+    def __call__(self, texts: List[str]) -> List[List[float]]:
+        return self.model.encode(texts).tolist()
+
+# 4. Create collection with validated metadata
+collection = chroma_client.get_or_create_collection(
+    name="pdf_documents3",
+    embedding_function=BGE_M3_EmbeddingFunction(model),
+    metadata={
+        "hnsw:space": "cosine",  # Must be lowercase string
+        "dimension": 1024,       # Must match model output
+        "hnsw:construction_ef": 200,
+        "hnsw:M": 16
+    }
+)
+
+# 5. Force segment initialization
+if collection.count() == 0:
+    collection.add(
+        documents=["System initialization document"],
+        metadatas=[{"type": "system"}],
+        ids=["init_id"]
+    )
+
+# 6. Verify collection state
+print("Metadata:", collection.metadata)
+print("Document count:", collection.count())
+
+class CustomRetrieverWithHistory:
+    def __init__(self, collection, k=50):
+        self.collection = collection
+        self.k = k
+        
+    def get_relevant_documents(self, query: str):
+        results = self.collection.query(
+            query_texts=[query],
+            n_results=self.k,
+            include=["documents", "metadatas", "distances"]
+        )
+        return [
+            {"text": doc, "metadata": meta}
+            for doc, meta in zip(results["documents"][0], results["metadatas"][0])
+        ]
+
+# Usage test
+retriever = CustomRetrieverWithHistory(collection)
+try:
+    print("Test results:", retriever.get_relevant_documents("test query"))
+except Exception as e:
+    print("Validation failed:", str(e))
+
+
+
+
+
+
+
 # Update your collection creation to include segments
 collection = chroma_client.get_or_create_collection(
     name="pdf_documents3",
