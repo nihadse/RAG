@@ -48,6 +48,61 @@ print(results)
 
 
 
+
+
+
+
+
+import chromadb
+from typing import List
+from FlagEmbedding import FlagModel
+
+# Initialize Chroma client
+chroma_client = chromadb.PersistentClient(path="chroma_db")
+
+# Initialize BGE-M3 model
+model_path = "/domino/edv/modelhub/ModelHub-model-huggingface-BAAI/bge-m3/main"
+model = FlagModel(
+    model_path,
+    query_instruction_for_retrieval="Generate representation for this sentence to retrieve relevant articles:",
+    use_fp16=True  # Enable if using GPU
+)
+
+# Create compliant embedding function
+class BGE_M3_EmbeddingFunction:
+    def __init__(self, model):
+        self.model = model
+        
+    def __call__(self, input: List[str]) -> List[List[float]]:
+        # Convert single string to list
+        if isinstance(input, str):
+            input = [input]
+            
+        # Get embeddings (automatically batches inputs)
+        embeddings = self.model.encode(input).tolist()
+        return embeddings
+
+# Create embedding function instance
+bge_ef = BGE_M3_EmbeddingFunction(model)
+
+# Create collection with dimension metadata
+collection = chroma_client.get_or_create_collection(
+    name="pdf_documents3",
+    embedding_function=bge_ef,
+    metadata={"hnsw:space": "cosine", "dimension": 1024}
+)
+
+# Query the collection
+results = collection.query(
+    query_texts=["example query"],
+    n_results=20,
+    include=["documents"]
+)
+
+print(results)
+
+
+
 import chromadb
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 from FlagEmbedding import FlagModel
