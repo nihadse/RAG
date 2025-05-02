@@ -1,3 +1,79 @@
+from rank_bm25 import BM25Okapi
+import string
+
+class BM25Reranker:
+    """A document reranker using BM25 algorithm with error handling"""
+    
+    def __init__(self, k=50):
+        self.k = k
+        self.bm25 = None
+        self.document_map = {}
+        self.tokenizer = str.maketrans('', '', string.punctuation)  # For punctuation removal
+
+    def _preprocess(self, text: str) -> list:
+        """Clean and tokenize text"""
+        cleaned = text.translate(self.tokenizer).lower()
+        return [token for token in cleaned.split() if token.strip()]
+
+    def fit(self, documents: list):
+        """Train BM25 model with validation"""
+        if not documents:
+            raise ValueError("Cannot fit BM25 with empty documents list")
+            
+        # Preprocess and filter empty documents
+        tokenized_corpus = []
+        valid_documents = []
+        
+        for i, doc in enumerate(documents):
+            if 'text' not in doc:
+                continue
+            tokens = self._preprocess(doc['text'])
+            if tokens:  # Only keep documents with valid tokens
+                tokenized_corpus.append(tokens)
+                valid_documents.append((i, doc))
+                
+        if not tokenized_corpus:
+            raise ValueError("No valid documents with text content for BM25 training")
+            
+        # Create document mapping
+        self.document_map = {new_idx: orig_doc for new_idx, (orig_idx, orig_doc) in enumerate(valid_documents)}
+        
+        # Initialize BM25
+        self.bm25 = BM25Okapi(tokenized_corpus)
+        return self
+
+    def rerank(self, query: str, documents: list) -> list:
+        """Rerank documents with safety checks"""
+        if not self.bm25:
+            if not documents:
+                return []
+            self.fit(documents)
+            
+        try:
+            # Preprocess query
+            query_tokens = self._preprocess(query)
+            scores = self.bm25.get_scores(query_tokens)
+            
+            # Map scores to original documents
+            scored_docs = []
+            for idx, score in enumerate(scores):
+                if idx in self.document_map:
+                    scored_docs.append((score, self.document_map[idx]))
+                    
+            # Sort and return top k
+            scored_docs.sort(reverse=True, key=lambda x: x[0])
+            return [doc for score, doc in scored_docs[:self.k]]
+            
+        except Exception as e:
+            print(f"BM25 reranking failed: {str(e)}")
+            return documents[:self.k]  # Fallback to original order
+
+
+
+
+
+
+
 # Update your collection creation to include segments
 collection = chroma_client.get_or_create_collection(
     name="pdf_documents3",
