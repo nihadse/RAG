@@ -1,3 +1,23 @@
+# Update your collection creation to include segments
+collection = chroma_client.get_or_create_collection(
+    name="pdf_documents3",
+    embedding_function=embedding_function,
+    metadata={
+        "hnsw:space": "cosine",
+        "dimension": 1024,
+        "segments": ["vector", "metadata"],  # REQUIRED FIX
+        "hnsw:construction_ef": 200,
+        "hnsw:M": 16
+    }
+)
+
+
+
+    metadata={"hnsw:space": "cosine"}
+
+
+
+
 import chromadb
 import shutil
 from typing import List
