@@ -2,6 +2,88 @@ import chromadb
 from typing import List
 from FlagEmbedding import FlagModel
 
+# Initialize Chroma client with proper configuration
+chroma_client = chromadb.PersistentClient(
+    path="chroma_db",
+    settings=chromadb.config.Settings(
+        chroma_db_impl="duckdb+parquet",  # More reliable for most use cases
+        persist_directory="chroma_db",
+        allow_reset=True,
+        is_persistent=True,
+        migrations="apply"  # Ensure schema migrations are handled
+    )
+)
+
+# Initialize BGE-M3 model
+model_path = "/domino/edv/modelhub/ModelHub-model-huggingface-BAAI/bge-m3/main"
+model = FlagModel(
+    model_path,
+    query_instruction_for_retrieval="Generate representation for this sentence to retrieve relevant articles:",
+    use_fp16=False  # Disable FP16 if not using compatible GPU
+)
+
+# Create compliant embedding function with dimension validation
+class BGE_M3_EmbeddingFunction:
+    def __init__(self, model):
+        self.model = model
+        self.dimension = 1024  # BGE-M3 embedding dimension
+        
+    def __call__(self, input: List[str]) -> List[List[float]]:
+        if isinstance(input, str):
+            input = [input]
+        embeddings = self.model.encode(input).tolist()
+        # Validate dimension consistency
+        if len(embeddings[0]) != self.dimension:
+            raise ValueError(f"Embedding dimension mismatch. Expected {self.dimension}, got {len(embeddings[0])}")
+        return embeddings
+
+# Initialize embedding function
+embedding_function = BGE_M3_EmbeddingFunction(model)
+
+# Create collection with proper configuration
+try:
+    # Try to delete existing collection if it has invalid configuration
+    chroma_client.delete_collection("pdf_documents3")
+except Exception as e:
+    print(f"Cleanup warning: {str(e)}")
+
+collection = chroma_client.get_or_create_collection(
+    name="pdf_documents3",
+    embedding_function=embedding_function,
+    metadata={
+        "hnsw:space": "cosine",
+        "dimension": embedding_function.dimension,  # Direct reference
+        "hnsw:construction_ef": 200,
+        "hnsw:M": 16,
+        "hnsw:max_elements": 1000000  # Adjust based on your needs
+    }
+)
+
+# Verify collection configuration
+print("Collection metadata:", collection.metadata)
+print("Collection count:", collection.count())
+
+# Query test with validation
+try:
+    results = collection.query(
+        query_texts=["example query"],
+        n_results=20,
+        include=["documents", "embeddings"]
+    )
+    print("Query results:", results)
+except Exception as e:
+    print("Query failed:", str(e))
+    if "embeddings" in locals():
+        print("First embedding dimension:", len(results["embeddings"][0][0]))
+
+
+
+
+
+import chromadb
+from typing import List
+from FlagEmbedding import FlagModel
+
 # Initialize Chroma client
 chroma_client = chromadb.PersistentClient(path="chroma_db")
 
