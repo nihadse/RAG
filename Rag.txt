@@ -1,3 +1,15 @@
+import streamlit as st
+
+# Initialize session state variables if they don't exist
+if "chat_sessions" not in st.session_state:
+    st.session_state.chat_sessions = {}
+
+if "current_chat" not in st.session_state:
+    st.session_state.current_chat = None
+
+
+
+
 from rank_bm25 import BM25Okapi
 import string
 
