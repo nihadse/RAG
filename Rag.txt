@@ -1,3 +1,126 @@
+import streamlit as st
+from PIL import Image
+from datetime import datetime
+import pandas as pd
+import os
+
+# Dummy RAG chatbot response function (replace with your actual function)
+def rag_chatbot(user_input):
+    return {
+        "answer": f"Response to: {user_input}",
+        "sources": ["Document 1", "Document 2"],
+        "evaluation": "Relevant"
+    }
+
+# Load logo
+image = Image.open("/mnt/logo-banque.png")
+st.image(image)
+
+# Initialize session state
+if "chat_sessions" not in st.session_state:
+    st.session_state.chat_sessions = {}
+
+if "current_chat" not in st.session_state:
+    st.session_state.current_chat = None
+
+# Sidebar: Chat session management
+with st.sidebar:
+    st.header("Chat Sessions")
+    
+    if st.button("+ New Chat"):
+        chat_id = len(st.session_state.chat_sessions) + 1
+        chat_name = f"Chat {chat_id}"
+        st.session_state.chat_sessions[chat_name] = []
+        st.session_state.current_chat = chat_name
+    
+    if st.session_state.chat_sessions:
+        options = []
+        for key, messages in st.session_state.chat_sessions.items():
+            label = key
+            for m in messages:
+                if m["role"] == "user":
+                    label = m["content"][:30] + "..." if len(m["content"]) > 30 else m["content"]
+                    break
+            options.append(f"{key}: {label}")
+        
+        selected = st.radio("Select Chat", options)
+        selected_key = selected.split(":")[0]
+        st.session_state.current_chat = selected_key
+
+# Main chat interface
+st.title("RAG Chatbot")
+
+if st.session_state.current_chat:
+    chat = st.session_state.chat_sessions[st.session_state.current_chat]
+
+    # Display chat history
+    for i, message in enumerate(chat):
+        with st.chat_message(message["role"]):
+            if message["role"] == "user" and "timestamp" in message:
+                st.markdown(f"**[{message['timestamp']}]**")
+            st.markdown(message["content"])
+
+            if message["role"] == "assistant":
+                with st.expander("Details"):
+                    st.write("**Sources:**", message["sources"])
+                    st.write("**Evaluation:**", message["evaluation"])
+                
+                # Rating thumbs
+                col1, col2 = st.columns([1, 1])
+                with col1:
+                    if st.button("👍", key=f"up_{i}"):
+                        save_feedback(st.session_state.current_chat, i, "up")
+                with col2:
+                    if st.button("👎", key=f"down_{i}"):
+                        save_feedback(st.session_state.current_chat, i, "down")
+
+# Input area
+user_input = st.chat_input("Type your message here...")
+if user_input and st.session_state.current_chat:
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Add user message
+    st.session_state.chat_sessions[st.session_state.current_chat].append({
+        "role": "user",
+        "content": user_input,
+        "timestamp": timestamp
+    })
+
+    # Process response
+    with st.spinner("Thinking..."):
+        response = rag_chatbot(user_input)
+
+    # Add assistant message
+    st.session_state.chat_sessions[st.session_state.current_chat].append({
+        "role": "assistant",
+        "content": response["answer"],
+        "sources": response["sources"],
+        "evaluation": response["evaluation"]
+    })
+
+    st.rerun()
+
+# Save feedback to CSV
+def save_feedback(chat_id, message_index, feedback_type):
+    feedback_file = "chat_feedback.csv"
+    data = {
+        "chat_id": chat_id,
+        "message_index": message_index,
+        "feedback": feedback_type,
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    df = pd.DataFrame([data])
+    
+    if os.path.exists(feedback_file):
+        df.to_csv(feedback_file, mode="a", header=False, index=False)
+    else:
+        df.to_csv(feedback_file, index=False)
+
+
+
+
+
+
 # --- Input area ---
 user_input = st.chat_input("Type your message here...")
 
