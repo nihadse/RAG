@@ -1,3 +1,32 @@
+# Main chat
+st.title("RAG Chatbot")
+
+# Display chat history
+chat_container = st.container()
+with chat_container:
+    if st.session_state.current_chat is not None:
+        for message in st.session_state.chat_sessions[st.session_state.current_chat]:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+                if message["role"] == "assistant":
+                    with st.expander("Details"):
+                        st.write("**Sources:**", message.get("sources", "N/A"))
+                        st.write("**Evaluation:**", message.get("evaluation", "N/A"))
+    else:
+        st.info("Please start or select a chat session from the sidebar.")
+
+
+
+
+
+
+
+
+
+
+
+
+
 import streamlit as st
 
 # Initialize session state variables if they don't exist
