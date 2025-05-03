@@ -1,3 +1,31 @@
+# --- Input area ---
+user_input = st.chat_input("Type your message here...")
+
+if user_input and st.session_state.current_chat:
+    # Add user message to chat history
+    st.session_state.chat_sessions[st.session_state.current_chat].append({
+        "role": "user",
+        "content": user_input
+    })
+
+    # Process query with spinner
+    with st.spinner("Thinking..."):
+        response = rag_chatbot(user_input)  # Make sure `rag_chatbot()` is defined elsewhere
+
+    # Add assistant response to chat history
+    st.session_state.chat_sessions[st.session_state.current_chat].append({
+        "role": "assistant",
+        "content": response.get("answer", "No response."),
+        "sources": response.get("sources", []),
+        "evaluation": response.get("evaluation", "N/A")
+    })
+
+    # Rerun to update the chat display
+    st.rerun()
+
+
+
+
 import streamlit as st
 from PIL import Image
 
