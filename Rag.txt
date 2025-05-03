@@ -1,119 +1,53 @@
-# Main chat
-st.title("RAG Chatbot")
-
-# Display chat history
-chat_container = st.container()
-with chat_container:
-    if st.session_state.current_chat is not None:
-        for message in st.session_state.chat_sessions[st.session_state.current_chat]:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
-                if message["role"] == "assistant":
-                    with st.expander("Details"):
-                        st.write("**Sources:**", message.get("sources", "N/A"))
-                        st.write("**Evaluation:**", message.get("evaluation", "N/A"))
-    else:
-        st.info("Please start or select a chat session from the sidebar.")
-
-
-
-
-
-
-
-
-
-
-
-
-
 import streamlit as st
+from PIL import Image
 
-# Initialize session state variables if they don't exist
+# --- Initialize session state variables ---
 if "chat_sessions" not in st.session_state:
     st.session_state.chat_sessions = {}
 
 if "current_chat" not in st.session_state:
     st.session_state.current_chat = None
 
+# --- Load and display logo ---
+image = Image.open("/mnt/logo-banque.png")
+st.image(image)
+
+# --- Sidebar: Chat session controls ---
+with st.sidebar:
+    st.header("Chat Sessions")
+
+    # Create new chat
+    if st.button("+ New Chat"):
+        new_chat_name = f"Chat {len(st.session_state.chat_sessions) + 1}"
+        st.session_state.chat_sessions[new_chat_name] = []
+        st.session_state.current_chat = new_chat_name
+
+    # Display and select existing chats
+    if st.session_state.chat_sessions:
+        selected_chat = st.radio(
+            "Select Chat",
+            options=list(st.session_state.chat_sessions.keys()),
+            index=0 if st.session_state.current_chat is None else list(st.session_state.chat_sessions.keys()).index(st.session_state.current_chat)
+        )
+        st.session_state.current_chat = selected_chat
+
+# --- Main chat interface ---
+st.title("RAG Chatbot")
+
+# Display chat history
+chat_container = st.container()
+
+with chat_container:
+    if st.session_state.current_chat:
+        for message in st.session_state.chat_sessions[st.session_state.current_chat]:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+                if message["role"] == "assistant":
+                    with st.expander("Details"):
+                        st.write("**Sources:**", message.get("sources", "N/A"))
+                        st.write("**Evaluation:**", message.get("evaluation", "N/A"))
+    else:
+        st.info("Please start a new chat or select an existing one.")
 
 
-
-from rank_bm25 import BM25Okapi
-import string
-
-class BM25Reranker:
-    """A document reranker using BM25 algorithm with error handling"""
-    
-    def __init__(self, k=50):
-        self.k = k
-        self.bm25 = None
-        self.document_map = {}
-        self.tokenizer = str.maketrans('', '', string.punctuation)  # For punctuation removal
-
-    def _preprocess(self, text: str) -> list:
-        """Clean and tokenize text"""
-        if not isinstance(text, str):
-            return []
-        cleaned = text.translate(self.tokenizer).lower()
-        return [token for token in cleaned.split() if token.strip()]
-
-    def fit(self, documents: list):
-        """Train BM25 model with validation"""
-        if not documents:
-            raise ValueError("Cannot fit BM25 with empty documents list")
-
-        tokenized_corpus = []
-        valid_documents = []
-
-        for i, doc in enumerate(documents):
-            if not isinstance(doc, dict):
-                continue
-            text = doc.get('text', '')
-            tokens = self._preprocess(text)
-            if tokens:
-                tokenized_corpus.append(tokens)
-                valid_documents.append((i, doc))
-
-        if not tokenized_corpus:
-            raise ValueError("No valid documents with non-empty text content for BM25 training")
-
-        try:
-            self.document_map = {
-                new_idx: orig_doc for new_idx, (orig_idx, orig_doc) in enumerate(valid_documents)
-            }
-            self.bm25 = BM25Okapi(tokenized_corpus)
-        except ZeroDivisionError:
-            raise ValueError("BM25 initialization failed due to an empty or malformed corpus.")
-        
-        return self
-
-    def rerank(self, query: str, documents: list) -> list:
-        """Rerank documents with safety checks"""
-        if not self.bm25:
-            if not documents:
-                return []
-            try:
-                self.fit(documents)
-            except Exception as e:
-                print(f"BM25 fit failed: {str(e)}")
-                return documents[:self.k]
-
-        try:
-            query_tokens = self._preprocess(query)
-            if not query_tokens:
-                return documents[:self.k]
-
-            scores = self.bm25.get_scores(query_tokens)
-
-            scored_docs = []
-            for idx, score in enumerate(scores):
-                if idx in self.document_map:
-                    scored_docs.append((score, self.document_map[idx]))
-
-            scored_docs.sort(reverse=True, key=lambda x: x[0])
-            return [doc for score, doc in scored_docs[:self.k]]
-
-        except Exception as e:
-            print(f"BM25 reranking failed: {str(e)}")
-            return documents[:self.k]
