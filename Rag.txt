@@ -1,3 +1,59 @@
+import base64
+import tempfile
+from gtts import gTTS
+from fpdf import FPDF
+import streamlit as st
+
+# Extract assistant message
+assistant_message = response["answer"]
+sources = response.get("sources", "")
+evaluation = response.get("evaluation", "")
+full_text = f"Réponse:\n{assistant_message}\n\nSources:\n{sources}\n\nÉvaluation:\n{evaluation}"
+
+# Save the assistant message
+st.session_state.chat_sessions[st.session_state.current_chat].append({
+    "role": "assistant",
+    "content": assistant_message,
+    "sources": sources,
+    "evaluation": evaluation
+})
+
+# Show the assistant response
+st.markdown(f"**Assistant:** {assistant_message}")
+
+# --- 📋 Copy Button (using text area hack) ---
+st.text_area("📋 Copier la réponse", assistant_message, height=150)
+
+# --- 📥 Download PDF ---
+def generate_pdf(text):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_font("Arial", size=12)
+    for line in text.split('\n'):
+        pdf.multi_cell(0, 10, line)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+        pdf.output(tmp_file.name)
+        return tmp_file.name
+
+pdf_path = generate_pdf(full_text)
+with open(pdf_path, "rb") as f:
+    st.download_button("📄 Télécharger la réponse en PDF", f, file_name="reponse.pdf", mime="application/pdf")
+
+# --- 🔊 Voice Cover (French) ---
+def play_tts(text, lang='fr'):
+    tts = gTTS(text, lang=lang)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as fp:
+        tts.save(fp.name)
+        audio_file = fp.name
+    st.audio(audio_file, format='audio/mp3')
+
+play_tts(assistant_message)
+
+
+
+
+
 def generate_response(prompt, context):
     try:
         completion = openai.ChatCompletion.create(
