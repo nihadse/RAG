@@ -1,3 +1,19 @@
+def copy_to_clipboard_button(text: str, label="📋 Copier la réponse"):
+    copy_code = f"""
+        <button onclick="navigator.clipboard.writeText(`{text}`)"
+        style="padding: 0.5em 1em; margin-top: 10px; background-color: #4CAF50; 
+               color: white; border: none; border-radius: 5px; cursor: pointer;">
+        {label}
+        </button>
+    """
+    st.markdown(copy_code, unsafe_allow_html=True)
+
+
+
+
+
+
+
 import base64
 import tempfile
 from fpdf import FPDF
