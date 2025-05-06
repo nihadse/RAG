@@ -1,5 +1,54 @@
 import base64
 import tempfile
+from fpdf import FPDF
+from gtts import gTTS
+import streamlit as st
+
+# Extract assistant message
+assistant_message = response["answer"]
+sources = response.get("sources", "")
+evaluation = response.get("evaluation", "")
+full_text = f"Réponse:\n{assistant_message}\n\nSources:\n{sources}\n\nÉvaluation:\n{evaluation}"
+
+# Save the assistant message
+st.session_state.chat_sessions[st.session_state.current_chat].append({
+    "role": "assistant",
+    "content": assistant_message,
+    "sources": sources,
+    "evaluation": evaluation
+})
+
+# --- 💬 Display the response ---
+st.markdown(f"**Assistant:** {assistant_message}")
+
+# --- 📋 Real Copy-to-Clipboard Button ---
+copy_button = f"""
+    <button onclick="navigator.clipboard.writeText(`{assistant_message}`)"
+    style="padding: 0.5em 1em; margin-top: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+    📋 Copier la réponse
+    </button>
+"""
+st.markdown(copy_button, unsafe_allow_html=True)
+
+# --- 📄 Download as PDF ---
+def generate_pdf(text):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    for line in text.split('\n'):
+        pdf.multi_cell(0, 10, line)
+    tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+    pdf.output(tmp_file.name)
+    return tmp_file.name
+
+pdf_path = generate_pdf(full_text)
+with open(pdf_path, "rb") as f:
+    st.download_button("📄 Télécharger en PDF", f, file_name="reponse.pdf", mime="application/pdf")
+
+
+
+import base64
+import tempfile
 from gtts import gTTS
 from fpdf import FPDF
 import streamlit as st
