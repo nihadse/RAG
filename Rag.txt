@@ -1,3 +1,113 @@
+1. Introduction – Why this presentation
+
+Hello everyone,
+
+I will show you how we built a simple solution using Alteryx to produce a regulatory report for the Central Bank.
+
+It’s a real use case. The goal is to explain how we do it, step by step.
+
+⸻
+
+2. Business context
+
+Every day, we must send a report to the Central Bank of Algeria.
+
+This report includes Trade Finance operations:
+	•	Letters of Credit
+	•	Documentary Collections
+	•	Free Transfers
+
+The data comes from two different tools:
+	•	Carthago Dom for domiciliations
+	•	Carthago Trade for payments (settlements)
+
+We also use a third file: a list of clients who can access the dealing room.
+
+⸻
+
+3. Why it is difficult
+
+This report is hard to produce because:
+	•	The data is in Excel files (not connected to our main system)
+	•	We must match domiciliation and payment for each transaction
+	•	We must check if the currency comes from the Central Bank or from client’s own funds
+	•	The format must follow strict rules from the Central Bank
+	•	And we must do this every day, with no mistakes
+
+⸻
+
+4. How we do it – our method
+
+We created an APA (Analytic Process Automation) using Alteryx Designer.
+
+Each day, we extract 3 Excel files:
+	1.	One from Carthago Trade
+	2.	One from Carthago Dom
+	3.	One with the list of authorized clients
+
+The user opens the Alteryx workflow, uploads the 3 files, and clicks “OK”.
+
+⸻
+
+5. What the workflow does
+
+The Alteryx workflow does everything:
+
+Step 1: Clean and filter the 3 files
+	•	Clean amounts, dates, formats
+	•	Keep only needed lines
+
+Step 2:
+	•	Detect currency types (EUR, USD, etc.)
+	•	Classify each operation (currency purchase, own funds, etc.)
+	•	Standardize names and formats
+
+Step 3:
+	•	Match domiciliation and payment
+	•	Add the client list
+	•	Check the data with business rules
+	•	Highlight problems in red
+
+⸻
+
+6. Live demo
+
+I will now show you how it works:
+	•	I open the workflow
+	•	Upload the 3 Excel files
+	•	Run the process
+	•	And get the final file, ready to send to the Central Bank
+
+If there are errors, they are marked in red.
+
+⸻
+
+7. What happens if there are errors
+
+If we see problems in the report:
+	•	The reporting team contacts the business team
+	•	They correct the source data in Carthago
+	•	Then we upload the new files
+	•	And run the workflow again to get a clean report
+
+⸻
+
+8. Conclusion – Why this is useful
+
+Thanks to this process:
+	•	We save time
+	•	We reduce manual errors
+	•	We have good quality and full traceability
+
+This is not a big system. It is a small, smart solution.
+
+
+
+
+
+
+
+
 def copy_to_clipboard_button(text: str, label="📋 Copier la réponse"):
     copy_code = f"""
         <button onclick="navigator.clipboard.writeText(`{text}`)"
