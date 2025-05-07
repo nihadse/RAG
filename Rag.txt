@@ -1,3 +1,7 @@
+APA (Analytic Process Automation) is a technology that combines data analytics, automation, and data science to streamline business processes. It allows users to gather, analyze, and act on data quickly—reducing manual work and improving decision-making.
+
+
+
 Why it is difficult
 
 Data storage in Excel files, disconnected from core systems
