@@ -1,3 +1,19 @@
+Why it is difficult
+
+Data storage in Excel files, disconnected from core systems
+
+Matching of domiciliation and payment per transaction
+
+Identification of the currency source: Central Bank or client’s own funds
+
+Compliance with strict Central Bank formatting rules
+
+Daily submission deadline with no margin for error
+
+
+
+
+
 1. Introduction – Why this presentation
 
 Hello everyone,
