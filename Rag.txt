@@ -1,5 +1,58 @@
 import streamlit as st
 from datetime import datetime
+import html
+
+user_input = st.chat_input("Type your message here...")
+
+if user_input and st.session_state.current_chat:
+    timestamp = datetime.now()
+
+    # Add user message
+    st.session_state.chat_sessions[st.session_state.current_chat].append({
+        "role": "user",
+        "content": user_input,
+        "timestamp": timestamp
+    })
+
+    # Get assistant response
+    with st.spinner("Thinking..."):
+        response = rag_chatbot(user_input)
+
+    answer = response["answer"]
+    escaped_answer = html.escape(answer)
+
+    # Display the assistant message nicely
+    st.markdown("**Assistant:**")
+    st.markdown(answer)
+
+    # Copy to clipboard button
+    copy_html = f"""
+    <textarea id="copyTarget" style="position: absolute; left: -1000px;">{escaped_answer}</textarea>
+    <button onclick="navigator.clipboard.writeText(document.getElementById('copyTarget').value)">📋 Copier la réponse</button>
+    """
+    st.markdown(copy_html, unsafe_allow_html=True)
+
+    # Display timestamp
+    st.markdown(f"*Réponse générée à : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*")
+
+    # Save assistant response
+    st.session_state.chat_sessions[st.session_state.current_chat].append({
+        "role": "assistant",
+        "content": answer,
+        "sources": response["sources"],
+        "evaluation": response["evaluation"],
+        "timestamp": datetime.now()
+    })
+
+    st.rerun()
+
+
+
+
+
+
+import streamlit as st
+from datetime import datetime
 
 user_input = st.chat_input("Type your message here...")
 
