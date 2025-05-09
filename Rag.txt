@@ -1,4 +1,75 @@
 import streamlit as st
+import datetime
+import html
+
+# Initialize session state
+if "chat_sessions" not in st.session_state:
+    st.session_state.chat_sessions = {}
+if "current_chat" not in st.session_state:
+    st.session_state.current_chat = "default"
+if st.session_state.current_chat not in st.session_state.chat_sessions:
+    st.session_state.chat_sessions[st.session_state.current_chat] = []
+
+# Title
+st.title("Chatbot BNP ED")
+st.subheader("Assistant")
+
+# User input
+user_input = st.chat_input("Type your message here")
+
+if user_input and st.session_state.current_chat:
+    timestamp = datetime.datetime.now()
+
+    # Add user message to session
+    st.session_state.chat_sessions[st.session_state.current_chat].append({
+        "role": "user",
+        "content": user_input,
+        "timestamp": timestamp
+    })
+
+    # Process response
+    with st.spinner("Thinking..."):
+        response = rag_chatbot(user_input)  # Your RAG function here
+        answer = response["answer"]
+        sources = response.get("sources", [])
+        evaluation = response.get("evaluation", "")
+        response_timestamp = datetime.datetime.now()
+
+    # Escape answer for HTML rendering
+    escaped_answer = html.escape(answer)
+
+    # Display the assistant answer
+    st.markdown("**Réponse détaillée :**")
+    st.markdown(answer, unsafe_allow_html=True)
+
+    # Copy button using HTML + JS
+    copy_html = f"""
+    <textarea id="copyTarget" style="position: absolute; left: -1000px;">{escaped_answer}</textarea>
+    <button onclick="navigator.clipboard.writeText(document.getElementById('copyTarget').value)">Copier la réponse</button>
+    """
+    st.markdown(copy_html, unsafe_allow_html=True)
+
+    # Show response timestamp
+    st.markdown(f"Réponse générée à : {response_timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
+
+    # Add assistant message to session
+    st.session_state.chat_sessions[st.session_state.current_chat].append({
+        "role": "assistant",
+        "content": answer,
+        "sources": sources,
+        "evaluation": evaluation,
+        "timestamp": response_timestamp
+    })
+
+    # Refresh interface
+    st.rerun()
+
+
+
+
+
+
+import streamlit as st
 from datetime import datetime
 import html
 
