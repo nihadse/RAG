@@ -1,3 +1,54 @@
+import streamlit as st
+import datetime
+
+# Simulated RAG response function
+def rag_chatbot(user_input):
+    return f"a. Réponse très détaillée :\n\nLe terme « compte à vue » désigne un type de compte bancaire... (exemple)\n\nb. Sources utilisées :\n- Remplois.pdf (Pages 23, 5)\n- ProduitsPackages.pdf (Page 51)"
+
+# Input area
+user_input = st.chat_input("Type your message here...")
+
+if "chat" not in st.session_state:
+    st.session_state.chat = []
+
+if user_input:
+    timestamp = datetime.datetime.now()
+    st.session_state.chat.append({
+        "role": "user",
+        "content": user_input,
+        "timestamp": timestamp
+    })
+
+    with st.spinner("Thinking..."):
+        answer = rag_chatbot(user_input)
+
+    # Display assistant's response
+    st.markdown("### Assistant :")
+    st.markdown(answer, unsafe_allow_html=True)
+
+    # Add hidden textarea for copying and the copy button
+    copy_html = f"""
+    <textarea id="copyTarget" style="position:absolute; left:-9999px; top:0;">{answer}</textarea>
+    <button onclick="navigator.clipboard.writeText(document.getElementById('copyTarget').value)">Copier la réponse</button>
+    """
+    st.markdown(copy_html, unsafe_allow_html=True)
+
+    # Store assistant message in chat state
+    st.session_state.chat.append({
+        "role": "assistant",
+        "content": answer,
+        "timestamp": datetime.datetime.now()
+    })
+
+# Show full chat history
+for message in st.session_state.chat:
+    role = "Vous" if message["role"] == "user" else "Assistant"
+    st.markdown(f"**{role} ({message['timestamp'].strftime('%Y-%m-%d %H:%M:%S')})**")
+    st.markdown(message["content"])
+
+
+
+
 ^([A-Za-z\s]+)\s+([A-Za-z0-9]+)$
 
 
