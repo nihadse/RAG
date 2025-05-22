@@ -1,3 +1,96 @@
+
+You sent
+Voici une version enrichie et bien structurée de votre document de passation, avec l’ajout de la section "Livrables" et toutes les informations que vous avez fournies, dans un style professionnel :
+
+Passation de Projet – Data Qualité / Usine de Fiabilisation – Programme Issue Management Remédiation (PIMR)
+
+1. Contexte et Objectif du Projet
+
+Ce projet a pour but de mesurer et améliorer la qualité des données au sein des bases de données et systèmes d'information de la banque. L’objectif principal est de détecter les anomalies, les valeurs manquantes et les incohérences afin de garantir des données fiables, exploitables par l’ensemble des métiers de la banque.
+
+Les anomalies détectées sont ensuite transmises aux départements concernés pour correction, notamment :
+
+Retail (banque de détail)
+
+Corporate (banque entreprises)
+
+UCC (Unité de Contrôle Centralisé)
+
+RISC (Gestion des risques)
+
+Ce projet alimente également plusieurs activités stratégiques, telles que :
+
+Le calcul des indicateurs DPU
+
+La génération de fichiers d’anomalies détaillés pour les départements métiers
+
+La collaboration avec la Data Gouvernance, qui utilise ses propres fichiers (file.cog, file.bcpu) non accessibles directement
+
+Les analyses sont automatisées via des workflows développés sur la plateforme Alteryx.
+
+2. Présentation du Processus
+
+Un schéma récapitulatif du processus complet figure plus bas dans ce document pour vous guider visuellement.
+
+Ce document vous accompagnera étape par étape dans le traitement du projet.
+
+3. Première Étape – Demande des Fichiers
+
+La première action à mener est l’envoi d’une demande via la plateforme ServiceNow, accompagnée d’un e-mail à l’équipe DSE (Data Services & Engineering), afin d’obtenir l’ensemble des fichiers sources nécessaires à l’analyse.
+
+Important :
+Deux fichiers supplémentaires (file.cog et file.bcpu) sont transmis directement par la Data Gouvernance, sans possibilité d'en faire la demande vous-même. Cette tâche est prise en charge de leur côté.
+
+4. Livrables
+
+Je tiens à vous informer que tous les livrables liés au programme IMR sont prêts. Vous trouverez ci-dessous un récapitulatif :
+
+KPI par Tiers :
+
+Taux global de qualité des tiers : 93%
+
+KPI BCPO :
+
+Taux de qualité des tiers : 85% pour les personnes morales
+
+94% pour les personnes physiques
+
+KPI QAC :
+
+Disponibles par donnée et par contrôle
+
+Indicateurs de Protection des Données (DPO) :
+
+Mise à jour effectuée
+
+Nombre d'entrées en relation
+
+Nombre total d’ID tiers
+
+Fichiers détaillés des anomalies par ligne de métier :
+
+BUCC, Corporate, Recouvrement, Retail, Risque, DARSY, BAL4
+
+Fichiers de variations : prêts
+
+KPI Data Qualité : prêts
+
+Remarques :
+
+Nombre total de données : 204
+
+Nombre total de contrôles : 520
+(Crédits, Comptes, Transferts, Arrêtés, Tiers, Produits, DARSY)
+
+Emplacement des fichiers :
+Tous les fichiers ont été déposés dans le répertoire de partage suivant :
+I:\DATA EO\DEPARTEMENT DATA\13-DATA ANALYTICS SCIENCE
+
+Souhaitez-vous que je vous aide maintenant à formuler les prochaines étapes (vérification, analyse comparative, envoi aux métiers, etc.) ?
+
+
+
+
 crewai==0.12.0
 opentelemetry-sdk==1.18.0
 opentelemetry-api==1.18.0
