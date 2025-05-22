@@ -1,16 +1,3 @@
-le DCC (Data Quality Catalog) doit être transmis et échangé entre la gouvernance des données et les autres départements concernés. Une fois la version finale du DCC validée, elle nous sera transmise directement par la gouvernance des données. À aucun moment, nous ne participons ou ne sommes impliqués dans les échanges entre la gouvernance des données et les autres entités.
+Après avoir généré l’output Données_tiers.yxdb, il est important d’analyser particulièrement le champ "Date d’entrée en relation". Si ce champ contient des dates correspondant au mois en cours, cela signifie que les DEER (données d’entrée en relation) ont bien été remontées dans BO — dans ce cas, on considère que la donnée est prête ("Yes"). Si aucune date du mois en cours n’est présente, cela signifie que les nouvelles entrées ne sont pas encore disponibles dans la base ("No"). Dans ce cas, il est recommandé d’attendre quelque temps et de relancer l’analyse plus tard, jusqu’à ce que les nouveaux clients du mois apparaissent dans la base.
 
-
-
-Renommer les fichiers après vérification, en respectant les conventions établies.
-
-Enregistrer chaque fichier dans son répertoire spécifique :
-\\ELBS00100021.dz.net.intra\Group\DATA_EO\DEPARTEMENT_DATA\030-SAB\01-Fiabilisation\Fichiers_traitement\06-Transferts
-
-Archiver les fichiers enregistrés afin d’assurer leur conservation et leur traçabilité.
-
-Cette étape correspond à la phase post-vérification et marque le début de la production.
-
-Il est important d’exécuter les workflows Alteryx dans l’ordre correct à chaque fois pour garantir l’intégrité du processus.
-
-
+Remarque : à chaque traitement, veillez à créer un nouveau dossier nommé avec la date du mois traité, et à y sauvegarder tous les outputs associés.
