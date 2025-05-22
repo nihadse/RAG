@@ -1,4 +1,117 @@
 
+
+---
+
+Passation de Projet – Data Qualité / Usine de Fiabilisation – Programme Issue Management Remédiation (PIMR)
+
+
+---
+
+1. Contexte et Objectif
+
+Ce projet concerne l’analyse de données dans le cadre du suivi de la qualité des données de la banque. Il s’inscrit dans le programme Issue Management & Remédiation (PIMR), aussi appelé FIABLA (Fiabilisation). Il a pour but de détecter, analyser et suivre les anomalies présentes dans les différents fichiers de données utilisés par la banque.
+
+Les workflows sont créés et exécutés via la plateforme Alteryx.
+
+
+---
+
+2. Calendrier et Délais
+
+Action	Date limite
+
+Envoi des résultats finaux	8 de chaque mois
+Envoi des productions (analyses intermédiaires)	6 de chaque mois
+Envoi des demandes de données via Service Now	entre le 28 et 29 de chaque mois
+
+
+
+---
+
+3. Demande et Réception des Données
+
+Les données doivent être demandées en suivant les étapes ci-dessous :
+
+1. Demande initiale par e-mail : adressée au bénéficiaire (souvent le ministère des Opérations), qui enverra les fichiers nécessaires.
+
+
+2. Fichiers spécifiques :
+
+P310 : contient les données CREM.
+
+GesKYC : contient 3 fichiers. Exemple : "Card Data Base January 2024.xlsx" (reçu par Karim, qui dispose d’un accès spécial – à demander si besoin).
+
+
+
+3. Select System (V6) : la demande est faite via Service Now, puis confirmée par e-mail. Le ticket Service Now contient l’ID de la demande.
+
+
+
+
+---
+
+4. Vérification des Fichiers
+
+Une fois les fichiers reçus :
+
+Les déposer dans le répertoire suivant :
+ENDATA > FOLDEPARTEMENT DATA > 13-DATA ANALYTICS SCIENCE > 02-ANALYTICS > 102-Actions métiers
+
+Lancer les workflows Alteryx dédiés pour comparer :
+
+Le fichier reçu avec celui du mois précédent.
+
+Les éléments suivants sont analysés :
+
+Nombre de lignes
+
+Données manquantes
+
+Valeurs incohérentes ou suspectes
+
+
+
+
+
+---
+
+5. Validation et Communication
+
+Ne jamais valider un fichier sans l’avoir préalablement analysé.
+
+Une fois l’analyse effectuée, envoyer un e-mail de validation :
+
+Si le fichier est conforme : valider avec un résumé des vérifications.
+
+Sinon : mentionner les anomalies détectées et demander un nouveau fichier ou des corrections.
+
+
+
+
+---
+
+6. Notes Importantes
+
+Toujours consulter les recommandations du responsable de la qualité (Rios).
+
+Documenter systématiquement les écarts détectés dans un fichier de suivi.
+
+Archiver toutes les communications et résultats dans les dossiers partagés pour assurer la traçabilité.
+
+
+
+---
+
+Souhaitez-vous que je vous aide à structurer ou reformuler une autre section du document ? Vous pouvez aussi m’envoyer la première feuille du fichier Word pour continuer le travail.
+
+
+
+
+
+
+
+
+
 You sent
 Voici une version enrichie et bien structurée de votre document de passation, avec l’ajout de la section "Livrables" et toutes les informations que vous avez fournies, dans un style professionnel :
 
