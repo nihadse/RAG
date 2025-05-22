@@ -1,3 +1,50 @@
+Bien sûr ! Voici la section complète avec l'ajout de ta dernière demande, à insérer dans la partie "6. Vérification et Validation des Fichiers" :
+
+
+---
+
+6. Vérification et Validation des Fichiers
+
+Une fois les fichiers reçus, une étape de vérification est indispensable avant toute validation :
+
+Comparaison automatique via le workflow Alteryx :
+Le fichier reçu est comparé avec celui du mois précédent selon plusieurs critères :
+
+Nombre total de lignes
+
+Données manquantes
+
+Éventuelles incohérences ou ruptures de structure
+
+
+Analyse de la qualité :
+Des indicateurs sont générés pour évaluer la qualité du fichier (exemples : taux de complétude, taux d’anomalies, évolution par rapport au mois précédent...).
+
+Validation par e-mail :
+Une fois l’analyse effectuée, un e-mail de validation est envoyé pour confirmer si le fichier est exploitable ou non.
+Ce message doit inclure les résultats de l’analyse pour justifier la décision.
+
+
+> Important : Aucun fichier ne doit être validé sans avoir été rigoureusement analysé au préalable.
+
+
+
+Workflows spécifiques par fichier :
+Chaque fichier d’entrée — c’est-à-dire les fichiers demandés via la plateforme ServiceNow — dispose de son propre workflow dédié dans Alteryx, conçu pour analyser et vérifier la qualité du fichier reçu.
+Ces workflows tiennent compte des particularités de chaque jeu de données pour garantir des contrôles adaptés et pertinents.
+
+
+
+---
+
+Prête à passer à la section suivante ? Je peux t’aider à décrire l’étape d’envoi des anomalies aux lignes métiers ou le reporting des KPI.
+
+
+
+
+
+
+
 
 
 ---
