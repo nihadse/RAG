@@ -1,3 +1,7 @@
+le DCC (Data Quality Catalog) doit être transmis et échangé entre la gouvernance des données et les autres départements concernés. Une fois la version finale du DCC validée, elle nous sera transmise directement par la gouvernance des données. À aucun moment, nous ne participons ou ne sommes impliqués dans les échanges entre la gouvernance des données et les autres entités.
+
+
+
 Renommer les fichiers après vérification, en respectant les conventions établies.
 
 Enregistrer chaque fichier dans son répertoire spécifique :
