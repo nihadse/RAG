@@ -1,6 +1,4 @@
-Bonjour [Nom du collègue],
+Bonjour [Nom],
+Ma carte actuelle ne fonctionne plus, je souhaite en obtenir une nouvelle.
+Je voudrais également passer de la carte classique à une carte Gold.
 
-Je te partage ci-joint ma version du fichier concernant l’île de la passation pour le projet. N’hésite pas à me faire un retour si tu as des remarques ou des suggestions.
-
-Bonne journée,
-Nihad
