@@ -1,6 +1,54 @@
 import os
 import pandas as pd
 
+# Set your main folder path
+root_folder = "/mnt/data/your_main_folder"  # <-- Update this path
+
+# Target sheet names and columns
+target_sheets = ['pm', 'pp']
+target_columns = ["N° d'inscription", "N°"]
+
+# Container for data
+all_data = []
+
+# Walk through subdirectories
+for dirpath, dirnames, filenames in os.walk(root_folder):
+    for file in filenames:
+        if file.endswith(('.xlsx', '.xls')) and not file.startswith('~$'):  # Skip temp files
+            file_path = os.path.join(dirpath, file)
+            try:
+                xls = pd.ExcelFile(file_path)
+                for sheet in target_sheets:
+                    if sheet in xls.sheet_names:
+                        try:
+                            df = pd.read_excel(file_path, sheet_name=sheet, dtype=str)
+                            available_cols = [col for col in target_columns if col in df.columns]
+                            if available_cols:
+                                extracted = df[available_cols].copy()
+                                extracted["FileName"] = file
+                                extracted["SheetName"] = sheet
+                                extracted["FilePath"] = file_path
+                                all_data.append(extracted)
+                        except Exception as e:
+                            print(f"Error reading sheet '{sheet}' in {file}: {e}")
+            except Exception as e:
+                print(f"Error opening {file}: {e}")
+
+# Combine and export
+if all_data:
+    final_df = pd.concat(all_data, ignore_index=True)
+    output_path = "/mnt/data/consolidated_output.xlsx"
+    final_df.to_excel(output_path, index=False)
+    print(f"Data consolidated into: {output_path}")
+else:
+    print("No data extracted. Check sheet names and column availability.")
+
+
+
+
+import os
+import pandas as pd
+
 # Folder containing Excel files
 folder_path = "/mnt/data/your_excel_folder/"  # Update path as needed
 
