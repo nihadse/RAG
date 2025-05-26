@@ -1,4 +1,27 @@
 import os
+
+# Path to your main folder
+root_folder = "/mnt/data/your_main_folder"  # Replace with your actual path
+
+# Supported Excel extensions
+excel_files = []
+
+for dirpath, dirnames, filenames in os.walk(root_folder):
+    for file in filenames:
+        if file.endswith((".xlsx", ".xls")) and not file.startswith("~$"):  # Exclude temp files
+            full_path = os.path.join(dirpath, file)
+            excel_files.append(full_path)
+
+# Display all Excel files found
+for file in excel_files:
+    print(file)
+
+print(f"\nTotal Excel files found: {len(excel_files)}")
+
+
+
+
+import os
 import pandas as pd
 
 # Set your main folder path
