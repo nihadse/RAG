@@ -1,3 +1,10 @@
+[FullPath] + "|||SheetName=" + [SheetName]
+
+
+
+InputPathWithSheet
+
+
 import pandas as pd
 from ayx import Alteryx
 
