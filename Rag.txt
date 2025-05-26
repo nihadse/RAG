@@ -1,3 +1,47 @@
+import os
+import pandas as pd
+
+# Define directory where your Excel files are stored
+excel_dir = "/mnt/data/your_excel_folder/"
+
+# Columns you want to extract (update based on real names)
+target_columns = ['Client Name', 'Account Number']  # Adjust to your need
+
+# Placeholder for all rows
+all_data = []
+
+# Walk through all Excel files
+for filename in os.listdir(excel_dir):
+    if filename.endswith('.xlsx') or filename.endswith('.xls'):
+        file_path = os.path.join(excel_dir, filename)
+        try:
+            xls = pd.ExcelFile(file_path)
+            for sheet in xls.sheet_names:
+                try:
+                    df = pd.read_excel(file_path, sheet_name=sheet)
+                    # Filter by existing columns only
+                    cols = [col for col in target_columns if col in df.columns]
+                    if cols:
+                        df_filtered = df[cols].copy()
+                        df_filtered['SourceFile'] = filename
+                        df_filtered['SheetName'] = sheet
+                        all_data.append(df_filtered)
+                except Exception as e:
+                    print(f"Error reading sheet {sheet} in {filename}: {e}")
+        except Exception as e:
+            print(f"Error reading file {filename}: {e}")
+
+# Combine everything into one DataFrame
+final_df = pd.concat(all_data, ignore_index=True)
+
+# Save final consolidated file
+output_path = "/mnt/data/consolidated_output.xlsx"
+final_df.to_excel(output_path, index=False)
+print(f"Saved consolidated file to: {output_path}")
+
+
+
+
 import pandas as pd
 from ayx import Alteryx
 
