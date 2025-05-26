@@ -1,4 +1,18 @@
-Bonjour [Nom],
-Ma carte actuelle ne fonctionne plus, je souhaite en obtenir une nouvelle.
-Je voudrais également passer de la carte classique à une carte Gold.
+import pandas as pd
+from ayx import Alteryx
 
+df = Alteryx.read("#1")  # From Directory Tool
+output = []
+
+for path in df['FullPath']:
+    try:
+        xls = pd.ExcelFile(path)
+        for sheet in xls.sheet_names:
+            output.append({
+                'FullPath': path,
+                'SheetName': sheet
+            })
+    except:
+        pass
+
+Alteryx.write(pd.DataFrame(output), 1)
