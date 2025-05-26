@@ -1,6 +1,55 @@
 import os
 import pandas as pd
 
+# Folder containing Excel files
+folder_path = "/mnt/data/your_excel_folder/"  # Update path as needed
+
+# Target sheets and columns
+target_sheets = ['pm', 'pp']
+target_columns = ["N° d'inscription", "N°"]
+
+# Output list
+all_data = []
+
+# Loop through each file in the directory
+for root, dirs, files in os.walk(folder_path):
+    for file in files:
+        if file.endswith('.xlsx') or file.endswith('.xls'):
+            file_path = os.path.join(root, file)
+            try:
+                xls = pd.ExcelFile(file_path)
+                for sheet_name in target_sheets:
+                    if sheet_name in xls.sheet_names:
+                        try:
+                            df = pd.read_excel(file_path, sheet_name=sheet_name)
+                            cols = [col for col in target_columns if col in df.columns]
+                            if cols:
+                                temp_df = df[cols].copy()
+                                temp_df['FileName'] = file
+                                temp_df['SheetName'] = sheet_name
+                                temp_df['FilePath'] = file_path
+                                all_data.append(temp_df)
+                        except Exception as e:
+                            print(f"Failed to read sheet '{sheet_name}' in file '{file}': {e}")
+            except Exception as e:
+                print(f"Failed to read file '{file}': {e}")
+
+# Concatenate all data
+if all_data:
+    final_df = pd.concat(all_data, ignore_index=True)
+    output_file = "/mnt/data/consolidated_output.xlsx"
+    final_df.to_excel(output_file, index=False)
+    print(f"Consolidated file saved to: {output_file}")
+else:
+    print("No data found in target sheets and columns.")
+
+
+
+
+
+import os
+import pandas as pd
+
 # Define directory where your Excel files are stored
 excel_dir = "/mnt/data/your_excel_folder/"
 
