@@ -1,3 +1,31 @@
+import pandas as pd
+import os
+from ayx import Alteryx
+
+# Read input data from Alteryx (coming from the Directory Tool)
+df = Alteryx.read("#1")  # Make sure Python tool is connected to Directory Tool
+
+output = []
+
+for path in df['FullPath']:
+    try:
+        xls = pd.ExcelFile(path)
+        for sheet in xls.sheet_names:
+            output.append({
+                'FullPath': path,
+                'SheetName': sheet
+            })
+    except Exception as e:
+        print(f"Error reading {path}: {e}")
+        continue
+
+# Output the sheet name and file path to next Alteryx tools
+Alteryx.write(pd.DataFrame(output), 1)
+
+
+
+
+
 [FullPath] + "|||SheetName=" + [SheetName]
 
 
