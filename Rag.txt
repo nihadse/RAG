@@ -1,6 +1,56 @@
 import pandas as pd
 from ayx import Alteryx
 
+# Read the incoming directory file list
+df = Alteryx.read("#1")
+
+output = []
+
+# Loop over each Excel file
+for path in df['FullPath']:
+    if path.endswith('.xlsx') or path.endswith('.xls'):
+        try:
+            xls = pd.ExcelFile(path)
+            for sheet in xls.sheet_names:
+                output.append({
+                    'FullPath': path,
+                    'SheetName': sheet
+                })
+        except Exception as e:
+            print(f"Error reading {path}: {e}")
+    else:
+        print(f"Skipped: {path}")
+
+# Create a DataFrame from the collected paths and sheets
+output_df = pd.DataFrame(output)
+
+# Construct valid metadata required by Alteryx
+metadata = {
+    'FullPath': {
+        'type': 'V_WString',
+        'size': 1000,
+        'source': 'PythonTool',
+        'description': 'Path of the Excel file'
+    },
+    'SheetName': {
+        'type': 'V_WString',
+        'size': 255,
+        'source': 'PythonTool',
+        'description': 'Sheet name in Excel file'
+    }
+}
+
+# Write the data to the output anchor
+Alteryx.write(output_df, 1, metadata)
+
+
+
+
+
+
+import pandas as pd
+from ayx import Alteryx
+
 df = Alteryx.read("#1")
 
 output = []
