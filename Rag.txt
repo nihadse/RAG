@@ -1,5 +1,92 @@
 import os
 import pandas as pd
+from tqdm import tqdm
+from collections import Counter
+
+base_folder = "/mnt/data/YOUR_FOLDER_NAME"
+
+# This is now for logging and summary only
+target_columns = ["N° d'inscription", "N°", "رقم التسجيل", "رقم", "الرقم", 
+                  "رقم العميل", "رقم حساب", "Numéro d’identification", 
+                  "N° identifiant", "Identifiant", "Client ID", "Registration Number"]
+
+all_data = []
+sheet_summary = []
+column_summary = []
+
+for root, dirs, files in os.walk(base_folder):
+    for file in files:
+        if file.endswith(".xlsx") or file.endswith(".xls"):
+            file_path = os.path.join(root, file)
+            try:
+                xls = pd.ExcelFile(file_path)
+                for sheet_name in xls.sheet_names:
+                    try:
+                        df = pd.read_excel(xls, sheet_name=sheet_name)
+                        df.columns = df.columns.str.strip()
+
+                        # Log all columns
+                        column_summary.append({
+                            "File": file,
+                            "Sheet": sheet_name,
+                            "Columns": list(df.columns)
+                        })
+
+                        # Save sheet info
+                        sheet_summary.append({
+                            "File": file,
+                            "Sheet": sheet_name
+                        })
+
+                        # Append the full sheet + metadata
+                        df["Source_File"] = file
+                        df["Source_Sheet"] = sheet_name
+                        df["File_Path"] = file_path
+                        all_data.append(df)
+
+                    except Exception as e:
+                        print(f"Error reading sheet '{sheet_name}' in file '{file}': {e}")
+            except Exception as e:
+                print(f"Error opening Excel file '{file}': {e}")
+
+# Combine all
+if all_data:
+    combined_df = pd.concat(all_data, ignore_index=True)
+    combined_df.to_excel("/mnt/data/Combined_All_Data.xlsx", index=False)
+    print("Saved full combined data to: Combined_All_Data.xlsx")
+else:
+    print("No valid sheets found.")
+
+# Sheet summary
+pd.DataFrame(sheet_summary).to_excel("/mnt/data/All_Sheets_Info.xlsx", index=False)
+print("Saved sheet info to: All_Sheets_Info.xlsx")
+
+# Unique columns
+all_columns = []
+for entry in column_summary:
+    all_columns.extend(entry["Columns"])
+
+unique_columns = sorted(set([str(col).strip() for col in all_columns]))
+pd.DataFrame(unique_columns, columns=["Unique Column Names"]).to_excel(
+    "/mnt/data/Unique_Columns_Across_Sheets.xlsx", index=False
+)
+print("Saved all unique column names to: Unique_Columns_Across_Sheets.xlsx")
+
+# Column frequency
+col_counter = Counter([str(col).strip() for col in all_columns])
+col_freq_df = pd.DataFrame(col_counter.items(), columns=["Column Name", "Frequency"])
+col_freq_df.sort_values(by="Frequency", ascending=False).to_excel(
+    "/mnt/data/Column_Frequencies.xlsx", index=False
+)
+print("Saved column frequency counts to: Column_Frequencies.xlsx")
+
+
+
+
+
+
+import os
+import pandas as pd
 
 # Path to your root directory
 root_folder = "/mnt/data/YOUR_FOLDER_NAME"  # <-- Replace with your actual folder name in Domino
