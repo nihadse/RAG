@@ -1,4 +1,52 @@
 import os
+import pandas as pd
+
+# Path to your main folder in Domino
+root_folder = "/mnt/data/YOUR_FOLDER_NAME"  # Replace with actual folder name
+
+# Arabic column names (adjust based on exact spelling/spacing in your files)
+target_columns = ["ن°", "ن° التسجيل"]  # Replace with exact column names if needed
+
+all_data = []
+
+# Walk through all subdirectories and files
+for dirpath, dirnames, filenames in os.walk(root_folder):
+    for filename in filenames:
+        if filename.endswith((".xlsx", ".xls")) and not filename.startswith("~$"):
+            file_path = os.path.join(dirpath, filename)
+            try:
+                excel = pd.ExcelFile(file_path)
+                for sheet in excel.sheet_names:
+                    try:
+                        df = pd.read_excel(file_path, sheet_name=sheet)
+
+                        # Check and extract the desired columns
+                        if all(col in df.columns for col in target_columns):
+                            selected = df[target_columns].copy()
+                            selected["File Name"] = filename
+                            selected["Sheet Name"] = sheet
+                            selected["File Path"] = file_path
+                            all_data.append(selected)
+                    except Exception as sheet_err:
+                        print(f"Failed to read sheet '{sheet}' in '{filename}': {sheet_err}")
+            except Exception as file_err:
+                print(f"Could not open file '{filename}': {file_err}")
+
+# Combine and export
+if all_data:
+    final_df = pd.concat(all_data, ignore_index=True)
+    output_file = "/mnt/data/Consolidated_Arabic_Columns.xlsx"
+    final_df.to_excel(output_file, index=False)
+    print(f"All data consolidated! Saved to: {output_file}")
+else:
+    print("No valid data found.")
+
+
+
+
+
+
+import os
 
 # Path to your main folder
 root_folder = "/mnt/data/your_main_folder"  # Replace with your actual path
