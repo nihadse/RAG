@@ -1,1 +1,19 @@
+
+
+Bonjour [Nom du destinataire],
+
+J’ai préparé les fichiers comme convenu, cependant je ne peux pas les déposer dans le répertoire X en raison de problèmes d’accès.
+
+Je les ai donc mis à disposition via ce lien : [insérer le lien ici].
+
+Je vous propose de demander à M. Omar, notre Data Domain Manager, de les télécharger pour vous, puisqu’il dispose des accès nécessaires.
+
+N’hésitez pas à me tenir informé(e) si besoin.
+
+Bien cordialement,
+Nihad Senhadji
+
+
+
+
 REGEX_Replace([YourColumn], ".*?(\d{2}[A-Za-z]{2}\d{6}).*", "\1")
