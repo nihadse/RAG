@@ -1,6 +1,61 @@
 import os
 import pandas as pd
 
+root_folder = "/mnt/sheets/Liste des personnes physiques-morales non localiser"
+target_columns = ["N° d'inscription", "N°", "رقم التسجيل", "Numéro", "Client ID", "Identifiant", "رقم"]
+all_data = []
+
+# Check a few rows (e.g., first 10) to find the correct header row
+def find_header_row(file_path, sheet_name, target_columns, max_rows=10):
+    try:
+        df_preview = pd.read_excel(file_path, sheet_name=sheet_name, header=None, nrows=max_rows)
+        for i, row in df_preview.iterrows():
+            row = row.fillna("").astype(str).str.strip()
+            if any(col in row.values for col in target_columns):
+                return i
+    except Exception as e:
+        print(f"Error previewing sheet '{sheet_name}' in '{file_path}': {e}")
+    return None
+
+for dirpath, dirnames, filenames in os.walk(root_folder):
+    for file in filenames:
+        if file.endswith((".xlsx", ".xls")) and not file.startswith("~$"):
+            file_path = os.path.join(dirpath, file)
+            try:
+                xls = pd.ExcelFile(file_path)
+                for sheet_name in xls.sheet_names:
+                    try:
+                        header_row = find_header_row(file_path, sheet_name, target_columns)
+                        if header_row is not None:
+                            df = pd.read_excel(file_path, sheet_name=sheet_name, header=header_row, dtype=str)
+                            df.columns = df.columns.str.strip()
+                            available_cols = [col for col in df.columns if col in target_columns]
+                            if available_cols:
+                                extracted = df[available_cols].copy()
+                                extracted["SheetName"] = sheet_name
+                                extracted["FileName"] = file
+                                extracted["FilePath"] = file_path
+                                all_data.append(extracted)
+                    except Exception as e:
+                        print(f"Error reading sheet '{sheet_name}' in '{file}': {e}")
+            except Exception as e:
+                print(f"Error opening Excel file '{file}': {e}")
+
+# Combine and export
+if all_data:
+    final_df = pd.concat(all_data, ignore_index=True)
+    output_path = "/mnt/data/consolidated_output.xlsx"
+    final_df.to_excel(output_path, index=False)
+    print(f"Data consolidated into: {output_path}")
+else:
+    print("No data extracted. Check column names and file formats.")
+
+
+
+
+import os
+import pandas as pd
+
 # Root folder where your Excel files are located
 root_folder = "/mnt/sheets/Liste des personnes physiques-morales non localiser"
 
