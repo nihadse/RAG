@@ -1,5 +1,48 @@
 import os
 import pandas as pd
+
+base_folder = "/mnt/data/YOUR_FOLDER_NAME"
+
+sheet_info = []
+
+for root, dirs, files in os.walk(base_folder):
+    for file in files:
+        if file.endswith((".xlsx", ".xls")):
+            file_path = os.path.join(root, file)
+            try:
+                xls = pd.ExcelFile(file_path)
+                for sheet_name in xls.sheet_names:
+                    try:
+                        df = pd.read_excel(xls, sheet_name=sheet_name)
+                        df.columns = df.columns.str.strip()
+                        columns_list = list(df.columns)
+
+                        sheet_info.append({
+                            "File": file,
+                            "Sheet": sheet_name,
+                            "Columns": columns_list
+                        })
+
+                    except Exception as e:
+                        print(f"Error reading sheet '{sheet_name}' in file '{file}': {e}")
+            except Exception as e:
+                print(f"Error opening Excel file '{file}': {e}")
+
+# Convert to DataFrame for display or export
+sheet_info_df = pd.DataFrame(sheet_info)
+
+# Show the dataframe
+print(sheet_info_df)
+
+# Optionally save to Excel
+sheet_info_df.to_excel("/mnt/data/All_Sheets_Columns_Info.xlsx", index=False)
+print("Saved all sheets and columns info to: All_Sheets_Columns_Info.xlsx")
+
+
+
+
+import os
+import pandas as pd
 from tqdm import tqdm
 from collections import Counter
 
