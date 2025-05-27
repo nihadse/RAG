@@ -1,6 +1,59 @@
 import os
 import pandas as pd
 
+# Root folder where your Excel files are located
+root_folder = "/mnt/sheets/Liste des personnes physiques-morales non localiser"
+
+# Define the list of target column names
+target_columns = ["N° d'inscription", "N°", "رقم التسجيل", "Numéro", "Client ID", "Identifiant", "رقم"]
+
+# Container for all extracted data
+all_data = []
+
+# Loop through all subdirectories and files
+for dirpath, dirnames, filenames in os.walk(root_folder):
+    for file in filenames:
+        if file.endswith((".xlsx", ".xls")) and not file.startswith("~$"):  # Skip temp files
+            file_path = os.path.join(dirpath, file)
+            try:
+                xls = pd.ExcelFile(file_path)
+                for sheet_name in xls.sheet_names:
+                    try:
+                        df = pd.read_excel(file_path, sheet_name=sheet_name, dtype=str)
+                        df.columns = df.columns.str.strip()  # Strip spaces from column names
+
+                        # Find which target columns exist in this sheet
+                        available_cols = [col for col in df.columns if col in target_columns]
+
+                        if available_cols:
+                            extracted = df[available_cols].copy()
+                            extracted["SheetName"] = sheet_name
+                            extracted["FileName"] = file
+                            extracted["FilePath"] = file_path
+                            all_data.append(extracted)
+
+                    except Exception as e:
+                        print(f"Error reading sheet '{sheet_name}' in '{file}': {e}")
+            except Exception as e:
+                print(f"Error opening Excel file '{file}': {e}")
+
+# Combine and export to Excel
+if all_data:
+    final_df = pd.concat(all_data, ignore_index=True)
+    output_path = "/mnt/data/consolidated_output.xlsx"
+    final_df.to_excel(output_path, index=False)
+    print(f"Data consolidated into: {output_path}")
+else:
+    print("No data extracted. Check column names and file formats.")
+
+
+
+
+
+
+import os
+import pandas as pd
+
 base_folder = "/mnt/data/YOUR_FOLDER_NAME"
 
 sheet_info = []
