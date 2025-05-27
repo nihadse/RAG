@@ -1,6 +1,67 @@
 import os
 import pandas as pd
 
+# Path to your root directory
+root_folder = "/mnt/data/YOUR_FOLDER_NAME"  # <-- Replace with your actual folder name in Domino
+
+# Arabic column names you're interested in
+target_columns = ["ن°", "ن° التسجيل"]  # Adjust if necessary
+
+# Containers for final output and sheet list
+all_data = []
+sheet_summary = []
+
+# STEP 1: Walk through all Excel files and list file + sheet names
+for dirpath, dirnames, filenames in os.walk(root_folder):
+    for filename in filenames:
+        if filename.endswith((".xlsx", ".xls")) and not filename.startswith("~$"):
+            file_path = os.path.join(dirpath, filename)
+            try:
+                excel = pd.ExcelFile(file_path)
+                for sheet in excel.sheet_names:
+                    sheet_summary.append({
+                        "File Name": filename,
+                        "Sheet Name": sheet,
+                        "File Path": file_path
+                    })
+            except Exception as e:
+                print(f"Error reading sheet names from {filename}: {e}")
+
+# STEP 2: Display the table of all file and sheet names
+sheet_df = pd.DataFrame(sheet_summary)
+print("List of all Excel files and their sheet names:")
+display(sheet_df)  # For Domino Notebook environment
+
+# STEP 3: Now process and extract the Arabic columns
+for entry in sheet_summary:
+    try:
+        df = pd.read_excel(entry["File Path"], sheet_name=entry["Sheet Name"])
+        if all(col in df.columns for col in target_columns):
+            selected = df[target_columns].copy()
+            selected["File Name"] = entry["File Name"]
+            selected["Sheet Name"] = entry["Sheet Name"]
+            selected["File Path"] = entry["File Path"]
+            all_data.append(selected)
+    except Exception as e:
+        print(f"Error reading data from {entry['File Name']} - Sheet: {entry['Sheet Name']} | {e}")
+
+# STEP 4: Combine and save
+if all_data:
+    final_df = pd.concat(all_data, ignore_index=True)
+    output_file = "/mnt/data/Consolidated_Arabic_Columns.xlsx"
+    final_df.to_excel(output_file, index=False)
+    print(f"\nConsolidated data saved to: {output_file}")
+else:
+    print("No valid data with the target columns found.")
+
+
+
+
+
+
+import os
+import pandas as pd
+
 # Path to your main folder in Domino
 root_folder = "/mnt/data/YOUR_FOLDER_NAME"  # Replace with actual folder name
 
