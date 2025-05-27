@@ -1,6 +1,55 @@
 import os
 import pandas as pd
 
+# Root folder where Excel files are located
+root_folder = "/mnt/sheets/Liste des personnes physiques-morales non localiser"
+
+# Container for summary info
+sheet_summary = []
+
+# Loop through all subdirectories and files
+for dirpath, dirnames, filenames in os.walk(root_folder):
+    for file in filenames:
+        if file.endswith((".xlsx", ".xls")) and not file.startswith("~$"):
+            file_path = os.path.join(dirpath, file)
+            try:
+                xls = pd.ExcelFile(file_path)
+                for sheet_name in xls.sheet_names:
+                    try:
+                        df = pd.read_excel(file_path, sheet_name=sheet_name, dtype=str, header=None)
+                        # Fill NaNs and convert the entire sheet to a single string
+                        sheet_content = df.fillna("").astype(str).apply(lambda x: " | ".join(x), axis=1).str.cat(sep="\n")
+
+                        sheet_summary.append({
+                            "FileName": file,
+                            "SheetName": sheet_name,
+                            "FilePath": file_path,
+                            "SheetContent": sheet_content
+                        })
+                    except Exception as e:
+                        print(f"Error reading sheet '{sheet_name}' in '{file}': {e}")
+            except Exception as e:
+                print(f"Error opening file '{file}': {e}")
+
+# Convert to DataFrame and export
+if sheet_summary:
+    summary_df = pd.DataFrame(sheet_summary)
+    output_path = "/mnt/data/excel_sheet_summaries.xlsx"
+    summary_df.to_excel(output_path, index=False)
+    print(f"Sheet summaries saved to: {output_path}")
+else:
+    print("No sheets found or readable.")
+
+
+
+
+
+
+
+
+import os
+import pandas as pd
+
 root_folder = "/mnt/sheets/Liste des personnes physiques-morales non localiser"
 target_columns = ["N° d'inscription", "N°", "رقم التسجيل", "Numéro", "Client ID", "Identifiant", "رقم"]
 all_data = []
