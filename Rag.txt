@@ -1,3 +1,72 @@
+import os
+import pandas as pd
+
+# Root folder path
+root_folder = "/mnt/sheets/Liste des personnes physiques-norales non localiser"
+
+# Define the list of target column names
+target_columns = [
+    "RC", "N° d'inscription", "اركة من الماء", "وقد التسجيل", "رقم السجل التجاري",
+    "السعت التجاري", "الرقة", "رقة", "رقم السجل التجاري"
+]
+
+# Store extracted data
+all_data = []
+
+# Helper: Dynamically find the header row based on target columns
+def find_header_row(file_path, sheet_name, target_columns, max_rows=38):
+    try:
+        df_preview = pd.read_excel(file_path, sheet_name=sheet_name, header=None, nrows=max_rows)
+        for i, row in df_preview.iterrows():
+            row_cleaned = row.fillna("").astype(str).str.strip()
+            if any(col in row_cleaned.values for col in target_columns):
+                return i
+    except Exception as e:
+        print(f"Error previewing sheet '{sheet_name}' in '{file_path}': {e}")
+    return None
+
+# Traverse the folder and process Excel files
+for dirpath, dirnames, filenames in os.walk(root_folder):
+    for file in filenames:
+        if file.endswith((".xlsx", ".xls")) and not file.startswith("~"):
+            file_path = os.path.join(dirpath, file)
+            try:
+                xls = pd.ExcelFile(file_path)
+                for sheet_name in xls.sheet_names:
+                    try:
+                        header_row = find_header_row(file_path, sheet_name, target_columns)
+                        if header_row is not None:
+                            df = pd.read_excel(file_path, sheet_name=sheet_name, header=header_row, dtype=str)
+                            df.columns = df.columns.str.strip()
+
+                            # Drop fully empty rows
+                            df = df.dropna(how='all')
+
+                            available_cols = [col for col in df.columns if col in target_columns]
+                            if available_cols:
+                                extracted = df[available_cols].copy()
+                                extracted["SheetName"] = sheet_name
+                                extracted["FileName"] = file
+                                extracted["FilePath"] = file_path
+                                all_data.append(extracted)
+                    except Exception as e:
+                        print(f"Error reading sheet '{sheet_name}' in '{file}': {e}")
+            except Exception as e:
+                print(f"Error opening Excel file '{file}': {e}")
+
+# Combine and export
+if all_data:
+    final_df = pd.concat(all_data, ignore_index=True)
+    output_path = "/mnt/PP_PR_consolidated_output.xlsx"
+    final_df.to_excel(output_path, index=False)
+    print(f"✅ Data consolidated into {output_path}")
+else:
+    print("❌ No data extracted. Check column names and file formats.")
+
+
+
+
+
 
 
 Bonjour [Nom du destinataire],
