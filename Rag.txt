@@ -4,6 +4,40 @@ import pandas as pd
 # Root folder where Excel files are located
 root_folder = "/mnt/sheets/Liste des personnes physiques-morales non localiser"
 
+# Open output file for writing
+output_path = "/mnt/excel_merged_sheets.txt"
+with open(output_path, "w", encoding="utf-8") as f_out:
+    # Loop through all Excel files
+    for dirpath, dirnames, filenames in os.walk(root_folder):
+        for file in filenames:
+            if file.endswith((".xlsx", ".xls")) and not file.startswith("-5"):
+                file_path = os.path.join(dirpath, file)
+                try:
+                    xls = pd.ExcelFile(file_path)
+                    for sheet_name in xls.sheet_names:
+                        try:
+                            df = pd.read_excel(file_path, sheet_name=sheet_name, dtype=str, header=None)
+                            df.fillna("", inplace=True)
+
+                            for _, row in df.iterrows():
+                                row_data = "|".join(row.astype(str))
+                                f_out.write(f"{row_data} | FilePath: {file_path} | SheetName: {sheet_name}\n")
+                        except Exception as e:
+                            print(f"Error reading sheet '{sheet_name}' in {file}: {e}")
+                except Exception as e:
+                    print(f"Error opening file '{file}': {e}")
+
+print(f"All sheet data saved to: {output_path}")
+
+
+
+
+import os
+import pandas as pd
+
+# Root folder where Excel files are located
+root_folder = "/mnt/sheets/Liste des personnes physiques-morales non localiser"
+
 # Container for all rows from all sheets
 all_data = []
 
