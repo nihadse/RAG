@@ -1,88 +1,54 @@
 import os
 import pandas as pd
 
-# Root folder path
-root_folder = "/mnt/sheets/Liste des personnes physiques-norales non localiser"
+# Root folder where Excel files are located
+root_folder = "/mnt/sheets/Liste des personnes physiques-morales non localiser"
 
-# Define the list of target column names
-target_columns = [
-    "RC", "N° d'inscription", "اركة من الماء", "وقد التسجيل", "رقم السجل التجاري",
-    "السعت التجاري", "الرقة", "رقة", "رقم السجل التجاري"
-]
+# Container for summary info
+sheet_summary = []
 
-# Store extracted data
-all_data = []
-
-# Helper: Dynamically find the header row based on target columns
-def find_header_row(file_path, sheet_name, target_columns, max_rows=38):
-    try:
-        df_preview = pd.read_excel(file_path, sheet_name=sheet_name, header=None, nrows=max_rows)
-        for i, row in df_preview.iterrows():
-            row_cleaned = row.fillna("").astype(str).str.strip()
-            if any(col in row_cleaned.values for col in target_columns):
-                return i
-    except Exception as e:
-        print(f"Error previewing sheet '{sheet_name}' in '{file_path}': {e}")
-    return None
-
-# Traverse the folder and process Excel files
+# Loop through all subdirectories and files
 for dirpath, dirnames, filenames in os.walk(root_folder):
     for file in filenames:
-        if file.endswith((".xlsx", ".xls")) and not file.startswith("~"):
+        if file.endswith((".xlsx", ".xls")) and not file.startswith("-5"):
             file_path = os.path.join(dirpath, file)
             try:
                 xls = pd.ExcelFile(file_path)
                 for sheet_name in xls.sheet_names:
                     try:
-                        header_row = find_header_row(file_path, sheet_name, target_columns)
-                        if header_row is not None:
-                            df = pd.read_excel(file_path, sheet_name=sheet_name, header=header_row, dtype=str)
-                            df.columns = df.columns.str.strip()
-
-                            # Drop fully empty rows
-                            df = df.dropna(how='all')
-
-                            available_cols = [col for col in df.columns if col in target_columns]
-                            if available_cols:
-                                extracted = df[available_cols].copy()
-                                extracted["SheetName"] = sheet_name
-                                extracted["FileName"] = file
-                                extracted["FilePath"] = file_path
-                                all_data.append(extracted)
+                        df = pd.read_excel(file_path, sheet_name=sheet_name, dtype=str, header=None)
+                        # Fill NaNs and convert the entire sheet to a single string
+                        sheet_content = df.fillna("").astype(str).apply(lambda x: "|".join(x), axis=1).str.cat(sep="\n")
+                        sheet_summary.append({
+                            "FileName": file,
+                            "SheetName": sheet_name,
+                            "FilePath": file_path,
+                            "SheetContent": sheet_content
+                        })
                     except Exception as e:
-                        print(f"Error reading sheet '{sheet_name}' in '{file}': {e}")
+                        print(f"Error reading sheet '{sheet_name}' in {file}: {e}")
             except Exception as e:
-                print(f"Error opening Excel file '{file}': {e}")
+                print(f"Error opening file '{file}': {e}")
 
-# Combine and export
-if all_data:
-    final_df = pd.concat(all_data, ignore_index=True)
-    output_path = "/mnt/PP_PR_consolidated_output.xlsx"
-    final_df.to_excel(output_path, index=False)
-    print(f"✅ Data consolidated into {output_path}")
+# Convert to DataFrame and export
+if sheet_summary:
+    summary_df = pd.DataFrame(sheet_summary)
+
+    # Save to CSV
+    csv_output_path = "/mnt/excel_sheet_summaries.csv"
+    summary_df.to_csv(csv_output_path, index=False)
+    print(f"Sheet summaries saved to: {csv_output_path}")
+
+    # Save to TXT
+    txt_output_path = "/mnt/excel_sheet_summaries.txt"
+    with open(txt_output_path, "w", encoding="utf-8") as f:
+        for entry in sheet_summary:
+            f.write(f"FileName: {entry['FileName']}\n")
+            f.write(f"SheetName: {entry['SheetName']}\n")
+            f.write(f"FilePath: {entry['FilePath']}\n")
+            f.write(f"SheetContent:\n{entry['SheetContent']}\n")
+            f.write("="*80 + "\n")
+    print(f"Sheet summaries also saved to: {txt_output_path}")
 else:
-    print("❌ No data extracted. Check column names and file formats.")
+    print("No sheets found or readable.")
 
-
-
-
-
-
-
-Bonjour [Nom du destinataire],
-
-J’ai préparé les fichiers comme convenu, cependant je ne peux pas les déposer dans le répertoire X en raison de problèmes d’accès.
-
-Je les ai donc mis à disposition via ce lien : [insérer le lien ici].
-
-Je vous propose de demander à M. Omar, notre Data Domain Manager, de les télécharger pour vous, puisqu’il dispose des accès nécessaires.
-
-N’hésitez pas à me tenir informé(e) si besoin.
-
-Bien cordialement,
-Nihad Senhadji
-
-
-
-
-REGEX_Replace([YourColumn], ".*?(\d{2}[A-Za-z]{2}\d{6}).*", "\1")
