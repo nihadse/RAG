@@ -8,6 +8,45 @@ root_folder = "/mnt/sheets/Liste des personnes physiques-morales non localiser"
 # Output CSV file
 output_path = "/mnt/excel_all_sheets_summary.csv"
 
+with open(output_path, mode="w", encoding="utf-8-sig", newline='') as csv_file:
+    writer = csv.writer(csv_file)
+    writer.writerow(["FilePath", "SheetName", "RowData"])  # Header
+
+    for dirpath, dirnames, filenames in os.walk(root_folder):
+        for file in filenames:
+            if file.endswith((".xlsx", ".xls")) and not file.startswith("-5"):
+                file_path = os.path.join(dirpath, file)
+                try:
+                    xls = pd.ExcelFile(file_path)
+                    print(f"\n📄 File: {file} contains sheets: {xls.sheet_names}")  # Debug info
+
+                    for sheet_name in xls.sheet_names:
+                        try:
+                            df = pd.read_excel(xls, sheet_name=sheet_name, dtype=str, header=None)
+                            df.fillna("", inplace=True)
+                            for _, row in df.iterrows():
+                                row_data = "|".join(row.astype(str))
+                                writer.writerow([file_path, sheet_name, row_data])
+                        except Exception as e:
+                            print(f"❌ Error reading sheet '{sheet_name}' in '{file}': {e}")
+                except Exception as e:
+                    print(f"❌ Error opening file '{file}': {e}")
+
+print(f"\n✅ All data saved to: {output_path}")
+
+
+
+
+import os
+import pandas as pd
+import csv
+
+# Root folder containing Excel files
+root_folder = "/mnt/sheets/Liste des personnes physiques-morales non localiser"
+
+# Output CSV file
+output_path = "/mnt/excel_all_sheets_summary.csv"
+
 # Open CSV file with utf-8 encoding to handle Arabic
 with open(output_path, mode="w", encoding="utf-8-sig", newline='') as csv_file:
     writer = csv.writer(csv_file)
