@@ -4,6 +4,53 @@ import pandas as pd
 # Root folder where Excel files are located
 root_folder = "/mnt/sheets/Liste des personnes physiques-morales non localiser"
 
+# Container for all rows from all sheets
+all_data = []
+
+# Traverse the directory and process each Excel file
+for dirpath, dirnames, filenames in os.walk(root_folder):
+    for file in filenames:
+        if file.endswith((".xlsx", ".xls")) and not file.startswith("-5"):
+            file_path = os.path.join(dirpath, file)
+            try:
+                xls = pd.ExcelFile(file_path)
+                for sheet_name in xls.sheet_names:
+                    try:
+                        df = pd.read_excel(file_path, sheet_name=sheet_name, dtype=str, header=None)
+                        df.fillna("", inplace=True)  # Replace NaNs with empty strings
+
+                        # Add file metadata columns
+                        df["FilePath"] = file_path
+                        df["SheetName"] = sheet_name
+
+                        all_data.append(df)
+                    except Exception as e:
+                        print(f"Error reading sheet '{sheet_name}' in {file}: {e}")
+            except Exception as e:
+                print(f"Error opening file '{file}': {e}")
+
+# Combine everything into one DataFrame
+if all_data:
+    merged_df = pd.concat(all_data, ignore_index=True)
+
+    # Save to a single CSV file
+    merged_output_path = "/mnt/excel_merged_sheets.csv"
+    merged_df.to_csv(merged_output_path, index=False, encoding="utf-8-sig")
+    print(f"All sheet data saved to: {merged_output_path}")
+else:
+    print("No data was processed.")
+
+
+
+
+
+
+import os
+import pandas as pd
+
+# Root folder where Excel files are located
+root_folder = "/mnt/sheets/Liste des personnes physiques-morales non localiser"
+
 # Container for summary info
 sheet_summary = []
 
