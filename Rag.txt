@@ -1,3 +1,10 @@
+Objet : Accès API ChatGPT pour Omar
+
+Bonjour,
+Je souhaite obtenir les credentials (clé API, ID organisation, etc.) de l’API ChatGPT pour mon manager Omar, afin qu’il puisse l’utiliser dans le cadre de notre projet. Merci de me transmettre les informations nécessaires ou la procédure à suivre.
+
+
+
 import os
 import pandas as pd
 import csv
