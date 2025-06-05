@@ -1,3 +1,69 @@
+import streamlit as st
+from datetime import datetime
+import time
+
+# Initialize session state
+if "chat_sessions" not in st.session_state:
+    st.session_state.chat_sessions = {}
+if "current_chat" not in st.session_state:
+    st.session_state.current_chat = "default"
+if st.session_state.current_chat not in st.session_state.chat_sessions:
+    st.session_state.chat_sessions[st.session_state.current_chat] = []
+if "copy_time" not in st.session_state:
+    st.session_state.copy_time = {}
+
+chat = st.session_state.chat_sessions[st.session_state.current_chat]
+
+# User input
+user_input = st.chat_input("Type your message here...")
+
+if user_input:
+    timestamp = datetime.now()
+    chat.append({
+        "role": "user",
+        "content": user_input,
+        "timestamp": timestamp
+    })
+
+    # Simulate assistant response
+    with st.spinner("Thinking..."):
+        response = {"answer": f"This is a response to: {user_input}"}
+    answer = response["answer"]
+
+    # Save assistant message
+    chat.append({
+        "role": "assistant",
+        "content": answer,
+        "timestamp": datetime.now()
+    })
+
+# Display full conversation
+for idx, msg in enumerate(chat):
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"], unsafe_allow_html=True)
+
+        if msg["role"] == "assistant":
+            key = f"copy_{idx}"
+            now = time.time()
+            show_copied = False
+
+            # Show "Copied" if copied in last 10 seconds
+            if st.session_state.copy_time.get(key, 0) > now - 10:
+                label = "✅ Copié"
+                show_copied = True
+            else:
+                label = "📋 Copier la réponse"
+
+            if st.button(label, key=key):
+                st.session_state.copy_time[key] = time.time()
+                st.session_state[f"copy_text_{key}"] = msg["content"]
+
+            # Hidden textarea + JS trick (can be skipped if not needed)
+            if show_copied:
+                st.code(msg["content"], language="text")
+
+
+
 Bonjour [Nom],
 
 Après réception des fichiers envoyés, nous avons constaté un écart important par rapport aux mois précédents.
