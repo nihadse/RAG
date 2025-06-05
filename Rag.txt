@@ -1,3 +1,17 @@
+Dear Jean-Baptiste,
+
+Thank you for your message.
+
+To clarify, I did click the synchronization button multiple times. However, I misunderstood your earlier mention of Git — I thought you were referring to the git push syntax specifically.
+
+I plan to create a whole new project to avoid any further issues. I believe the problem was caused by Chroma DB — when I used FAISS as the backend, everything worked fine without any similar behavior.
+
+As soon as I regain access, I will delete the Chroma-related files. At the moment, I’m unable to remove them.
+
+Best regards,
+Nihad Senhadji
+
+
 Bonjour Xavier,
 
 Je vous remercie pour votre message.
