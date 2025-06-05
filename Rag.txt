@@ -1,3 +1,16 @@
+Bonjour [Nom],
+
+Après réception des fichiers envoyés, nous avons constaté un écart important par rapport aux mois précédents.
+Le volume de fichiers transmis ce mois-ci est nettement inférieur.
+Voici le détail de l’écart : [ajoutez les chiffres ou informations].
+Merci de vérifier de votre côté.
+Cordialement,
+[Votre nom]
+
+
+
+
+
 Objet : Accès API ChatGPT pour Omar
 
 Bonjour,
