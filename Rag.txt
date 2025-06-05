@@ -6,6 +6,24 @@ Je vous confirme que je n’ai pas utilisé Git ni exécuté le workspace concer
 
 Par ailleurs, concernant l’accès à l’API Azure OpenAI, la demande ne me concerne pas directement — elle a été faite pour Omar, et non pour moi.
 
+Vous trouverez ci-joint une capture d’écran montrant l’absence de synchronisation de la base vectorielle depuis environ un mois.
+
+N’hésitez pas à revenir vers moi si besoin.
+
+Bien cordialement,
+Nihad Senhadji
+
+
+
+
+Bonjour Xavier,
+
+Je vous remercie pour votre message.
+
+Je vous confirme que je n’ai pas utilisé Git ni exécuté le workspace concerné depuis le 16 mai 2025. Je ne suis donc pas à l’origine de la synchronisation mentionnée.
+
+Par ailleurs, concernant l’accès à l’API Azure OpenAI, la demande ne me concerne pas directement — elle a été faite pour Omar, et non pour moi.
+
 N’hésitez pas à me faire savoir si vous avez besoin d’informations complémentaires.
 
 Bien cordialement,
