@@ -1,3 +1,17 @@
+Bonjour Xavier,
+
+Je vous remercie pour votre message.
+
+Je vous confirme que je n’ai pas utilisé Git ni exécuté le workspace concerné depuis le 16 mai 2025. Je ne suis donc pas à l’origine de la synchronisation mentionnée.
+
+Par ailleurs, concernant l’accès à l’API Azure OpenAI, la demande ne me concerne pas directement — elle a été faite pour Omar, et non pour moi.
+
+N’hésitez pas à me faire savoir si vous avez besoin d’informations complémentaires.
+
+Bien cordialement,
+Nihad Senhadji
+
+
 import streamlit as st
 from datetime import datetime
 import time
