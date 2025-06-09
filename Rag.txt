@@ -1,3 +1,45 @@
+import streamlit as st
+import time
+
+# Initialize session state variables if they don't exist
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = [
+        {"role": "user", "content": "Hello, how are you?"},
+        {"role": "assistant", "content": "I'm fine, thank you! How can I assist you today?"}
+    ]
+
+if "copy_time" not in st.session_state:
+    st.session_state.copy_time = {}
+
+# Display the chat history
+for idx, msg in enumerate(st.session_state.chat_history):
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"], unsafe_allow_html=True)
+
+        if msg["role"] == "assistant":
+            key = f"copy_{idx}"
+            now = time.time()
+            show_copied = False
+
+            # Show "Copié" if copied in last 10 seconds
+            if st.session_state.copy_time.get(key, 0) > now - 10:
+                label = "Copié"
+                show_copied = True
+            else:
+                label = "Copier la réponse"
+
+            if st.button(label, key=key):
+                st.session_state.copy_time[key] = now
+                st.session_state[f"copy_text_{key}"] = msg["content"]
+
+            if show_copied:
+                st.code(msg["content"], language="text")
+
+
+
+
+
+
 Dear Jean-Baptiste,
 
 Thank you for your message.
