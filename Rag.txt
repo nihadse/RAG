@@ -1,3 +1,7 @@
+st.session_state.setdefault('chat_history', [])
+st.session_state['chat_history'].append("Hello again!")
+
+
 import streamlit as st
 import time
 
