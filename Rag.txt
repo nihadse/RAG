@@ -1,4 +1,107 @@
 import streamlit as st
+from PIL import Image
+import datetime
+import time
+
+# --- Setup ---
+if "chat_sessions" not in st.session_state:
+    st.session_state.chat_sessions = {}
+
+if "current_chat" not in st.session_state:
+    st.session_state.current_chat = None
+
+if "copy_time" not in st.session_state:
+    st.session_state.copy_time = {}
+
+# --- Logo ---
+image = Image.open("/mnt/bnp logo.png")
+st.image(image)
+
+# --- Sidebar ---
+with st.sidebar:
+    st.header("Chat Sessions")
+
+    if st.button("+ New Chat"):
+        chat_id = len(st.session_state.chat_sessions) + 1
+        chat_name = f"Chat {chat_id}"
+        st.session_state.chat_sessions[chat_name] = []
+        st.session_state.current_chat = chat_name
+
+    if st.session_state.chat_sessions:
+        options = []
+        for key, messages in st.session_state.chat_sessions.items():
+            label = key
+            for m in messages:
+                if m["role"] == "user":
+                    snippet = m["content"][:30] + ("..." if len(m["content"]) > 30 else "")
+                    label = f"{key}: {snippet}"
+                    break
+            options.append(label)
+
+        selected = st.radio("Select Chat", options)
+        selected_key = selected.split(":")[0]
+        st.session_state.current_chat = selected_key
+
+# --- Title ---
+st.title("Chatbot BNP ED")
+
+# --- Chat Messages ---
+if st.session_state.current_chat:
+    chat = st.session_state.chat_sessions[st.session_state.current_chat]
+
+    for idx, message in enumerate(chat):
+        with st.chat_message(message["role"]):
+            if message["role"] == "user" and "timestamp" in message:
+                st.markdown(f"**🕒 {message['timestamp']}**")
+                st.markdown(message["content"])
+            elif message["role"] == "assistant":
+                st.markdown(message["content"], unsafe_allow_html=True)
+
+                # Copy Button
+                now = time.time()
+                key = f'copy_{idx}'
+                show_copied = False
+
+                if st.session_state.copy_time.get(key, 0) > now - 10:
+                    label = "✅ Copied"
+                    show_copied = True
+                else:
+                    label = "📋 Copy"
+
+                if st.button(label, key=key):
+                    st.session_state.copy_time[key] = now
+                    st.session_state["copy_text"] = message["content"]
+
+                if show_copied:
+                    st.code(message["content"], language="text")
+
+# --- Chat Input ---
+user_input = st.chat_input("Type your message here...")
+
+if user_input:
+    timestamp = datetime.datetime.now()
+    chat.append({
+        "role": "user",
+        "content": user_input,
+        "timestamp": timestamp
+    })
+
+    with st.spinner("Thinking..."):
+        # Dummy response - replace with your actual model call
+        response = {"answer": f"Echo: {user_input}"}
+
+    answer = response["answer"]
+    chat.append({
+        "role": "assistant",
+        "content": answer,
+        "timestamp": datetime.datetime.now()
+    })
+
+
+
+
+
+import streamlit as st
 import time
 
 # Initialize session state
