@@ -1,4 +1,84 @@
 import streamlit as st
+from datetime import datetime
+import time
+
+# Initialize session state
+if "chat_sessions" not in st.session_state:
+    st.session_state["chat_sessions"] = {}
+
+if "copy_time" not in st.session_state:
+    st.session_state["copy_time"] = {}
+
+# Set current chat session (for example, can be selected by the user)
+st.title("Chatbot BNP ED")
+current_chat = st.session_state.get("current_chat", None)
+
+# Ensure chat history exists for the current session
+if current_chat:
+    chat = st.session_state.chat_sessions[current_chat]
+    
+    # Display chat messages
+    for idx, message in enumerate(chat):
+        with st.chat_message(message["role"]):
+            if message["role"] == "user" and "timestamp" in message:
+                st.markdown(f"({message['timestamp']})")
+            st.markdown(message["content"], unsafe_allow_html=True)
+
+            if message["role"] == "assistant":
+                # Copy button for the assistant's response
+                now = time.time()
+                key = f"copy_{idx}"
+                show_copied = False
+                label = "Copy"  # Default label
+
+                # Show "Copied" if copied within the last 10 seconds
+                if st.session_state.copy_time.get(key, 0) > now - 10:
+                    label = "Copied ✅"
+                    show_copied = True
+
+                if st.button(label, key=key):
+                    # Save the copy time and the content for later use
+                    st.session_state.copy_time[key] = now
+                    st.session_state[f"copy_text_{key}"] = message["content"]
+
+                # Display copied content in code block
+                if show_copied:
+                    st.code(message["content"], language="text")
+
+# User input field
+user_input = st.chat_input("Type your message here...")
+
+if user_input:
+    timestamp = datetime.now()
+    
+    # Add user's message to the chat history
+    chat.append({
+        "role": "user",
+        "content": user_input,
+        "timestamp": timestamp
+    })
+
+    # Simulate assistant's response
+    with st.spinner("Thinking..."):
+        response = "This is a dummy response. Replace with your model's output."
+        answer = response
+        
+        # Display assistant's response
+        st.markdown("**Assistant:**")
+        st.markdown(answer, unsafe_allow_html=True)
+
+        # Add assistant's message to the chat history
+        chat.append({
+            "role": "assistant",
+            "content": answer,
+            "timestamp": datetime.now()
+        })
+
+
+
+
+
+import streamlit as st
 from PIL import Image
 import datetime
 import time
