@@ -1,3 +1,63 @@
+# Chat Messages
+if st.session_state.current_chat:
+    chat = st.session_state.chat_sessions[st.session_state.current_chat]
+    
+    for idx, message in enumerate(chat):
+        with st.chat_message(message["role"]):
+            if message["role"] == "user" and "timestamp" in message:
+                st.markdown(f"_{message['timestamp']}_")
+                st.markdown(message["content"])
+            elif message["role"] == "assistant":
+                st.markdown(message["content"], unsafe_allow_html=True)
+                
+                # Copy Button with actual clipboard functionality
+                now = time.time()
+                key = f"copy_{idx}"
+                
+                # Show "Copied" for 10 seconds after clicking
+                if st.session_state.copy_time.get(key, 0) > (now - 10):
+                    if st.button("✓ Copied", key=key):
+                        st.session_state.copy_time[key] = now
+                        st_copy_to_clipboard(message["content"])
+                else:
+                    if st.button("Copy", key=key):
+                        st.session_state.copy_time[key] = now
+                        st_copy_to_clipboard(message["content"])
+                        st.rerun()  # Refresh to show the "Copied" state
+
+# Chat Input
+user_input = st.chat_input("Type your message here...")
+
+if user_input:
+    timestamp = datetime.datetime.now()
+    chat.append({
+        "role": "user",
+        "content": user_input,
+        "timestamp": timestamp.strftime("%Y-%m-%d %H:%M:%S")
+    })
+    
+    with st.spinner("Thinking..."):
+        response = rag_chatbot(user_input)
+        answer = response["answer"]
+        
+        st.markdown("**Assistant:**")
+        st.markdown(answer, unsafe_allow_html=True)
+        
+        chat.append({
+            "role": "assistant",
+            "content": answer,
+            "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
+
+
+
+
+
+
+
+
+
+
 from streamlit import experimental_user as st_user
 st_copy_to_clipboard = st_user.clipboard.copy
 
