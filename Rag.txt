@@ -1,3 +1,35 @@
+import numpy as np
+
+def is_probably_registre(text):
+    if not isinstance(text, str):
+        return False
+    text = text.strip()
+    # Count digits (Arabic or Latin)
+    digit_count = sum(c.isdigit() for c in text)
+    return digit_count >= 14
+
+# Apply transformation
+df["Registre de commerce (extracted)"] = df.apply(
+    lambda row: row["N° d'inscription"] if is_probably_registre(row["N° d'inscription"]) else row.get("Registre de commerce", np.nan),
+    axis=1
+)
+
+# Clean N° d'inscription if it was a RC
+df["N° d'inscription"] = df.apply(
+    lambda row: np.nan if is_probably_registre(row["N° d'inscription"]) else row["N° d'inscription"],
+    axis=1
+)
+
+# Optional: Rename the new RC column
+df["Registre de commerce"] = df["Registre de commerce (extracted)"]
+df.drop(columns=["Registre de commerce (extracted)"], inplace=True)
+
+
+
+
+
+
+
 Bonjour Imene,
 
 Après réception des fichiers GESKYC transmis, nous constatons que le même problème persiste : un écart important est toujours présent par rapport aux mois précédents.
