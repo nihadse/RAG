@@ -1,3 +1,32 @@
+Bonjour Imene,
+
+Après réception des fichiers GESKYC transmis, nous constatons que le même problème persiste : un écart important est toujours présent par rapport aux mois précédents.
+
+Le volume de fichiers transmis pour le mois de juin est nettement inférieur à celui du mois de mai.
+Voici les détails constatés :
+
+INTIER_PP_PM.csv
+Mai 2025 : 370 201 lignes
+Juin 2025 : 329 351 lignes
+
+GESKYC_PP.csv
+Mai 2025 : 357 599 lignes
+Juin 2025 : 251 269 lignes
+
+
+Merci de bien vouloir vérifier de votre côté.
+
+Cordialement,
+Nihad
+
+
+
+
+
+
+
+
+
 import re
 
 def fix_and_convert_registre(text):
