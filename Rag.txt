@@ -1,5 +1,90 @@
 import os
 import pandas as pd
+from fuzzywuzzy import process
+
+# Target column names to extract (normalized)
+target_columns = [
+    "N° d'inscription", "N", "رقم السجل التجاري", "RC",
+    "رقم ست", "رقم التسجيل", "السجل التجاري", "الرقة", "رق"
+]
+
+# Root folder with Excel files
+root_folder = "/mnt/sheets/Liste par DRC (все)"
+
+# Fuzzy match threshold
+FUZZY_THRESHOLD = 80
+
+def find_header_row(file_path, sheet_name, target_columns, max_rows=30):
+    try:
+        df_preview = pd.read_excel(file_path, sheet_name=sheet_name, header=None, nrows=max_rows)
+        for i, row in df_preview.iterrows():
+            row = row.fillna("").astype(str).str.strip()
+            if any(col in row.values for col in target_columns):
+                return i
+    except Exception as e:
+        print(f"⚠️ Error previewing sheet '{sheet_name}' in '{file_path}': {e}")
+    return None
+
+def fuzzy_match_column(col, candidates):
+    match, score = process.extractOne(col, candidates)
+    return match if score >= FUZZY_THRESHOLD else None
+
+all_data = []
+
+for dirpath, _, filenames in os.walk(root_folder):
+    for file in filenames:
+        if file.endswith((".xlsx", ".xls")) and not file.startswith("~"):
+            file_path = os.path.join(dirpath, file)
+            try:
+                xls = pd.ExcelFile(file_path)
+                for sheet_name in xls.sheet_names:
+                    try:
+                        header_row = find_header_row(file_path, sheet_name, target_columns)
+                        if header_row is not None:
+                            df = pd.read_excel(file_path, sheet_name=sheet_name, header=header_row, dtype=str)
+                            df.columns = df.columns.str.strip()
+
+                            # Map real columns to closest target using fuzzy match
+                            col_map = {}
+                            for col in df.columns:
+                                match = fuzzy_match_column(col, target_columns)
+                                if match:
+                                    col_map[col] = match
+
+                            # Reconstruct standardized DataFrame
+                            df_standardized = pd.DataFrame(columns=target_columns)
+                            for std_col in target_columns:
+                                matched_cols = [k for k, v in col_map.items() if v == std_col]
+                                if matched_cols:
+                                    df_standardized[std_col] = df[matched_cols[0]]
+                                else:
+                                    df_standardized[std_col] = pd.NA
+
+                            df_standardized["SheetName"] = sheet_name
+                            df_standardized["FileName"] = file
+                            df_standardized["FilePath"] = file_path
+
+                            all_data.append(df_standardized)
+                    except Exception as e:
+                        print(f"⚠️ Error reading sheet '{sheet_name}' in '{file}': {e}")
+            except Exception as e:
+                print(f"⚠️ Error opening Excel file '{file}': {e}")
+
+# Combine all results
+if all_data:
+    final_df = pd.concat(all_data, ignore_index=True)
+    output_path = "/mnt/DRC_consolidated_output.xlsx"
+    final_df.to_excel(output_path, index=False)
+    print(f"✅ Data consolidated into: {output_path}")
+else:
+    print("⚠️ No data extracted. Check file names and formats.")
+
+
+
+
+
+import os
+import pandas as pd
 
 # Corrected and cleaned target columns
 target_columns = [
