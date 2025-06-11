@@ -1,3 +1,59 @@
+import re
+
+def convert_arabic_to_latin(text):
+    """
+    Fix and convert Arabic letters in registration numbers to Latin equivalents.
+    Ensures format is: two digits followed by a letter (e.g., '19أ' or 'أ19' -> '19A').
+    """
+    if not isinstance(text, str):
+        return text
+
+    arabic_to_latin = {
+        "ا": "A", "أ": "A", "إ": "A",
+        "ب": "B",
+        "ت": "T", "ث": "TH", "ج": "J", "ح": "H", "خ": "KH",
+        "د": "D", "ذ": "DH", "ر": "R", "ز": "Z",
+        "س": "S", "ش": "CH", "ص": "S", "ض": "D", "ط": "T", "ظ": "Z",
+        "ع": "A", "غ": "GH",
+        "ف": "F", "ق": "Q", "ك": "K", "ل": "L", "م": "M", "ن": "N",
+        "ه": "H", "و": "W", "ي": "Y",
+    }
+
+    # Remove whitespace
+    text = text.strip()
+
+    # Match formats like "أ19" or "19أ"
+    match_arabic_first = re.match(r"^([^\d\s])(\d+)$", text)  # e.g., "أ19"
+    match_digit_first = re.match(r"^(\d{2})([^\d\s])$", text)  # e.g., "19أ"
+
+    if match_arabic_first:
+        letter, digits = match_arabic_first.groups()
+        latin = arabic_to_latin.get(letter, letter)
+        return digits + latin
+
+    elif match_digit_first:
+        digits, letter = match_digit_first.groups()
+        latin = arabic_to_latin.get(letter, letter)
+        return digits + latin
+
+    return text  # return unchanged if it doesn't match either format
+
+
+
+df["Registre de commerce"] = df["Registre de commerce"].apply(convert_arabic_to_latin)
+
+
+output_path = "/mnt/DRC_final_cleaned.xlsx"
+df.to_excel(output_path, index=False)
+print(f"✅ Cleaned file saved to: {output_path}")
+
+
+
+
+
+
+
+
 Est-ce que tu pourrais nous partager les fichiers via Drive ? La personne qui a accès à SFS est en vacances, du coup on ne peut pas y accéder pour le moment.
 
 Merci beaucoup !
