@@ -1,5 +1,56 @@
 import re
 
+def fix_and_convert_registre(text):
+    """
+    Find and correct registration numbers that contain two digits + Arabic letter,
+    and ensure they appear first. Then convert Arabic letter to Latin equivalent.
+    """
+    if not isinstance(text, str):
+        return text
+
+    text = text.strip()
+
+    # Map Arabic letters to Latin equivalents
+    arabic_to_latin = {
+        "ا": "A", "أ": "A", "إ": "A",
+        "ب": "B", "ت": "T", "ث": "TH", "ج": "J", "ح": "H", "خ": "KH",
+        "د": "D", "ذ": "DH", "ر": "R", "ز": "Z",
+        "س": "S", "ش": "CH", "ص": "S", "ض": "D", "ط": "T", "ظ": "Z",
+        "ع": "A", "غ": "GH", "ف": "F", "ق": "Q", "ك": "K", "ل": "L",
+        "م": "M", "ن": "N", "ه": "H", "و": "W", "ي": "Y"
+    }
+
+    # Match "19أ" (two digits + Arabic letter)
+    match = re.search(r"(\d{2})([^\d\s])", text)
+    if match:
+        prefix = match.group(0)  # e.g., "19أ"
+        rest = re.sub(re.escape(prefix), "", text).strip()  # Remove the prefix from original
+        arabic_letter = match.group(2)
+        latin = arabic_to_latin.get(arabic_letter, arabic_letter)
+        fixed = match.group(1) + latin  # "19A"
+        return f"{fixed} {rest}".strip()
+
+    return text  # If no match, return original
+
+df["Registre de commerce"] = df["Registre de commerce"].apply(fix_and_convert_registre)
+
+
+output_path = "/mnt/DRC_final_fixed.xlsx"
+df.to_excel(output_path, index=False)
+print(f"✅ File saved with fixed Registre de commerce: {output_path}")
+
+
+
+
+
+
+
+
+
+
+
+import re
+
 def convert_arabic_to_latin(text):
     """
     Fix and convert Arabic letters in registration numbers to Latin equivalents.
