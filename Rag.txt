@@ -1,3 +1,11 @@
+Est-ce que tu pourrais nous partager les fichiers via Drive ? La personne qui a accès à SFS est en vacances, du coup on ne peut pas y accéder pour le moment.
+
+Merci beaucoup !
+
+À bientôt,
+Nihad
+
+
 def convert_arabic_to_latin(text):
     """
     Converts Arabic letters in a string to their corresponding Latin characters (e.g., ب -> B),
