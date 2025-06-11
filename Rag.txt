@@ -1,3 +1,30 @@
+arabic_digits_to_western = {
+    "٠": "0", "١": "1", "٢": "2", "٣": "3", "٤": "4",
+    "٥": "5", "٦": "6", "٧": "7", "٨": "8", "٩": "9",
+}
+
+char_map = {**arabic_to_latin, **arabic_digits_to_western}
+
+def convert_full_rc(text):
+    if pd.isna(text):
+        return text
+    text = str(text)
+    first_two = text[:2]
+    rest = text[2:]
+    replaced = ''.join(char_map.get(ch, ch) for ch in rest)
+    return first_two + replaced
+
+df["Registre de commerce"] = df["Registre de commerce"].apply(convert_full_rc)
+
+
+
+
+
+
+
+
+
+
 import pandas as pd
 
 # Load the consolidated file
