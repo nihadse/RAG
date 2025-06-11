@@ -1,3 +1,35 @@
+import pandas as pd
+
+# Load the consolidated file
+input_path = "/mnt/DRC_consolidated_output-test.xlsx"
+df = pd.read_excel(input_path, dtype=str)
+
+# Define column groups
+inscription_cols = ["no d'inscription", "N°", "num", "Num", "الرقم", "رقم"]
+rc_cols = ["س ت", "رقم التسجيل", "رقم السجل التجاري", "السجل التجاري", "RC", "رقم"]
+
+# Combine columns into single unified fields
+def combine_columns(df, column_list):
+    return df[column_list].apply(lambda row: next((val for val in row if pd.notna(val) and val.strip()), pd.NA), axis=1)
+
+# Create new consolidated columns
+df["N° d'inscription"] = combine_columns(df, [col for col in inscription_cols if col in df.columns])
+df["Registre de commerce"] = combine_columns(df, [col for col in rc_cols if col in df.columns])
+
+# Select final columns
+final_columns = ["N° d'inscription", "Registre de commerce", "SheetName", "FileName", "FilePath"]
+final_df = df[final_columns]
+
+# Export final result
+output_path = "/mnt/DRC_final_cleaned_output.xlsx"
+final_df.to_excel(output_path, index=False)
+
+print(f"✅ Final cleaned data saved to: {output_path}")
+
+
+
+
+
 import os
 import pandas as pd
 from fuzzywuzzy import process
