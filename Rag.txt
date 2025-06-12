@@ -1,3 +1,15 @@
+# Arabic letters pattern
+arabic_letters = 'اأإآبتثجحخدذرزسشصضطظعغفقكلمنهوي'
+pattern = f'([{arabic_letters}])\\s+'
+
+# Remove only the space that comes after an Arabic letter
+df['text'] = df['text'].str.replace(pattern, r'\1', regex=True)
+
+print(df)
+
+
+
+
 Objet : Demande de relevés de compte (Dinars et Euros)
 
 Bonjour Amina,
