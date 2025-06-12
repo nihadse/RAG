@@ -1,3 +1,25 @@
+import pandas as pd
+
+# Sample DataFrame with "Registre de commerce" values
+df = pd.DataFrame({
+    'registre': [
+        'RC 1234567',
+        'ر ق  ١٢٣ ٤٥ ٦',
+        'Registre de commerce 123 456',
+        'ر ق123456',
+        'RC123 456',
+        'ر ق 123456',
+    ]
+})
+
+# Remove all spaces from the column
+df['registre'] = df['registre'].str.replace(r'\s+', '', regex=True)
+
+print(df)
+
+
+
+
 
 import pandas as pd
 
