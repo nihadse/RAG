@@ -1,3 +1,15 @@
+Bonjour,
+Je suis allée à mon agence pour récupérer mon relevé de compte, mais on m’a dit que je ne pouvais pas l’obtenir en tant que collaboratrice.
+On m’a indiqué de contacter Wafa, mais elle est en congé, tout comme sa remplaçante.
+Pouvez-vous me dire où je peux l’obtenir, ou me l’envoyer si possible ?
+Merci beaucoup pour votre aide.
+
+
+
+
+
+
+
 final_path = "/mnt/final_DRC_cleaned.xlsx"
 df.to_excel(final_path, index=False)
 print(f"✅ Final file saved to: {final_path}")
