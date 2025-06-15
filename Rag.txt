@@ -1,3 +1,16 @@
+import pandas as pd
+
+# Example DataFrame
+df = pd.DataFrame({
+    'your_column': [" nihad", "Sheu3873 43", "  hg h65"]
+})
+
+# Remove leading spaces
+df['your_column'] = df['your_column'].str.lstrip()
+
+print(df)
+
+
 Bonjour [Nom],
 Nous avions une réunion prévue aujourd’hui à 11h, mais vous n’étiez pas présent(e) et nous n’avons pas réussi à vous joindre.
 Pouvez-vous me proposer un créneau pour reprogrammer notre échange ?
