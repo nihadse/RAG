@@ -5,6 +5,18 @@ df = pd.DataFrame({
     'your_column': [" nihad", "Sheu3873 43", "  hg h65"]
 })
 
+# Remove all whitespace characters
+df['your_column'] = df['your_column'].str.replace(r'\s+', '', regex=True)
+
+print(df)
+
+import pandas as pd
+
+# Example DataFrame
+df = pd.DataFrame({
+    'your_column': [" nihad", "Sheu3873 43", "  hg h65"]
+})
+
 # Remove leading spaces
 df['your_column'] = df['your_column'].str.lstrip()
 
