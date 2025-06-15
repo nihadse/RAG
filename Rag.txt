@@ -1,3 +1,11 @@
+Bonjour [Nom],
+Nous avions une réunion prévue aujourd’hui à 11h, mais vous n’étiez pas présent(e) et nous n’avons pas réussi à vous joindre.
+Pouvez-vous me proposer un créneau pour reprogrammer notre échange ?
+
+
+
+
+
 import pandas as pd
 
 # Sample DataFrame with "Registre de commerce" values
