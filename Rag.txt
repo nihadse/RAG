@@ -2,6 +2,47 @@ def convert_arabic_to_french(text):
     if not isinstance(text, str):
         return text
 
+    # If already well formatted (contains a Latin letter and no Arabic), return as is
+    contains_latin = any(c.isalpha() and c.upper() in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' for c in text)
+    contains_arabic = any('\u0600' <= c <= '\u06FF' for c in text)
+
+    if contains_latin and not contains_arabic:
+        return text  # Already formatted, skip transformation
+
+    # Else: process Arabic version
+    text = text.replace(" ", "")
+
+    arabic_to_french = {
+        "أ": "A", "ا": "A", "آ": "A",
+        "ب": "B", "ت": "T", "ث": "S",
+        "ج": "J", "ح": "H", "خ": "KH",
+        "د": "D", "ذ": "DH", "ر": "R",
+        "ز": "Z", "س": "S", "ش": "CH",
+        "ص": "S", "ض": "D", "ط": "T",
+        "ظ": "Z", "ع": "A", "غ": "GH",
+        "ف": "F", "ق": "K", "ك": "K",
+        "ل": "L", "م": "M", "ن": "N",
+        "ه": "H", "و": "W", "ي": "Y"
+    }
+
+    digits = ''.join(c for c in text if c.isdigit())
+    arabic_letters = ''.join(c for c in text if '\u0600' <= c <= '\u06FF')
+    converted_letters = ''.join(arabic_to_french.get(c, c) for c in arabic_letters)
+
+    first_two = digits[:2]
+    remaining_digits = digits[2:]
+
+    return first_two + converted_letters + remaining_digits
+
+
+
+
+
+
+def convert_arabic_to_french(text):
+    if not isinstance(text, str):
+        return text
+
     text = text.replace(" ", "")
 
     arabic_to_french = {
