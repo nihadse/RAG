@@ -1,4 +1,29 @@
 import pandas as pd
+import unicodedata
+import re
+
+# Sample input
+df = pd.DataFrame({
+    'your_column': ["42 / 00 - 2641809111", None]
+})
+
+# Step 1: Fill missing values
+df['your_column'] = df['your_column'].fillna('')
+
+# Step 2: Normalize and remove ALL space-like Unicode characters
+def remove_all_whitespace(text):
+    # Normalize the string to NFKC form (to expose hidden chars)
+    normalized = unicodedata.normalize('NFKC', text)
+    # Remove ALL known whitespace characters and invisible formatting marks
+    return re.sub(r'[\s\u200f\u200e\u200b\u00a0\u202f\u2060]+', '', normalized)
+
+df['your_column'] = df['your_column'].apply(remove_all_whitespace)
+
+print(df)
+
+
+
+import pandas as pd
 import re
 
 # Sample DataFrame
