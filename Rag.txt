@@ -1,3 +1,28 @@
+import re
+
+def clean_register_commerce(value):
+    if not isinstance(value, str):
+        return value
+
+    value = value.strip().upper().replace(" ", "")
+
+    # Case 1: format like "16/A/1185168"
+    match1 = re.match(r"^(\d{2})/([A-Z])/(\d+)$", value)
+    if match1:
+        return match1.group(1) + match1.group(2) + match1.group(3)
+
+    # Case 2: format like "05/00-1125555A00"
+    match2 = re.match(r"^(\d{2}/\d{2})-?(\d+)([A-Z])(\d{2})$", value)
+    if match2:
+        return match2.group(4) + match2.group(3) + match2.group(2) + "-" + match2.group(1)
+
+    return value  # Return unchanged if format is not matched
+
+
+
+
+
+
 def convert_arabic_to_french(text):
     if not isinstance(text, str):
         return text
