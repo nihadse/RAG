@@ -1,4 +1,46 @@
 import pandas as pd
+
+# Your existing function
+def convert_arabic_to_french(text):
+    if not isinstance(text, str):
+        return text
+
+    text = text.replace(" ", "")
+
+    arabic_to_french = {
+        "أ": "A", "ا": "A", "آ": "A",
+        "ب": "B", "ت": "T", "ث": "S",
+        "ج": "J", "ح": "H", "خ": "KH",
+        "د": "D", "ذ": "DH", "ر": "R",
+        "ز": "Z", "س": "S", "ش": "CH",
+        "ص": "S", "ض": "D", "ط": "T",
+        "ظ": "Z", "ع": "A", "غ": "GH",
+        "ف": "F", "ق": "K", "ك": "K",
+        "ل": "L", "م": "M", "ن": "N",
+        "ه": "H", "و": "W", "ي": "Y"
+    }
+
+    digits = ''.join(c for c in text if c.isdigit())[:2]
+    arabic_letters = ''.join(c for c in text if '\u0600' <= c <= '\u06FF')
+    converted_letters = ''.join(arabic_to_french.get(c, c) for c in arabic_letters)
+
+    return digits + converted_letters
+
+# Example DataFrame
+df = pd.DataFrame({
+    'original': ["22ب  ", "ب11", "آ33", "ب643", "أ9ز", "hello"]
+})
+
+# Apply function to column
+df['converted'] = df['original'].apply(convert_arabic_to_french)
+
+
+
+
+
+# Show result
+print(df)
+import pandas as pd
 import unicodedata
 import re
 
