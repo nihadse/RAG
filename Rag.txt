@@ -4,6 +4,37 @@ def clean_register_commerce_v2(value):
     if not isinstance(value, str):
         return value
 
+    value = value.strip().upper()
+
+    # Step 1: Replace multiple slashes with a single slash
+    value = re.sub(r"/{2,}", "/", value)
+
+    # Step 2: Handle format like "16/A/1185168" or "01/A/113040 -01/05"
+    match1 = re.match(r"^(\d{2})/([A-Z])/([0-9 ]+)(.*)", value)
+    if match1:
+        return match1.group(1) + match1.group(2) + match1.group(3) + match1.group(4)
+
+    # Step 3: Handle format like "05/00-1125555A00" or "05/00/1125555A00"
+    match2 = re.match(r"^(\d{2}/\d{2})[-/]?(\d+)([A-Z])(\d{2})$", value)
+    if match2:
+        return match2.group(4) + match2.group(3) + match2.group(2) + "-" + match2.group(1)
+
+    return value  # Return original if no patterns matched
+
+
+
+
+
+
+
+
+
+import re
+
+def clean_register_commerce_v2(value):
+    if not isinstance(value, str):
+        return value
+
     value = value.strip().upper().replace(" ", " ")  # preserve intentional spaces
 
     # Clean up repeated slashes like "//A/"
