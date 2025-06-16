@@ -1,4 +1,24 @@
 import pandas as pd
+import re
+
+# Sample DataFrame
+df = pd.DataFrame({
+    'your_column': ["0127 /01-0105182 ب", None, "   نهاد 123", "\u200fنص مع RTL"]  # note: includes Unicode spaces
+})
+
+# Step 1: Replace NaN/NA with empty string
+df['your_column'] = df['your_column'].fillna('')
+
+# Step 2: Remove ALL Unicode whitespace (includes Arabic RTL marks, zero-width spaces, etc.)
+# \s matches visible whitespace, \u200f, \u200b, \xa0 etc. handled explicitly
+df['your_column'] = df['your_column'].apply(
+    lambda x: re.sub(r'[\s\u200f\u200e\u200b\u00a0]+', '', x)
+)
+
+print(df)
+
+
+import pandas as pd
 
 # Example DataFrame with Arabic and numbers
 df = pd.DataFrame({
