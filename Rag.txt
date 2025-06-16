@@ -1,5 +1,19 @@
 import pandas as pd
 
+# Example DataFrame with Arabic and numbers
+df = pd.DataFrame({
+    'your_column': [" نهاد", "Sheu3873 43", "  ح ج h65", "\u200Fالسلام 123"]
+})
+
+# Remove all whitespace characters (normal and Unicode)
+df['your_column'] = df['your_column'].apply(lambda x: ''.join(ch for ch in x if not ch.isspace()))
+
+print(df)
+
+
+
+import pandas as pd
+
 # Example DataFrame
 df = pd.DataFrame({
     'your_column': [" nihad", "Sheu3873 43", "  hg h65"]
