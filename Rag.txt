@@ -1,3 +1,42 @@
+def convert_arabic_to_french(text):
+    if not isinstance(text, str):
+        return text
+
+    text = text.replace(" ", "")
+
+    arabic_to_french = {
+        "أ": "A", "ا": "A", "آ": "A",
+        "ب": "B", "ت": "T", "ث": "S",
+        "ج": "J", "ح": "H", "خ": "KH",
+        "د": "D", "ذ": "DH", "ر": "R",
+        "ز": "Z", "س": "S", "ش": "CH",
+        "ص": "S", "ض": "D", "ط": "T",
+        "ظ": "Z", "ع": "A", "غ": "GH",
+        "ف": "F", "ق": "K", "ك": "K",
+        "ل": "L", "م": "M", "ن": "N",
+        "ه": "H", "و": "W", "ي": "Y"
+    }
+
+    # Separate digits and Arabic letters
+    digits = ''.join(c for c in text if c.isdigit())
+    arabic_letters = ''.join(c for c in text if '\u0600' <= c <= '\u06FF')
+    converted_letters = ''.join(arabic_to_french.get(c, c) for c in arabic_letters)
+
+    # First 2 digits
+    first_two = digits[:2]
+    remaining_digits = digits[2:]
+
+    return first_two + converted_letters + remaining_digits
+
+
+
+
+
+
+
+
+
+
 import pandas as pd
 
 # Your existing function
