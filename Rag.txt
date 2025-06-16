@@ -1,3 +1,7 @@
+\b02A\d{7}\b(?!-)
+
+
+
 import re
 
 def clean_register_commerce_v2(value):
