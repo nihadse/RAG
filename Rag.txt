@@ -1,3 +1,7 @@
+LEFT([YourField],10) + "-" + MID([YourField],11,2) + "/00"
+
+
+
 (?<![\dA-Za-z/-])\d{2}[A-Da-d]\d{7}-\d{2}(?![\dA-Za-z/-])
 
 
