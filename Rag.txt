@@ -1,3 +1,5 @@
+LEFT([YourField], FINDSTRING([YourField], "/") - 1)
+
 TRIM(RIGHT([Code], 3)) 
 + TRIM(SUBSTRING([Code], 6, FINDSTRING([Code], " ") - 6)) 
 + "-" 
