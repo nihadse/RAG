@@ -1,3 +1,6 @@
+REGEX_Replace([YourField], "(\d{2}/\d{2})-(\d{7,9})([A-Da-d])", "$2$3-$1")
+
+
 Bonjour [Nom],
 
 Je vous contacte à propos du rendez-vous pour le dépôt de visa France.
