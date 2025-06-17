@@ -1,3 +1,12 @@
+Bonjour [Nom],
+Je vous informe que la date de départ prévue est le 15 juillet 2025, merci encore pour votre aide.
+
+Bien cordialement,
+Nihad Senhadji
+
+
+
+
 Right([YourField], 2) + 
 Left(Right([YourField], 3), 1) + 
 Substring([YourField], 6, Length([YourField]) - 9) + 
