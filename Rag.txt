@@ -1,3 +1,9 @@
+RIGHT([Code], 3) 
++ SUBSTRING([Code], 6, FINDSTRING([Code], " ") - 6) 
++ "-" 
++ LEFT([Code], 5)
+
+
 REGEX_Replace([YourField], "(\d{2}/\d{2})-(\d{7,9})([A-Da-d])", "$2$3-$1")
 
 
