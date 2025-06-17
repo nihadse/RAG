@@ -1,3 +1,15 @@
+Bonjour [Nom],
+
+Je vous contacte à propos du rendez-vous pour le dépôt de visa France.
+J’ai déjà finalisé la procédure sur Capago et je sollicite votre aide pour obtenir un rendez-vous.
+Merci beaucoup pour votre soutien.
+
+Bien cordialement,
+Nihad Senhadji
+
+
+
+
 \d{2}[A-D]\d{7}-\d{2}/\d{2}
 
 
