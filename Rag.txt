@@ -1,3 +1,15 @@
+Bonjour Youcef,
+
+Merci pour ton message.
+Nous avons eu un incident sur les fichiers GESKYC, d'où le retard.
+Nous ferons en sorte de vous les transmettre le 8 de chaque mois comme convenu.
+Merci pour ta compréhension.
+
+Bien à toi,
+Nihad
+
+
+
 RIGHT([YourField], 10) + " -" + LEFT([YourField], 5)
 
 
