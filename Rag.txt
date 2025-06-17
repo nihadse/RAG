@@ -1,3 +1,10 @@
+Right([YourField], 2) +
+Left(Right([YourField], 3), 1) +
+Replace(Left([YourField], Length([YourField]) - 3), " ", "")
+
+
+
+
 LEFT([YourField], FINDSTRING([YourField], "/") - 1)
 
 TRIM(RIGHT([Code], 3)) 
