@@ -1,3 +1,8 @@
+TRIM(RIGHT([Code], 3)) 
++ TRIM(SUBSTRING([Code], 6, FINDSTRING([Code], " ") - 6)) 
++ "-" 
++ LEFT([Code], 5)
+
 Demande de rendez-vous pour dépôt de visa France
 
 
