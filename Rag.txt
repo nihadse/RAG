@@ -1,3 +1,11 @@
+Salut,
+Je t’informe que la mise à jour a été faite via le fichier QAC situé ici : [chemin/du/fichier/QAC].
+
+À bientôt,
+Nihad
+
+
+
 Right([YourField], 2) + 
 Left(Right([YourField], 3), 1) + 
 Left([YourField], Length([YourField]) - 3)
