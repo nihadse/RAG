@@ -1,3 +1,13 @@
+Bonjour [Nom],
+
+Veuillez trouver ci-joint le fichier en annexe, comme convenu.
+
+Je vous remercie et reste à votre disposition pour toute information complémentaire.
+
+Bien cordialement,
+Nihad Senhadji
+
+
 Salut,
 Je t’informe que la mise à jour a été faite via le fichier QAC situé ici : [chemin/du/fichier/QAC].
 
