@@ -1,3 +1,10 @@
+Bonjour [Nom],
+
+Je serai en congé la semaine prochaine. Merci de bien vouloir m’envoyer les demandes ServiceNow par email pendant cette période.
+
+Bien cordialement,
+Nihad
+
 Objet : Reprogrammation de notre réunion
 
 Bonjour [Nom],
