@@ -1,3 +1,109 @@
+import os
+import pandas as pd
+import xlwings as xw
+
+# === CONFIGURATION ===
+csv_path = "path/to/your_data.csv"
+excel_folder = "path/to/excel/files"
+output_folder = "path/to/save/updated/files"
+
+# === FLEXIBLE HEADER GROUPS ===
+inscription_cols = ["N° d'inscription", "N", "NUM", "الرقة", "رقة", "N°"]
+ad_cols = ["Adresse du commerce", "Adresse domicile", "Adresse du Local", "العنوان التجاري"]
+engagement_cols = ["Remarque", "ملاحظة", "ملاحظات"]
+
+# Arabic columns to fill
+bank_dom_yn_cols = ["هل قام المتعامل الاقتصادي بتوطين بنكي لعمليات استيراد"]
+bank_dom_date_cols = ["تاريخ اخر بتوطين بنكي لعمليات استيراد"]
+loan_yn_cols = ["هل استفاد المتعامل الاقتصادي من قرض بنكي"]
+loan_date_cols = ["تاريخ اخر استفادة من قرض بنكي"]
+
+# === LOAD CSV DATA ===
+csv_df = pd.read_csv(csv_path, dtype=str).fillna("")
+csv_df.set_index("inscription", inplace=True)
+
+# === LOOP OVER EXCEL FILES ===
+for file in os.listdir(excel_folder):
+    if not file.endswith(".xlsx"):
+        continue
+
+    file_path = os.path.join(excel_folder, file)
+    app = xw.App(visible=False)
+    wb = app.books.open(file_path)
+
+    print(f"📂 Processing: {file}")
+
+    for sheet in wb.sheets:
+        found_header = False
+        header_row = None
+        header_map = {}
+
+        # Detect header row (first 50 rows)
+        for row in range(1, 51):
+            row_values = sheet.range(f"A{row}").expand("right").value
+            if not row_values:
+                continue
+            for val in row_values:
+                if val in inscription_cols:
+                    header_row = row
+                    found_header = True
+                    break
+            if found_header:
+                break
+
+        if not found_header:
+            print(f"⚠️ No header found in {file} / Sheet: {sheet.name}")
+            continue
+
+        headers = sheet.range(f"A{header_row}").expand("right").value
+
+        # === MAP COLUMNS ===
+        for idx, name in enumerate(headers):
+            if name in inscription_cols:
+                header_map["inscription"] = idx + 1
+            elif name in ad_cols:
+                header_map["address_"] = idx + 1
+            elif name in engagement_cols:
+                header_map["engagement_"] = idx + 1
+            elif name in bank_dom_yn_cols:
+                header_map["bank_dom_yn"] = idx + 1
+            elif name in bank_dom_date_cols:
+                header_map["bank_dom_date"] = idx + 1
+            elif name in loan_yn_cols:
+                header_map["loan_yn"] = idx + 1
+            elif name in loan_date_cols:
+                header_map["loan_date"] = idx + 1
+
+        if "inscription" not in header_map:
+            print(f"❌ 'inscription' column not found in {file} / Sheet: {sheet.name}")
+            continue
+
+        # === FILL SHEET ROWS ===
+        row = header_row + 1
+        while True:
+            cell_value = sheet.range((row, header_map["inscription"])).value
+            if not cell_value:
+                break
+
+            key = str(cell_value).strip()
+            if key in csv_df.index:
+                for field in ["address_", "engagement_", "bank_dom_yn", "bank_dom_date", "loan_yn", "loan_date"]:
+                    if field in header_map and field in csv_df.columns:
+                        sheet.range((row, header_map[field])).value = csv_df.at[key, field]
+            row += 1
+
+    # === SAVE AND CLOSE ===
+    output_path = os.path.join(output_folder, file)
+    wb.save(output_path)
+    wb.close()
+    app.quit()
+    print(f"✅ Saved updated file: {output_path}")
+
+
+
+
+
+
 Bonjour [Nom],
 
 Je serai en congé la semaine prochaine. Merci de bien vouloir m’envoyer les demandes ServiceNow par email pendant cette période.
