@@ -2,6 +2,119 @@ import os
 import pandas as pd
 from openpyxl import load_workbook
 
+def fill_excel_from_csv(csv_path, excel_folder, output_folder):
+    os.makedirs(output_folder, exist_ok=True)
+
+    rc_cols = [
+        "RC", "رقم السجل التجاري", "Registre de commerce (extracted)",
+        "رقم التسجيل", "السجل التجاري", "N° du registre du commerce", "رقم ست"
+    ]
+
+    # Arabic headers in merged cells
+    loan_yn_header = "هل استفاد المتعامل الاقتصادي من قرض بنكي"
+    bank_dom_yn_header = "هل قام المتعامل الاقتصادي بتوطين بنكي لعمليات استيراد"
+
+    # CSV column mapping
+    csv_column_map = {
+        "beneficiaire credit": ("loan_yn", {"Oui": "نعم", "Non": "لا"}),
+        "Operation import": ("bank_dom_yn", {"Oui": "نعم", "Non": "لا"})
+    }
+
+    # Load CSV
+    csv_df = pd.read_csv(csv_path, dtype=str).fillna("")
+    if "Registre_commerce" not in csv_df.columns:
+        print("❌ 'Registre_commerce' column missing in CSV.")
+        return
+    csv_df.set_index("Registre_commerce", inplace=True)
+
+    for file in os.listdir(excel_folder):
+        if not file.endswith(".xlsx"):
+            continue
+
+        input_path = os.path.join(excel_folder, file)
+        output_path = os.path.join(output_folder, file)
+        print(f"\n📄 Processing: {file}")
+
+        wb = load_workbook(input_path)
+        updated = False
+
+        for sheetname in wb.sheetnames:
+            ws = wb[sheetname]
+            header_row = None
+            header_map = {}
+
+            # Detect header row and RC column
+            for i in range(1, 51):
+                row_vals = [cell.value for cell in ws[i]]
+                if any(str(val).strip() in rc_cols for val in row_vals if val):
+                    header_row = i
+                    headers = [str(val).strip() if val else "" for val in row_vals]
+                    for idx, name in enumerate(headers):
+                        if name in rc_cols:
+                            header_map["Registre_commerce"] = idx
+                    break
+
+            if not header_row or "Registre_commerce" not in header_map:
+                print(f"⚠️ No RC header found in {file} / Sheet: {sheetname}")
+                continue
+
+            # Detect merged headers like loan and import (yes/no columns)
+            for merged in ws.merged_cells.ranges:
+                cell = ws.cell(row=header_row, column=merged.min_col)
+                if cell.value:
+                    name = str(cell.value).strip()
+                    if name == loan_yn_header:
+                        header_map["loan_yn_yes"] = merged.min_col
+                        header_map["loan_yn_no"] = merged.min_col + 1
+                    elif name == bank_dom_yn_header:
+                        header_map["bank_dom_yn_yes"] = merged.min_col
+                        header_map["bank_dom_yn_no"] = merged.min_col + 1
+
+            row_num = header_row + 2  # skip template row
+            while True:
+                rc_cell = ws.cell(row=row_num, column=header_map["Registre_commerce"] + 1)
+                rc = rc_cell.value
+                if rc is None:
+                    break
+
+                rc_key = str(rc).strip()
+                matched = rc_key in csv_df.index
+
+                for csv_col, (key_prefix, yn_map) in csv_column_map.items():
+                    yes_col = header_map.get(f"{key_prefix}_yes")
+                    no_col = header_map.get(f"{key_prefix}_no")
+                    if yes_col and no_col:
+                        yes_cell = ws.cell(row=row_num, column=yes_col)
+                        no_cell = ws.cell(row=row_num, column=no_col)
+
+                        if matched:
+                            val = csv_df.at[rc_key, csv_col].strip()
+                            if yn_map and yn_map.get(val) == "نعم":
+                                yes_cell.value = "✓"
+                            elif yn_map and yn_map.get(val) == "لا":
+                                no_cell.value = "✓"
+                            updated = True
+                        else:
+                            if not yes_cell.value and not no_cell.value:
+                                no_cell.value = "✓"
+                                updated = True
+
+                row_num += 1
+
+        if updated:
+            wb.save(output_path)
+            print(f"✅ Saved: {output_path}")
+        else:
+            print("ℹ️ No updates made.")
+
+        wb.close()
+
+
+
+import os
+import pandas as pd
+from openpyxl import load_workbook
+
 def fill_excel_openpyxl(csv_path, excel_folder, output_folder):
     os.makedirs(output_folder, exist_ok=True)
 
