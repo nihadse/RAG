@@ -1,4 +1,20 @@
-from pathlib import Path
+import zipfile
+import os
+
+def zip_folder(folder_path, output_zip_path):
+    with zipfile.ZipFile(output_zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, _, files in os.walk(folder_path):
+            for file in files:
+                full_path = os.path.join(root, file)
+                arcname = os.path.relpath(full_path, start=folder_path)
+                zipf.write(full_path, arcname)
+
+# Example usage:
+zip_folder('/path/to/your/folder', '/path/to/output.zip')
+
+
+
+.from pathlib import Path
 num_files = len(list(Path(excel_folder).rglob("*.xlsx")))
 print(f"📄 Total Excel files: {num_files}")
 
