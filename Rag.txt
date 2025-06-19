@@ -2,343 +2,119 @@ import os
 import pandas as pd
 import xlwings as xw
 
-# === CONFIGURATION ===
-csv_path = r"C:\path\to\your_data.csv"
-excel_folder = r"C:\path\to\excel\input"
-output_folder = r"C:\path\to\excel\output"
+def fill_excel_from_csv(csv_path, excel_folder, output_folder):
+    # === MATCH ON RC COLUMN ===
+    rc_cols = [
+        "RC", "رقم السجل التجاري", "Registre de commerce (extracted)",
+        "رقم التسجيل", "السجل التجاري", 'N" du registre du commerce', "رقم ست"
+    ]
 
-# Create output folder if it doesn't exist
-os.makedirs(output_folder, exist_ok=True)
+    # === Arabic Excel column names ===
+    loan_yn_cols = ["هل استفاد المتعامل الاقتصادي من قرض بنكي"]
+    loan_date_cols = ["تاريخ اخر استفادة من قرض بنكي"]
+    bank_dom_yn_cols = ["هل قام المتعامل الاقتصادي بتوطين بنكي لعمليات استيراد"]
+    bank_dom_date_cols = ["تاريخ اخر بتوطين بنكي لعمليات استيراد"]
 
-# === MATCH ON RC COLUMN ===
-rc_cols = [
-    "RC", "رقم السجل التجاري", "Registre de commerce (extracted)",
-    "رقم التسجيل", "السجل التجاري", "N\" du registre du commerce", "رقم ست"
-]
+    # === CSV to Excel Mapping ===
+    csv_column_map = {
+        "beneficiaire credit": ("loan_yn", {"Oui": "نعم", "Non": "لا"}),
+        "Derniere date effet crédit": ("loan_date", None),
+        "Operation import": ("bank_dom_yn", {"Oui": "نعم", "Non": "لا"}),
+        "Derniere date import": ("bank_dom_date", None)
+    }
 
-# === Arabic Excel column names ===
-loan_yn_cols = ["هل استفاد المتعامل الاقتصادي من قرض بنكي"]
-loan_date_cols = ["تاريخ اخر استفادة من قرض بنكي"]
-bank_dom_yn_cols = ["هل قام المتعامل الاقتصادي بتوطين بنكي لعمليات استيراد"]
-bank_dom_date_cols = ["تاريخ اخر بتوطين بنكي لعمليات استيراد"]
+    # === Load CSV Data ===
+    csv_df = pd.read_csv(csv_path, dtype=str).fillna("")
+    if "Registre_commerce" not in csv_df.columns:
+        print("❌ Column 'Registre_commerce' not found in CSV.")
+        return
 
-# === CSV to Excel Column Mapping ===
-csv_column_map = {
-    "beneficiaire credit": ("loan_yn", {"Oui": "نعم", "Non": "لا"}),
-    "Derniere date effet crédit": ("loan_date", None),
-    "Operation import": ("bank_dom_yn", {"Oui": "نعم", "Non": "لا"}),
-    "Derniere date import": ("bank_dom_date", None)
-}
+    csv_df.set_index("Registre_commerce", inplace=True)
 
-# === LOAD CSV DATA ===
-csv_df = pd.read_csv(csv_path, dtype=str).fillna("")
-csv_df.set_index("Registre_commerce", inplace=True)
+    os.makedirs(output_folder, exist_ok=True)
 
-# === START EXCEL APP ===
-app = xw.App(visible=False)
-
-# === PROCESS EACH EXCEL FILE ===
-for file in os.listdir(excel_folder):
-    if not file.endswith(".xlsx"):
-        continue
-
-    file_path = os.path.join(excel_folder, file)
-    wb = app.books.open(file_path)
-    updated = False
-
-    print(f"\n📂 Processing file: {file}")
-
-    for sheet in wb.sheets:
-        found_header = False
-        header_row = None
-        header_map = {}
-
-        # === DETECT HEADER ROW (First 50 Rows) ===
-        for row in range(1, 51):
-            row_values = sheet.range(f"A{row}").expand("right").value
-            if not row_values:
-                continue
-            for val in row_values:
-                if val and str(val).strip() in rc_cols:
-                    header_row = row
-                    found_header = True
-                    break
-            if found_header:
-                break
-
-        if not found_header:
-            print(f"⚠️ No RC column found in {file} / Sheet: {sheet.name}")
+    for file in os.listdir(excel_folder):
+        if not file.endswith(".xlsx"):
             continue
 
-        headers = sheet.range(f"A{header_row}").expand("right").value
+        file_path = os.path.join(excel_folder, file)
+        print(f"\n📂 Processing file: {file}")
+        updated = False
 
-        # === MAP COLUMN INDICES ===
-        for idx, name in enumerate(headers):
-            name = str(name).strip()
-            if name in rc_cols:
-                header_map["Registre_commerce"] = idx + 1
-            elif name in loan_yn_cols:
-                header_map["loan_yn"] = idx + 1
-            elif name in loan_date_cols:
-                header_map["loan_date"] = idx + 1
-            elif name in bank_dom_yn_cols:
-                header_map["bank_dom_yn"] = idx + 1
-            elif name in bank_dom_date_cols:
-                header_map["bank_dom_date"] = idx + 1
+        app = xw.App(visible=False)
+        try:
+            wb = app.books.open(file_path)
 
-        if "Registre_commerce" not in header_map:
-            print(f"❌ RC column not found in sheet: {sheet.name}")
-            continue
+            for sheet in wb.sheets:
+                found_header = False
+                header_row = None
+                header_map = {}
 
-        # === FILL MATCHED ROWS ===
-        row = header_row + 1
-        while True:
-            cell_value = sheet.range((row, header_map["Registre_commerce"])).value
-            if not cell_value:
-                break
+                # === Find header row (first 50 rows) ===
+                for row in range(1, 51):
+                    row_values = sheet.range(f"A{row}").expand("right").value
+                    if not row_values:
+                        continue
+                    for val in row_values:
+                        if val and str(val).strip() in rc_cols:
+                            header_row = row
+                            found_header = True
+                            break
+                    if found_header:
+                        break
 
-            rc_key = str(cell_value).strip()
-            if rc_key in csv_df.index:
-                for csv_col, (field_key, translation_map) in csv_column_map.items():
-                    if field_key in header_map and csv_col in csv_df.columns:
-                        value = csv_df.at[rc_key, csv_col]
-                        if translation_map:
-                            value = translation_map.get(value.strip(), "")
-                        sheet.range((row, header_map[field_key])).value = value
-                        updated = True
-            row += 1
+                if not found_header:
+                    print(f"⚠️ No RC column found in {file} / Sheet: {sheet.name}")
+                    continue
 
-    # === SAVE UPDATED FILE ===
-    output_path = os.path.join(output_folder, file)
-    if updated:
-        wb.save(output_path)
-        print(f"✅ File saved to: {output_path}")
-    else:
-        print(f"ℹ️ No updates made to: {file}")
-    wb.close()
+                headers = sheet.range(f"A{header_row}").expand("right").value
 
-# === CLOSE EXCEL APP ===
-app.quit()
+                # === Map column indexes ===
+                for idx, name in enumerate(headers):
+                    name = str(name).strip()
+                    if name in rc_cols:
+                        header_map["Registre_commerce"] = idx + 1
+                    elif name in loan_yn_cols:
+                        header_map["loan_yn"] = idx + 1
+                    elif name in loan_date_cols:
+                        header_map["loan_date"] = idx + 1
+                    elif name in bank_dom_yn_cols:
+                        header_map["bank_dom_yn"] = idx + 1
+                    elif name in bank_dom_date_cols:
+                        header_map["bank_dom_date"] = idx + 1
 
+                if "Registre_commerce" not in header_map:
+                    print(f"❌ RC column not found in sheet: {sheet.name}")
+                    continue
 
+                # === Fill data row by row ===
+                row = header_row + 1
+                while True:
+                    cell_value = sheet.range((row, header_map["Registre_commerce"])).value
+                    if not cell_value:
+                        break
 
-import os
-import pandas as pd
-import xlwings as xw
+                    rc_key = str(cell_value).strip()
+                    if rc_key in csv_df.index:
+                        for csv_col, (field_key, translation_map) in csv_column_map.items():
+                            if field_key in header_map and csv_col in csv_df.columns:
+                                value = csv_df.at[rc_key, csv_col]
+                                if translation_map:
+                                    value = translation_map.get(value.strip(), "")
+                                sheet.range((row, header_map[field_key])).value = value
+                                updated = True
+                    row += 1
 
-# === CONFIGURATION ===
-csv_path = r"path\to\your_data.csv"
-excel_folder = r"path\to\excel\files"
-output_folder = r"path\to\save\updated\files"
+            # === Save to output folder ===
+            output_path = os.path.join(output_folder, file)
+            if updated:
+                wb.save(output_path)
+                print(f"✅ Saved updated file: {output_path}")
+            else:
+                print(f"ℹ️ No data written to: {file}")
+            wb.close()
 
-# === MATCH ON ===
-rc_cols = [
-    "RC", "رقم السجل التجاري", "Registre de commerce (extracted)",
-    "رقم التسجيل", "السجل التجاري", "N\" du registre du commerce", "رقم ست"
-]
-
-# === Arabic Excel column names ===
-loan_yn_cols = ["هل استفاد المتعامل الاقتصادي من قرض بنكي"]
-loan_date_cols = ["تاريخ اخر استفادة من قرض بنكي"]
-bank_dom_yn_cols = ["هل قام المتعامل الاقتصادي بتوطين بنكي لعمليات استيراد"]
-bank_dom_date_cols = ["تاريخ اخر بتوطين بنكي لعمليات استيراد"]
-
-# === CSV column mapping ===
-csv_column_map = {
-    "beneficiaire credit": ("loan_yn", {"Oui": "نعم", "Non": "لا"}),
-    "Derniere date effet crédit": ("loan_date", None),
-    "Operation import": ("bank_dom_yn", {"Oui": "نعم", "Non": "لا"}),
-    "Derniere date import": ("bank_dom_date", None)
-}
-
-# === LOAD CSV DATA ===
-csv_df = pd.read_csv(csv_path, dtype=str).fillna("")
-csv_df.set_index("Registre_commerce", inplace=True)
-
-# === PROCESS EXCEL FILES ===
-for file in os.listdir(excel_folder):
-    if not file.endswith(".xlsx"):
-        continue
-
-    file_path = os.path.join(excel_folder, file)
-    app = xw.App(visible=False)
-    wb = app.books.open(file_path)
-
-    print(f"📂 Processing: {file}")
-
-    for sheet in wb.sheets:
-        found_header = False
-        header_row = None
-        header_map = {}
-
-        # === DETECT HEADER ROW ===
-        for row in range(1, 51):
-            row_values = sheet.range(f"A{row}").expand("right").value
-            if not row_values:
-                continue
-            for val in row_values:
-                if val and str(val).strip() in rc_cols:
-                    header_row = row
-                    found_header = True
-                    break
-            if found_header:
-                break
-
-        if not found_header:
-            print(f"⚠️ No RC column found in {file} / Sheet: {sheet.name}")
-            continue
-
-        headers = sheet.range(f"A{header_row}").expand("right").value
-
-        # === MAP COLUMNS ===
-        for idx, name in enumerate(headers):
-            name = str(name).strip()
-            if name in rc_cols:
-                header_map["Registre_commerce"] = idx + 1
-            elif name in loan_yn_cols:
-                header_map["loan_yn"] = idx + 1
-            elif name in loan_date_cols:
-                header_map["loan_date"] = idx + 1
-            elif name in bank_dom_yn_cols:
-                header_map["bank_dom_yn"] = idx + 1
-            elif name in bank_dom_date_cols:
-                header_map["bank_dom_date"] = idx + 1
-
-        if "Registre_commerce" not in header_map:
-            print(f"❌ RC column not found in {file} / Sheet: {sheet.name}")
-            continue
-
-        # === FILL ROWS ===
-        row = header_row + 1
-        while True:
-            cell_value = sheet.range((row, header_map["Registre_commerce"])).value
-            if not cell_value:
-                break
-
-            rc_key = str(cell_value).strip()
-            if rc_key in csv_df.index:
-                for csv_col, (field_key, translation_map) in csv_column_map.items():
-                    if field_key in header_map and csv_col in csv_df.columns:
-                        value = csv_df.at[rc_key, csv_col]
-                        if translation_map:
-                            value = translation_map.get(value.strip(), "")
-                        sheet.range((row, header_map[field_key])).value = value
-            row += 1
-
-    # === SAVE AND CLOSE ===
-    output_path = os.path.join(output_folder, file)
-    wb.save(output_path)
-    wb.close()
-    app.quit()
-    print(f"✅ Saved updated file: {output_path}")
+        finally:
+            app.quit()
 
 
-
-
-
-pip install pandas xlwings
-
-
-import os
-import pandas as pd
-import xlwings as xw
-
-# === CONFIGURATION ===
-csv_path = "path/to/your_data.csv"
-excel_folder = "path/to/excel/files"
-output_folder = "path/to/save/updated/files"
-
-# === FLEXIBLE HEADER GROUPS ===
-rc_cols = [
-    "N\" du registre du commerce", "السجل التجاري", "رقم السجل التجاري", 
-    "RC", "رقم ست", "رقم التسجيل", "Registre de commerce (extracted)"
-]
-
-ad_cols = ["Adresse du commerce", "Adresse domicile", "Adresse du Local", "العنوان التجاري"]
-engagement_cols = ["Remarque", "ملاحظة", "ملاحظات"]
-
-bank_dom_yn_cols = ["هل قام المتعامل الاقتصادي بتوطين بنكي لعمليات استيراد"]
-bank_dom_date_cols = ["تاريخ اخر بتوطين بنكي لعمليات استيراد"]
-loan_yn_cols = ["هل استفاد المتعامل الاقتصادي من قرض بنكي"]
-loan_date_cols = ["تاريخ اخر استفادة من قرض بنكي"]
-
-# === LOAD CSV DATA ===
-csv_df = pd.read_csv(csv_path, dtype=str).fillna("")
-csv_df.set_index("Registre_commerce", inplace=True)
-
-# === LOOP OVER EXCEL FILES ===
-for file in os.listdir(excel_folder):
-    if not file.endswith(".xlsx"):
-        continue
-
-    file_path = os.path.join(excel_folder, file)
-    app = xw.App(visible=False)
-    wb = app.books.open(file_path)
-
-    print(f"📂 Processing: {file}")
-
-    for sheet in wb.sheets:
-        found_header = False
-        header_row = None
-        header_map = {}
-
-        # Detect header row (first 50 rows)
-        for row in range(1, 51):
-            row_values = sheet.range(f"A{row}").expand("right").value
-            if not row_values:
-                continue
-            for val in row_values:
-                if val in rc_cols:
-                    header_row = row
-                    found_header = True
-                    break
-            if found_header:
-                break
-
-        if not found_header:
-            print(f"⚠️ No header found in {file} / Sheet: {sheet.name}")
-            continue
-
-        headers = sheet.range(f"A{header_row}").expand("right").value
-
-        # === MAP COLUMNS ===
-        for idx, name in enumerate(headers):
-            if name in rc_cols:
-                header_map["rc"] = idx + 1
-            elif name in ad_cols:
-                header_map["address_"] = idx + 1
-            elif name in engagement_cols:
-                header_map["engagement_"] = idx + 1
-            elif name in bank_dom_yn_cols:
-                header_map["bank_dom_yn"] = idx + 1
-            elif name in bank_dom_date_cols:
-                header_map["bank_dom_date"] = idx + 1
-            elif name in loan_yn_cols:
-                header_map["loan_yn"] = idx + 1
-            elif name in loan_date_cols:
-                header_map["loan_date"] = idx + 1
-
-        if "rc" not in header_map:
-            print(f"❌ 'Registre de commerce' column not found in {file} / Sheet: {sheet.name}")
-            continue
-
-        # === FILL SHEET ROWS ===
-        row = header_row + 1
-        while True:
-            cell_value = sheet.range((row, header_map["rc"])).value
-            if not cell_value:
-                break
-
-            key = str(cell_value).strip()
-            if key in csv_df.index:
-                for field in ["address_", "engagement_", "bank_dom_yn", "bank_dom_date", "loan_yn", "loan_date"]:
-                    if field in header_map and field in csv_df.columns:
-                        sheet.range((row, header_map[field])).value = csv_df.at[key, field]
-            row += 1
-
-    # === SAVE AND CLOSE ===
-    output_path = os.path.join(output_folder, file)
-    wb.save(output_path)
-    wb.close()
-    app.quit()
-    print(f"✅ Saved updated file: {output_path}")
