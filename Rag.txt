@@ -1,5 +1,107 @@
 import os
 import pandas as pd
+from openpyxl import load_workbook
+
+def fill_excel_openpyxl(csv_path, excel_folder, output_folder):
+    os.makedirs(output_folder, exist_ok=True)
+
+    rc_cols = [
+        "RC", "رقم السجل التجاري", "Registre de commerce (extracted)",
+        "رقم التسجيل", "السجل التجاري", "N° du registre du commerce", "رقم ست"
+    ]
+
+    # Arabic headers in Excel
+    loan_yn_cols = ["هل استفاد المتعامل الاقتصادي من قرض بنكي"]
+    loan_date_cols = ["تاريخ اخر استفادة من قرض بنكي"]
+    bank_dom_yn_cols = ["هل قام المتعامل الاقتصادي بتوطين بنكي لعمليات استيراد"]
+    bank_dom_date_cols = ["تاريخ اخر بتوطين بنكي لعمليات استيراد"]
+
+    # CSV to Excel mapping
+    csv_column_map = {
+        "beneficiaire credit": ("loan_yn", {"Oui": "نعم", "Non": "لا"}),
+        "Derniere date effet crédit": ("loan_date", None),
+        "Operation import": ("bank_dom_yn", {"Oui": "نعم", "Non": "لا"}),
+        "Derniere date import": ("bank_dom_date", None)
+    }
+
+    csv_df = pd.read_csv(csv_path, dtype=str).fillna("")
+    if "Registre_commerce" not in csv_df.columns:
+        print("❌ 'Registre_commerce' column not found in CSV.")
+        return
+
+    csv_df.set_index("Registre_commerce", inplace=True)
+
+    for filename in os.listdir(excel_folder):
+        if not filename.endswith(".xlsx"):
+            continue
+
+        file_path = os.path.join(excel_folder, filename)
+        output_path = os.path.join(output_folder, filename)
+        print(f"\n📄 Processing: {filename}")
+
+        wb = load_workbook(file_path)
+        updated = False
+
+        for sheetname in wb.sheetnames:
+            ws = wb[sheetname]
+            header_row = None
+            header_map = {}
+
+            # Detect header row
+            for i in range(1, 51):
+                row_vals = [cell.value for cell in ws[i]]
+                if any(str(val).strip() in rc_cols for val in row_vals if val):
+                    header_row = i
+                    break
+
+            if not header_row:
+                print(f"⚠️  No header found in {filename} / Sheet: {sheetname}")
+                continue
+
+            headers = [str(cell.value).strip() if cell.value else "" for cell in ws[header_row]]
+
+            for idx, name in enumerate(headers):
+                if name in rc_cols:
+                    header_map["Registre_commerce"] = idx
+                elif name in loan_yn_cols:
+                    header_map["loan_yn"] = idx
+                elif name in loan_date_cols:
+                    header_map["loan_date"] = idx
+                elif name in bank_dom_yn_cols:
+                    header_map["bank_dom_yn"] = idx
+                elif name in bank_dom_date_cols:
+                    header_map["bank_dom_date"] = idx
+
+            if "Registre_commerce" not in header_map:
+                print(f"❌ RC column not found in sheet: {sheetname}")
+                continue
+
+            # Fill rows below header
+            row_num = header_row + 1
+            while ws.cell(row=row_num, column=header_map["Registre_commerce"] + 1).value:
+                rc = str(ws.cell(row=row_num, column=header_map["Registre_commerce"] + 1).value).strip()
+                if rc in csv_df.index:
+                    for csv_col, (target_key, translation_map) in csv_column_map.items():
+                        if target_key in header_map and csv_col in csv_df.columns:
+                            col_idx = header_map[target_key] + 1
+                            value = csv_df.at[rc, csv_col]
+                            if translation_map:
+                                value = translation_map.get(value.strip(), "")
+                            ws.cell(row=row_num, column=col_idx).value = value
+                            updated = True
+                row_num += 1
+
+        if updated:
+            wb.save(output_path)
+            print(f"✅ Saved updated file: {output_path}")
+        else:
+            print("ℹ️ No updates made.")
+
+        wb.close()
+
+
+import os
+import pandas as pd
 import xlwings as xw
 
 def fill_excel_from_csv(csv_path, excel_folder, output_folder):
