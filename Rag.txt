@@ -5,16 +5,23 @@ from openpyxl import load_workbook
 def fill_excel_from_csv(csv_path, excel_folder, output_folder):
     os.makedirs(output_folder, exist_ok=True)
 
-    # Keywords to detect RC column
-    rc_keywords = ["rc", "registre", "رقم", "السجل"]
+    # Your provided list of possible RC column names
+    rc_cols = [
+        "N° du registre du commerce",
+        "السجل التجاري",
+        "رقم السجل التجاري",
+        "Registre de commerce (extract)",
+        "راد من ترقد السعيد, رقم السجل التجاري",
+        "RC"
+    ]
 
-    # Arabic merged headers and dates
+    # Merged header titles
     loan_yn_header = "هل استفاد المتعامل الاقتصادي من قرض بنكي"
     import_yn_header = "هل قام المتعامل الاقتصادي بتوطين بنكي لعمليات استيراد"
     loan_date_header = "تاريخ اخر استفادة من قرض بنكي"
     import_date_header = "تاريخ اخر توطين بنكي لعمليات استيراد"
 
-    # CSV columns mapped to their Excel targets
+    # Mapping from CSV columns to logic
     csv_column_map = {
         "beneficiaire credit Oui": ("loan_yn", "نعم"),
         "beneficiaire credit Non": ("loan_yn", "لا"),
@@ -24,7 +31,7 @@ def fill_excel_from_csv(csv_path, excel_folder, output_folder):
         "Derniere date import": ("import_date", None),
     }
 
-    # Load and index CSV
+    # Load CSV and set index
     csv_df = pd.read_csv(csv_path, dtype=str).fillna("")
     if "Registre_commerce" not in csv_df.columns:
         print("❌ 'Registre_commerce' column missing in CSV.")
@@ -47,11 +54,11 @@ def fill_excel_from_csv(csv_path, excel_folder, output_folder):
             header_row = None
             header_map = {}
 
-            # Identify RC column
+            # Look for exact match with rc_cols
             for i in range(1, 51):
-                row_vals = [str(cell.value).strip().lower() if cell.value else "" for cell in ws[i]]
+                row_vals = [str(cell.value).strip() if cell.value else "" for cell in ws[i]]
                 for idx, val in enumerate(row_vals):
-                    if any(keyword in val for keyword in rc_keywords):
+                    if val in rc_cols:
                         header_row = i
                         header_map["Registre_commerce"] = idx
                         break
@@ -62,7 +69,7 @@ def fill_excel_from_csv(csv_path, excel_folder, output_folder):
                 print(f"⚠️ No RC header found in {file} / Sheet: {sheetname}")
                 continue
 
-            # Detect merged headers
+            # Detect merged header columns
             for merged in ws.merged_cells.ranges:
                 cell = ws.cell(row=header_row, column=merged.min_col)
                 if not cell.value:
@@ -126,333 +133,3 @@ def fill_excel_from_csv(csv_path, excel_folder, output_folder):
             print("ℹ️ No updates made.")
 
         wb.close()
-
-
-
-
-
-
-
-
-import os
-import pandas as pd
-from openpyxl import load_workbook
-
-def fill_excel_from_csv(csv_path, excel_folder, output_folder):
-    os.makedirs(output_folder, exist_ok=True)
-
-    rc_cols = [
-        "RC", "رقم السجل التجاري", "Registre de commerce (extracted)",
-        "رقم التسجيل", "السجل التجاري", "N° du registre du commerce", "رقم ست"
-    ]
-
-    # Arabic headers in merged cells
-    loan_yn_header = "هل استفاد المتعامل الاقتصادي من قرض بنكي"
-    bank_dom_yn_header = "هل قام المتعامل الاقتصادي بتوطين بنكي لعمليات استيراد"
-
-    # CSV column mapping
-    csv_column_map = {
-        "beneficiaire credit": ("loan_yn", {"Oui": "نعم", "Non": "لا"}),
-        "Operation import": ("bank_dom_yn", {"Oui": "نعم", "Non": "لا"})
-    }
-
-    # Load CSV
-    csv_df = pd.read_csv(csv_path, dtype=str).fillna("")
-    if "Registre_commerce" not in csv_df.columns:
-        print("❌ 'Registre_commerce' column missing in CSV.")
-        return
-    csv_df.set_index("Registre_commerce", inplace=True)
-
-    for file in os.listdir(excel_folder):
-        if not file.endswith(".xlsx"):
-            continue
-
-        input_path = os.path.join(excel_folder, file)
-        output_path = os.path.join(output_folder, file)
-        print(f"\n📄 Processing: {file}")
-
-        wb = load_workbook(input_path)
-        updated = False
-
-        for sheetname in wb.sheetnames:
-            ws = wb[sheetname]
-            header_row = None
-            header_map = {}
-
-            # Detect header row and RC column
-            for i in range(1, 51):
-                row_vals = [cell.value for cell in ws[i]]
-                if any(str(val).strip() in rc_cols for val in row_vals if val):
-                    header_row = i
-                    headers = [str(val).strip() if val else "" for val in row_vals]
-                    for idx, name in enumerate(headers):
-                        if name in rc_cols:
-                            header_map["Registre_commerce"] = idx
-                    break
-
-            if not header_row or "Registre_commerce" not in header_map:
-                print(f"⚠️ No RC header found in {file} / Sheet: {sheetname}")
-                continue
-
-            # Detect merged headers like loan and import (yes/no columns)
-            for merged in ws.merged_cells.ranges:
-                cell = ws.cell(row=header_row, column=merged.min_col)
-                if cell.value:
-                    name = str(cell.value).strip()
-                    if name == loan_yn_header:
-                        header_map["loan_yn_yes"] = merged.min_col
-                        header_map["loan_yn_no"] = merged.min_col + 1
-                    elif name == bank_dom_yn_header:
-                        header_map["bank_dom_yn_yes"] = merged.min_col
-                        header_map["bank_dom_yn_no"] = merged.min_col + 1
-
-            row_num = header_row + 2  # skip template row
-            while True:
-                rc_cell = ws.cell(row=row_num, column=header_map["Registre_commerce"] + 1)
-                rc = rc_cell.value
-                if rc is None:
-                    break
-
-                rc_key = str(rc).strip()
-                matched = rc_key in csv_df.index
-
-                for csv_col, (key_prefix, yn_map) in csv_column_map.items():
-                    yes_col = header_map.get(f"{key_prefix}_yes")
-                    no_col = header_map.get(f"{key_prefix}_no")
-                    if yes_col and no_col:
-                        yes_cell = ws.cell(row=row_num, column=yes_col)
-                        no_cell = ws.cell(row=row_num, column=no_col)
-
-                        if matched:
-                            val = csv_df.at[rc_key, csv_col].strip()
-                            if yn_map and yn_map.get(val) == "نعم":
-                                yes_cell.value = "✓"
-                            elif yn_map and yn_map.get(val) == "لا":
-                                no_cell.value = "✓"
-                            updated = True
-                        else:
-                            if not yes_cell.value and not no_cell.value:
-                                no_cell.value = "✓"
-                                updated = True
-
-                row_num += 1
-
-        if updated:
-            wb.save(output_path)
-            print(f"✅ Saved: {output_path}")
-        else:
-            print("ℹ️ No updates made.")
-
-        wb.close()
-
-
-
-import os
-import pandas as pd
-from openpyxl import load_workbook
-
-def fill_excel_openpyxl(csv_path, excel_folder, output_folder):
-    os.makedirs(output_folder, exist_ok=True)
-
-    rc_cols = [
-        "RC", "رقم السجل التجاري", "Registre de commerce (extracted)",
-        "رقم التسجيل", "السجل التجاري", "N° du registre du commerce", "رقم ست"
-    ]
-
-    # Arabic headers in Excel
-    loan_yn_cols = ["هل استفاد المتعامل الاقتصادي من قرض بنكي"]
-    loan_date_cols = ["تاريخ اخر استفادة من قرض بنكي"]
-    bank_dom_yn_cols = ["هل قام المتعامل الاقتصادي بتوطين بنكي لعمليات استيراد"]
-    bank_dom_date_cols = ["تاريخ اخر بتوطين بنكي لعمليات استيراد"]
-
-    # CSV to Excel mapping
-    csv_column_map = {
-        "beneficiaire credit": ("loan_yn", {"Oui": "نعم", "Non": "لا"}),
-        "Derniere date effet crédit": ("loan_date", None),
-        "Operation import": ("bank_dom_yn", {"Oui": "نعم", "Non": "لا"}),
-        "Derniere date import": ("bank_dom_date", None)
-    }
-
-    csv_df = pd.read_csv(csv_path, dtype=str).fillna("")
-    if "Registre_commerce" not in csv_df.columns:
-        print("❌ 'Registre_commerce' column not found in CSV.")
-        return
-
-    csv_df.set_index("Registre_commerce", inplace=True)
-
-    for filename in os.listdir(excel_folder):
-        if not filename.endswith(".xlsx"):
-            continue
-
-        file_path = os.path.join(excel_folder, filename)
-        output_path = os.path.join(output_folder, filename)
-        print(f"\n📄 Processing: {filename}")
-
-        wb = load_workbook(file_path)
-        updated = False
-
-        for sheetname in wb.sheetnames:
-            ws = wb[sheetname]
-            header_row = None
-            header_map = {}
-
-            # Detect header row
-            for i in range(1, 51):
-                row_vals = [cell.value for cell in ws[i]]
-                if any(str(val).strip() in rc_cols for val in row_vals if val):
-                    header_row = i
-                    break
-
-            if not header_row:
-                print(f"⚠️  No header found in {filename} / Sheet: {sheetname}")
-                continue
-
-            headers = [str(cell.value).strip() if cell.value else "" for cell in ws[header_row]]
-
-            for idx, name in enumerate(headers):
-                if name in rc_cols:
-                    header_map["Registre_commerce"] = idx
-                elif name in loan_yn_cols:
-                    header_map["loan_yn"] = idx
-                elif name in loan_date_cols:
-                    header_map["loan_date"] = idx
-                elif name in bank_dom_yn_cols:
-                    header_map["bank_dom_yn"] = idx
-                elif name in bank_dom_date_cols:
-                    header_map["bank_dom_date"] = idx
-
-            if "Registre_commerce" not in header_map:
-                print(f"❌ RC column not found in sheet: {sheetname}")
-                continue
-
-            # Fill rows below header
-            row_num = header_row + 1
-            while ws.cell(row=row_num, column=header_map["Registre_commerce"] + 1).value:
-                rc = str(ws.cell(row=row_num, column=header_map["Registre_commerce"] + 1).value).strip()
-                if rc in csv_df.index:
-                    for csv_col, (target_key, translation_map) in csv_column_map.items():
-                        if target_key in header_map and csv_col in csv_df.columns:
-                            col_idx = header_map[target_key] + 1
-                            value = csv_df.at[rc, csv_col]
-                            if translation_map:
-                                value = translation_map.get(value.strip(), "")
-                            ws.cell(row=row_num, column=col_idx).value = value
-                            updated = True
-                row_num += 1
-
-        if updated:
-            wb.save(output_path)
-            print(f"✅ Saved updated file: {output_path}")
-        else:
-            print("ℹ️ No updates made.")
-
-        wb.close()
-
-
-import os
-import pandas as pd
-import xlwings as xw
-
-def fill_excel_from_csv(csv_path, excel_folder, output_folder):
-    os.makedirs(output_folder, exist_ok=True)
-
-    rc_cols = [
-        "RC", "رقم السجل التجاري", "Registre de commerce (extracted)",
-        "رقم التسجيل", "السجل التجاري", "N° du registre du commerce", "رقم ست"
-    ]
-
-    loan_yn_cols = ["هل استفاد المتعامل الاقتصادي من قرض بنكي"]
-    loan_date_cols = ["تاريخ اخر استفادة من قرض بنكي"]
-    bank_dom_yn_cols = ["هل قام المتعامل الاقتصادي بتوطين بنكي لعمليات استيراد"]
-    bank_dom_date_cols = ["تاريخ اخر بتوطين بنكي لعمليات استيراد"]
-
-    csv_column_map = {
-        "beneficiaire credit": ("loan_yn", {"Oui": "نعم", "Non": "لا"}),
-        "Derniere date effet crédit": ("loan_date", None),
-        "Operation import": ("bank_dom_yn", {"Oui": "نعم", "Non": "لا"}),
-        "Derniere date import": ("bank_dom_date", None)
-    }
-
-    csv_df = pd.read_csv(csv_path, dtype=str).fillna("")
-    if "Registre_commerce" not in csv_df.columns:
-        print("❌ 'Registre_commerce' column not found in CSV.")
-        return
-
-    csv_df.set_index("Registre_commerce", inplace=True)
-
-    for filename in os.listdir(excel_folder):
-        if not filename.endswith(".xlsx"):
-            continue
-
-        input_file = os.path.join(excel_folder, filename)
-        output_file = os.path.join(output_folder, filename)
-        print(f"\n📄 Processing: {filename}")
-
-        updated = False
-
-        # ✅ Use App here directly, do NOT use .apps[0]
-        app = xw.App(visible=False)
-        try:
-            wb = app.books.open(input_file)
-
-            for sheet in wb.sheets:
-                header_row = None
-                header_map = {}
-
-                # Detect header
-                for row_num in range(1, 51):
-                    values = sheet.range(f"A{row_num}").expand("right").value
-                    if not values:
-                        continue
-                    if any(str(cell).strip() in rc_cols for cell in values if cell):
-                        header_row = row_num
-                        break
-
-                if not header_row:
-                    print(f"⚠️  No RC header in sheet '{sheet.name}'")
-                    continue
-
-                headers = sheet.range(f"A{header_row}").expand("right").value
-
-                for idx, col in enumerate(headers):
-                    col = str(col).strip()
-                    if col in rc_cols:
-                        header_map["Registre_commerce"] = idx + 1
-                    elif col in loan_yn_cols:
-                        header_map["loan_yn"] = idx + 1
-                    elif col in loan_date_cols:
-                        header_map["loan_date"] = idx + 1
-                    elif col in bank_dom_yn_cols:
-                        header_map["bank_dom_yn"] = idx + 1
-                    elif col in bank_dom_date_cols:
-                        header_map["bank_dom_date"] = idx + 1
-
-                if "Registre_commerce" not in header_map:
-                    print(f"❌ RC column not found in sheet: {sheet.name}")
-                    continue
-
-                row = header_row + 1
-                while True:
-                    rc_val = sheet.range((row, header_map["Registre_commerce"])).value
-                    if not rc_val:
-                        break
-
-                    rc_key = str(rc_val).strip()
-                    if rc_key in csv_df.index:
-                        for csv_col, (target_key, translations) in csv_column_map.items():
-                            if target_key in header_map and csv_col in csv_df.columns:
-                                value = csv_df.at[rc_key, csv_col]
-                                if translations:
-                                    value = translations.get(value.strip(), "")
-                                sheet.range((row, header_map[target_key])).value = value
-                                updated = True
-                    row += 1
-
-            if updated:
-                wb.save(output_file)
-                print(f"✅ Saved: {output_file}")
-            else:
-                print("ℹ️ No updates made.")
-            wb.close()
-        finally:
-            app.quit()
