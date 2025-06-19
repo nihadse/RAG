@@ -1,3 +1,17 @@
+elif "date" in field_key:
+    date_col = header_map.get(field_key)
+    if matched and date_col:
+        try:
+            date_val = csv_df.loc[rc_key, csv_col].strip()
+            if date_val:
+                date_cell = get_writable_cell(ws, row_num, date_col)
+                if not date_cell.value or str(date_cell.value).strip() == "":
+                    date_cell.value = date_val
+                    updated = True
+        except KeyError:
+            print(f"⚠️ RC key not found in CSV: {rc_key}")
+
+
 import os
 import pandas as pd
 from openpyxl import load_workbook
