@@ -4,6 +4,161 @@ from openpyxl import load_workbook
 from openpyxl.worksheet.cell_range import CellRange
 
 def get_top_left_merged_cell(ws, row, col):
+    """Return top-left cell of a merged cell range or the cell itself."""
+    for merged_range in ws.merged_cells.ranges:
+        if (row, col) in CellRange(str(merged_range)):
+            return ws.cell(row=merged_range.min_row, column=merged_range.min_col)
+    return ws.cell(row=row, column=col)
+
+def find_column_by_header(ws, header_lines, target_text):
+    """Find column index matching multi-line or merged header text."""
+    for col in range(1, ws.max_column + 1):
+        header_parts = []
+        for r in range(header_lines):
+            val = ws.cell(row=r + 1, column=col).value
+            if val:
+                header_parts.append(str(val).strip())
+        if target_text.strip() in " ".join(header_parts):
+            return col
+    return None
+
+def collect_excel_files(folder):
+    """Recursively find all Excel files in subdirectories."""
+    paths = []
+    for root, _, files in os.walk(folder):
+        for f in files:
+            if f.endswith(".xlsx"):
+                paths.append(os.path.join(root, f))
+    return paths
+
+def fill_excel_from_csv(csv_path, excel_folder, output_folder):
+    os.makedirs(output_folder, exist_ok=True)
+
+    rc_cols = [
+        "N° du registre du commerce", "السجل التجاري", "رقم السجل التجاري",
+        "Registre de commerce (extract)", "راد من ترقد السعيد, رقم السجل التجاري", "RC"
+    ]
+
+    loan_yn_header = "هل استفاد المتعامل الاقتصادي من قرض بنكي"
+    import_yn_header = "هل قام المتعامل الاقتصادي بتوطين بنكي لعمليات استيراد"
+    loan_date_header = "تاريخ اخر استفادة من قرض بنكي"
+    import_date_header = "تاریخ اخر بتوطين بنكي لعمليات استيراد"
+
+    csv_map = {
+        "beneficiaire credit Oui": ("loan_yn", "نعم"),
+        "beneficiaire credit Non": ("loan_yn", "لا"),
+        "Operation import Oui": ("import_yn", "نعم"),
+        "Operation import Non": ("import_yn", "لا"),
+        "Derniere date effet crédit": ("loan_date", None),
+        "Derniere date import": ("import_date", None),
+    }
+
+    csv_df = pd.read_csv(csv_path, dtype=str).fillna("")
+    if "Registre_commerce" not in csv_df.columns:
+        print("❌ 'Registre_commerce' column missing in CSV.")
+        return
+    csv_df.set_index("Registre_commerce", inplace=True)
+
+    for path in collect_excel_files(excel_folder):
+        file = os.path.basename(path)
+        output_path = os.path.join(output_folder, file)
+        print(f"\n📄 Processing: {file}")
+        wb = load_workbook(path)
+        updated = False
+
+        for sheet in wb.sheetnames:
+            ws = wb[sheet]
+            header_row = None
+            header_map = {}
+
+            # Find RC header row
+            for i in range(1, 51):
+                row_vals = [str(c.value).strip() if c.value else "" for c in ws[i]]
+                for idx, val in enumerate(row_vals):
+                    if val in rc_cols:
+                        header_row = i
+                        header_map["Registre_commerce"] = idx
+                        break
+                if header_row:
+                    break
+
+            if not header_row:
+                print(f"⚠️ No RC header in {file} / Sheet: {sheet}")
+                continue
+
+            # Find header columns (merged or multiline)
+            header_map["loan_date"] = find_column_by_header(ws, 2, loan_date_header)
+            header_map["import_date"] = find_column_by_header(ws, 2, import_date_header)
+
+            for merged in ws.merged_cells.ranges:
+                cell = ws.cell(row=header_row, column=merged.min_col)
+                if not cell.value:
+                    continue
+                name = str(cell.value).strip()
+                if name == loan_yn_header:
+                    header_map["loan_yn_yes"] = merged.min_col
+                    header_map["loan_yn_no"] = merged.min_col + 1
+                elif name == import_yn_header:
+                    header_map["import_yn_yes"] = merged.min_col
+                    header_map["import_yn_no"] = merged.min_col + 1
+
+            # Fill data
+            row = header_row + 2
+            while True:
+                rc_cell = ws.cell(row=row, column=header_map["Registre_commerce"] + 1)
+                if not rc_cell.value:
+                    break
+
+                rc_key = str(rc_cell.value).strip()
+                matched = rc_key in csv_df.index
+
+                for csv_col, (prefix, yn_val) in csv_map.items():
+                    if "yn" in prefix:
+                        yes_col = header_map.get(f"{prefix}_yes")
+                        no_col = header_map.get(f"{prefix}_no")
+                        if yes_col and no_col:
+                            yes_cell = get_top_left_merged_cell(ws, row, yes_col)
+                            no_cell = get_top_left_merged_cell(ws, row, no_col)
+
+                            if matched:
+                                val = str(csv_df.at[rc_key, csv_col]).strip().upper()
+                                if val == "X":
+                                    if yn_val == "نعم":
+                                        yes_cell.value = "✓"
+                                    elif yn_val == "لا":
+                                        no_cell.value = "✓"
+                                    updated = True
+                            elif not yes_cell.value and not no_cell.value:
+                                no_cell.value = "/"
+                                updated = True
+
+                    elif "date" in prefix and matched:
+                        col = header_map.get(prefix)
+                        if col:
+                            date_val = str(csv_df.at[rc_key, csv_col]).strip()
+                            if date_val:
+                                target_cell = get_top_left_merged_cell(ws, row, col)
+                                target_cell.value = date_val
+                                updated = True
+
+                row += 1
+
+        if updated:
+            wb.save(output_path)
+            print(f"✅ Saved: {output_path}")
+        else:
+            print("ℹ️ No updates made.")
+        wb.close()
+
+
+
+
+import os
+import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.worksheet.cell_range import CellRange
+
+def get_top_left_merged_cell(ws, row, col):
     """Safely get the writable top-left cell if part of a merged cell."""
     for merged_range in ws.merged_cells.ranges:
         if (row, col) in CellRange(str(merged_range)):
