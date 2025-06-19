@@ -1,3 +1,18 @@
+
+elif "date" in field_key:
+    date_col = header_map.get(field_key)
+    if matched and date_col:
+        date_val = csv_df.loc[rc_key, csv_col]
+        if isinstance(date_val, pd.Series):
+            date_val = date_val.iloc[0]
+        if date_val:  # This is now safe: single value
+            date_cell = get_writable_cell(ws, row_num, date_col)
+            if not date_cell.value:
+                date_cell.value = date_val
+                updated = True
+
+
+
 elif "date" in field_key:
     date_col = header_map.get(field_key)
     if matched and date_col:
