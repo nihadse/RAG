@@ -1,3 +1,33 @@
+def normalize_arabic(text):
+    if not text:
+        return ""
+    return (
+        str(text)
+        .replace("ی", "ي")  # Persian to Arabic
+        .replace("ئ", "ي")
+        .replace("ى", "ي")
+        .replace("ـ", "")   # tatweel
+        .replace("\u200f", "")
+        .replace("\u200e", "")
+        .replace(" ", "")
+        .strip()
+    )
+
+def find_merged_column_by_text(ws, header_lines, target_text):
+    target_text = normalize_arabic(target_text)
+    for col in range(1, ws.max_column + 1):
+        header_parts = []
+        for row in range(1, header_lines + 1):
+            val = ws.cell(row=row, column=col).value
+            if val:
+                header_parts.append(normalize_arabic(val))
+        full_header = "".join(header_parts)
+        if target_text in full_header:
+            return col
+    return None
+
+
+
 
 elif "date" in field_key:
     date_col = header_map.get(field_key)
