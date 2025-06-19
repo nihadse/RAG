@@ -1,3 +1,9 @@
+from pathlib import Path
+num_files = len(list(Path(excel_folder).rglob("*.xlsx")))
+print(f"📄 Total Excel files: {num_files}")
+
+
+
 import os
 import pandas as pd
 from openpyxl import load_workbook
