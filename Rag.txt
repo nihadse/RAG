@@ -1,3 +1,14 @@
+Bonjour [Nom du Manager],
+
+J’ai eu un imprévu aujourd’hui et j’ai donc pris mon jour de congé.
+Serait-il possible de décaler la réunion sur le chatbot à demain incha’Allah ?
+Seriez-vous disponible à 10h30 ? Sinon, pouvez-vous nous envoyer vos disponibilités pour qu’on s’organise ?
+
+Bien cordialement,
+Nihad
+
+
+
 Bonjour,
 Je souhaite obtenir un accès SFS pour télécharger les extractions GESKYC. Voici mes informations : ID [votre ID] et numéro de téléphone [votre numéro].
 Merci d’avance pour votre aide.
