@@ -1,3 +1,11 @@
+Objet : Lieu de la réunion
+Bonjour,
+La réunion aura lieu dans notre département Data au 7ᵉ étage.
+Bien cordialement,
+Nihad Senhadji
+
+
+
 Bonjour [Nom du Manager],
 
 J’ai eu un imprévu aujourd’hui et j’ai donc pris mon jour de congé.
