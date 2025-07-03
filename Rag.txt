@@ -1,3 +1,156 @@
+import os
+import re
+import fitz
+import docx
+import streamlit as st
+from io import BytesIO
+from uuid import uuid4
+from chromadb import PersistentClient
+from sentence_transformers import SentenceTransformer
+from langchain.schema import Document
+
+
+# ========== SETUP ==========
+chroma_client = PersistentClient(path="/domino/datasets/local/vect-pro-base/")
+
+model_path = "/domino/edv/modelhub/ModelHub-model-huggingface-BAAI/bge-m3/main"
+model = SentenceTransformer(model_path)
+
+
+class BGEM3EmbeddingFunction:
+    def __init__(self, model):
+        self.model = model
+        self.dimension = 1024
+
+    def __call__(self, input_texts):
+        if isinstance(input_texts, str):
+            input_texts = [input_texts]
+        return self.model.encode(input_texts).tolist()
+
+
+embedding_function = BGEM3EmbeddingFunction(model)
+
+collection = chroma_client.get_or_create_collection(
+    name="my_documents",
+    embedding_function=embedding_function,
+    metadata={"hnsw:space": "cosine", "dimension": embedding_function.dimension}
+)
+
+
+# ========== TEXT PROCESSING UTILS ==========
+def extract_text_from_uploaded(uploaded_file):
+    filename = uploaded_file.name.lower()
+
+    if filename.endswith(".pdf"):
+        doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
+        return "\n".join(page.get_text() for page in doc)
+
+    elif filename.endswith(".txt"):
+        return uploaded_file.read().decode("utf-8")
+
+    elif filename.endswith(".docx"):
+        doc = docx.Document(BytesIO(uploaded_file.read()))
+        return "\n".join([p.text for p in doc.paragraphs])
+
+    else:
+        return "Unsupported file format."
+
+
+def clean_text(text, lowercase=False):
+    text = re.sub(r'\.{2,}', '.', text)
+    text = re.sub(r'\t+', ' ', text)
+    text = "\n".join(line.strip() for line in text.splitlines())
+    text = "\n".join([line for line in text.splitlines() if line.strip() != ""])
+    return text.lower() if lowercase else text
+
+
+def split_into_chunks(text, chunk_size=1000, overlap=200):
+    start = 0
+    chunks = []
+    while start < len(text):
+        end = start + chunk_size
+        chunks.append(text[start:end])
+        start += chunk_size - overlap
+    return chunks
+
+
+# ========== HELPER ==========
+def get_existing_sources():
+    """Retrieve all existing source file names from Chroma."""
+    try:
+        # We'll query with a dummy term just to extract metadatas
+        dummy_query = collection.query(query_texts=["dummy"], n_results=1000, include=["metadatas"])
+        metadatas = dummy_query.get("metadatas", [[]])[0]
+        return set(meta["source"] for meta in metadatas if "source" in meta)
+    except:
+        return set()
+
+
+# ========== STREAMLIT APP ==========
+def main():
+    st.set_page_config(page_title="🧠 RAG Chatbot", layout="centered")
+    st.title("📚 Ask Your Documents")
+
+    new_chunks = []
+    uploaded_file = st.sidebar.file_uploader("📤 Upload a new document (not stored)", type=["pdf", "txt", "docx"])
+
+    if uploaded_file:
+        filename = uploaded_file.name.lower()
+        existing_sources = get_existing_sources()
+
+        if filename in existing_sources:
+            st.warning("⚠️ This document has already been embedded. It will be ignored.")
+        else:
+            with st.spinner("Processing document..."):
+                raw_text = extract_text_from_uploaded(uploaded_file)
+                if raw_text.startswith("Unsupported"):
+                    st.error("❌ Unsupported file format.")
+                    return
+
+                cleaned = clean_text(raw_text)
+                new_chunks = split_into_chunks(cleaned)
+                st.success(f"✅ Document processed into {len(new_chunks)} temporary chunks (not stored).")
+
+    query = st.text_input("💬 Ask a question about the documents:")
+
+    if query:
+        with st.spinner("Searching ChromaDB..."):
+            results = collection.query(
+                query_texts=[query],
+                n_results=5,
+                include=["documents", "metadatas"]
+            )
+            base_docs = results["documents"][0]
+
+        # Optional: Embed new chunks and rerank manually
+        if new_chunks:
+            new_embeddings = embedding_function(new_chunks)
+            new_scores = model.similarity_faiss([query], new_embeddings)[0]  # You can use cosine if needed
+            top_k = 3
+            top_indices = sorted(range(len(new_scores)), key=lambda i: -new_scores[i])[:top_k]
+            extra_docs = [new_chunks[i] for i in top_indices]
+        else:
+            extra_docs = []
+
+        all_docs = base_docs + extra_docs
+
+        if all_docs:
+            st.subheader("📄 Retrieved Chunks:")
+            for i, doc in enumerate(all_docs):
+                st.markdown(f"**{i+1}.** {doc[:500]}...\n---")
+        else:
+            st.warning("No relevant documents found.")
+
+        st.subheader("🤖 Assistant Answer (Placeholder)")
+        st.success("Answer simulated from retrieved content.")
+
+
+if __name__ == "__main__":
+    main()
+
+
+
+
 from uuid import uuid4
 from typing import List
 from io import BytesIO
