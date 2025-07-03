@@ -1,5 +1,77 @@
 import streamlit as st
 import datetime
+
+def main():
+    st.set_page_config(page_title="🧠 Chatbot BNP ED", layout="centered")
+    st.title("📚 Chatbot BNP ED")
+
+    # === Initialize Session State ===
+    if "chat_sessions" not in st.session_state:
+        st.session_state.chat_sessions = {}
+    if "current_chat" not in st.session_state:
+        st.session_state.current_chat = str(datetime.datetime.now())
+    if st.session_state.current_chat not in st.session_state.chat_sessions:
+        st.session_state.chat_sessions[st.session_state.current_chat] = []
+
+    chat = st.session_state.chat_sessions[st.session_state.current_chat]
+
+    # === Optional Document Upload (not stored in ChromaDB) ===
+    temp_chunks = []
+    uploaded_file = st.sidebar.file_uploader("📤 Upload a document (optional)", type=["pdf", "txt", "docx"])
+    
+    if uploaded_file:
+        filename = uploaded_file.name.lower()
+        existing = get_existing_sources()
+
+        if filename in existing:
+            st.sidebar.warning("⚠️ This file is already indexed in ChromaDB.")
+        else:
+            with st.spinner("Extracting and cleaning uploaded document..."):
+                raw_text = extract_text_from_uploaded(uploaded_file)
+                if raw_text.startswith("Unsupported"):
+                    st.sidebar.error("❌ Unsupported file format.")
+                    return
+                cleaned = clean_text(raw_text)
+                temp_chunks = split_into_chunks(cleaned)
+            st.sidebar.success(f"✅ File loaded with {len(temp_chunks)} temporary chunks.")
+
+    # === Render Previous Messages ===
+    if chat:
+        for message in chat:
+            with st.chat_message(message["role"]):
+                if message["role"] == "user" and "timestamp" in message:
+                    st.markdown(f"*{message['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}*")
+                st.markdown(message["content"], unsafe_allow_html=True)
+
+    # === Chat Input ===
+    user_input = st.chat_input("Type your message here...")
+
+    if user_input:
+        timestamp = datetime.datetime.now()
+        chat.append({
+            "role": "user",
+            "content": user_input,
+            "timestamp": timestamp
+        })
+
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking..."):
+                response = rag_chatbot(user_input, temp_chunks=temp_chunks)
+                answer = response["answer"]
+
+            st.markdown(answer, unsafe_allow_html=True)
+
+            chat.append({
+                "role": "assistant",
+                "content": answer,
+                "timestamp": datetime.datetime.now()
+            })
+
+
+
+
+import streamlit as st
+import datetime
 import re
 import fitz
 import docx
