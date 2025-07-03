@@ -1,3 +1,187 @@
+import streamlit as st
+import datetime
+import re
+import fitz
+import docx
+from io import BytesIO
+from uuid import uuid4
+from chromadb import PersistentClient
+from sentence_transformers import SentenceTransformer
+from langchain.schema import Document
+
+# === Chroma Setup ===
+chroma_client = PersistentClient(path="/domino/datasets/local/vect-pro-base/")
+model_path = "/domino/edv/modelhub/ModelHub-model-huggingface-BAAI/bge-m3/main"
+model = SentenceTransformer(model_path)
+
+
+class BGEM3EmbeddingFunction:
+    def __init__(self, model):
+        self.model = model
+        self.dimension = 1024
+
+    def __call__(self, input_texts):
+        if isinstance(input_texts, str):
+            input_texts = [input_texts]
+        return self.model.encode(input_texts).tolist()
+
+
+embedding_function = BGEM3EmbeddingFunction(model)
+
+collection = chroma_client.get_or_create_collection(
+    name="my_documents",
+    embedding_function=embedding_function,
+    metadata={"hnsw:space": "cosine", "dimension": embedding_function.dimension}
+)
+
+
+# === Text Processing Utilities ===
+def extract_text_from_uploaded(uploaded_file):
+    filename = uploaded_file.name.lower()
+
+    if filename.endswith(".pdf"):
+        doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
+        return "\n".join(page.get_text() for page in doc)
+
+    elif filename.endswith(".txt"):
+        return uploaded_file.read().decode("utf-8")
+
+    elif filename.endswith(".docx"):
+        doc = docx.Document(BytesIO(uploaded_file.read()))
+        return "\n".join([p.text for p in doc.paragraphs])
+
+    else:
+        return "Unsupported file format."
+
+
+def clean_text(text, lowercase=False):
+    text = re.sub(r'\.{2,}', '.', text)
+    text = re.sub(r'\t+', ' ', text)
+    text = "\n".join(line.strip() for line in text.splitlines())
+    text = "\n".join([line for line in text.splitlines() if line.strip() != ""])
+    return text.lower() if lowercase else text
+
+
+def split_into_chunks(text, chunk_size=1000, overlap=200):
+    start = 0
+    chunks = []
+    while start < len(text):
+        end = start + chunk_size
+        chunks.append(text[start:end])
+        start += chunk_size - overlap
+    return chunks
+
+
+def get_existing_sources():
+    try:
+        results = collection.query(query_texts=["."], n_results=1000, include=["metadatas"])
+        metadatas = results.get("metadatas", [[]])[0]
+        return set(meta["source"] for meta in metadatas if "source" in meta)
+    except:
+        return set()
+
+
+# === RAG Chatbot Pipeline ===
+def rag_chatbot(query, temp_chunks=None):
+    st.markdown(f"🕐 {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    alternative_queries = generate_alternative_queries(query)
+    all_queries = [query] + alternative_queries
+    all_results = []
+
+    retriever = CustomRetrieverWithHistory(collection=collection, k=50, rerank_k=30)
+
+    for q in all_queries:
+        context = retriever.get_relevant_documents(q)
+
+        if temp_chunks:
+            context += [{"text": chunk, "metadata": {"source": "TEMP_UPLOAD"}} for chunk in temp_chunks]
+
+        answer = generate_response(q, context)
+
+        all_results.append({
+            "query": q,
+            "answer": answer,
+            "context": context,
+            "num_sources": len(context)
+        })
+
+    best_result = max(all_results, key=lambda x: x["num_sources"])
+    final_query = best_result["query"]
+    final_answer = best_result["answer"]
+    final_context = best_result["context"]
+
+    explanation = generate_answer_explanation(final_query, final_answer, final_context)
+    evaluation = evaluate_rag_response(final_query, final_answer, final_context)
+    sources = extract_source_files(final_context)
+
+    retriever.update_history(final_query, final_answer)
+    retriever.save_history()
+
+    return {
+        "query": final_query,
+        "answer": final_answer,
+        "context": final_context,
+        "evaluation": evaluation,
+        "sources": sources,
+        "explanation": explanation,
+        "time": datetime.datetime.now()
+    }
+
+
+# === Streamlit UI ===
+def main():
+    st.set_page_config(page_title="🧠 RAG Chatbot", layout="centered")
+    st.title("📚 Ask Your Documents (Preloaded + Temporary)")
+
+    temp_chunks = []
+    uploaded_file = st.sidebar.file_uploader("📤 Upload a new document (optional)", type=["pdf", "txt", "docx"])
+
+    if uploaded_file:
+        filename = uploaded_file.name.lower()
+        existing = get_existing_sources()
+
+        if filename in existing:
+            st.sidebar.warning("⚠️ This file is already indexed. It will not be used again.")
+        else:
+            with st.spinner("Extracting text..."):
+                raw_text = extract_text_from_uploaded(uploaded_file)
+
+            if raw_text.startswith("Unsupported"):
+                st.error("❌ Unsupported format.")
+                return
+
+            cleaned = clean_text(raw_text)
+            temp_chunks = split_into_chunks(cleaned)
+            st.sidebar.success(f"✅ File processed. {len(temp_chunks)} temporary chunks ready.")
+
+    query = st.text_input("💬 Ask a question about the documents:")
+
+    if query:
+        with st.spinner("💡 Running RAG..."):
+            result = rag_chatbot(query, temp_chunks=temp_chunks)
+
+            st.subheader("🤖 Answer")
+            st.write(result["answer"])
+
+            st.subheader("📄 Source Chunks")
+            for i, doc in enumerate(result["context"]):
+                st.markdown(f"**{i+1}.** {doc['text'][:500]}...\n---")
+
+            st.subheader("📊 Evaluation")
+            st.json(result["evaluation"])
+
+            st.subheader("📌 Explanation")
+            st.write(result["explanation"])
+
+            st.subheader("📁 Sources")
+            st.write(result["sources"])
+
+
+if __name__ == "__main__":
+    main()
+
+
+
 import os
 import re
 import fitz
