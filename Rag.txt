@@ -1,3 +1,50 @@
+from uuid import uuid4
+from typing import List
+from io import BytesIO
+import fitz  # PyMuPDF
+import docx
+
+def extract_text_from_uploaded(uploaded_file) -> str:
+    """Extracts raw text from PDF, DOCX, or TXT."""
+    filename = uploaded_file.name.lower()
+
+    if filename.endswith(".pdf"):
+        doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
+        return "\n".join(page.get_text() for page in doc)
+
+    elif filename.endswith(".txt"):
+        return uploaded_file.read().decode("utf-8")
+
+    elif filename.endswith(".docx"):
+        doc = docx.Document(BytesIO(uploaded_file.read()))
+        return "\n".join([p.text for p in doc.paragraphs])
+
+    else:
+        return "Unsupported file format."
+
+
+def chunk_text(text: str, chunk_size=1000, overlap=200) -> List[str]:
+    """Splits text into overlapping chunks."""
+    chunks = []
+    start = 0
+    while start < len(text):
+        end = start + chunk_size
+        chunks.append(text[start:end])
+        start += chunk_size - overlap
+    return chunks
+
+
+def embed_and_store_text(chroma_collection, text: str, file_name: str):
+    """Chunks, embeds, and adds the text to an existing ChromaDB collection."""
+    chunks = chunk_text(text)
+    for i, chunk in enumerate(chunks):
+        chroma_collection.add(
+            documents=[chunk],
+            metadatas=[{"source": file_name, "chunk": i}],
+            ids=[str(uuid4())]
+        )
+
+
 Bonjour,
 Tout fonctionne correctement, merci pour l'accès.
 
