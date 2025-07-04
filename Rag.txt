@@ -1,4 +1,54 @@
-# === Display previous chat
+def handle_chat_history(user_input=None, response=None, clear=False):
+    if "chat_history" not in st.session_state or clear:
+        if clear:
+            if os.path.exists(CHAT_HISTORY_FILE):
+                os.remove(CHAT_HISTORY_FILE)
+            st.session_state.chat_history = []
+            return
+
+        # Load JSON file safely
+        if os.path.exists(CHAT_HISTORY_FILE):
+            with open(CHAT_HISTORY_FILE, "r", encoding="utf-8") as f:
+                try:
+                    loaded = json.load(f)
+                    if isinstance(loaded, list):
+                        st.session_state.chat_history = loaded
+                    else:
+                        st.session_state.chat_history = []
+                except json.JSONDecodeError:
+                    st.session_state.chat_history = []
+        else:
+            st.session_state.chat_history = []
+
+    # 🛡️ Safety check to ensure it's a list
+    if not isinstance(st.session_state.chat_history, list):
+        st.session_state.chat_history = []
+
+    # Append user & assistant messages
+    if user_input:
+        st.session_state.chat_history.append({
+            "role": "user",
+            "content": user_input,
+            "timestamp": datetime.datetime.now().isoformat()
+        })
+    if response:
+        st.session_state.chat_history.append({
+            "role": "assistant",
+            "content": response,
+            "timestamp": datetime.datetime.now().isoformat()
+        })
+
+    # Save back to file
+    with open(CHAT_HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(st.session_state.chat_history, f, ensure_ascii=False, indent=2)
+
+
+..
+
+
+
+
+.# === Display previous chat
 if "chat_history" not in st.session_state:
     handle_chat_history()
 
