@@ -1,3 +1,139 @@
+
+
+
+import streamlit as st
+import datetime
+
+def main():
+    st.title("💬 Chatbot BNP ED")
+
+    # === Initialize session states
+    if "chat_sessions" not in st.session_state:
+        st.session_state.chat_sessions = {}
+
+    if "current_chat" not in st.session_state:
+        st.session_state.current_chat = str(datetime.datetime.now())
+
+    if "copy_time" not in st.session_state:
+        st.session_state.copy_time = datetime.datetime.now()
+
+    if st.session_state.current_chat not in st.session_state.chat_sessions:
+        st.session_state.chat_sessions[st.session_state.current_chat] = []
+
+    chat = st.session_state.chat_sessions[st.session_state.current_chat]
+    temp_chunks = []
+
+    # === File upload
+    uploaded_file = st.sidebar.file_uploader("📎 Upload a document (optional)", type=["pdf", "txt", "docx", "csv", "xlsx"])
+
+    if uploaded_file:
+        filename = uploaded_file.name.lower()
+        existing = get_existing_sources()
+
+        if filename in existing:
+            st.sidebar.warning("⚠️ This file is already indexed in ChromaDB.")
+        else:
+            with st.spinner("Extracting and cleaning uploaded document..."):
+                raw_doc = extract_text_from_uploaded(uploaded_file)
+
+                if raw_doc is None:
+                    st.sidebar.error("❌ Unsupported file format.")
+                    return
+
+                docs = [raw_doc]
+                cleaned = clean_documents(docs)
+                temp_chunks = split_documents_semantic(cleaned)
+
+                st.sidebar.success(f"✅ File loaded with {len(temp_chunks)} temporary chunks.")
+
+    # === Display previous chat
+    if "chat_history" not in st.session_state:
+        handle_chat_history()  # Load it
+
+    for message in st.session_state.chat_history:
+        with st.chat_message(message["role"]):
+            if message["role"] == "user" and "timestamp" in message:
+                st.markdown(f"_{message['timestamp']}_", unsafe_allow_html=True)
+            st.markdown(message["content"], unsafe_allow_html=True)
+
+    # === Chat input
+    user_input = st.chat_input("Type your message here...")
+
+    if user_input:
+        timestamp = datetime.datetime.now()
+
+        # Save user message
+        handle_chat_history(user_input=user_input)
+
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking..."):
+                response = rag_chatbot(user_input, temp_chunks=temp_chunks)
+                answer = response["answer"]
+
+                st.markdown(answer, unsafe_allow_html=True)
+
+                # Save assistant response
+                handle_chat_history(response=answer)
+
+
+
+
+import os
+import json
+import datetime
+from langchain.schema import Document
+
+CHAT_HISTORY_FILE = "chat_history.json"
+
+def handle_chat_history(user_input=None, response=None, clear=False):
+    """
+    Handles and saves chat history to JSON file.
+    - Loads existing chat from JSON
+    - Appends new messages
+    - Writes back to JSON
+    - Optionally clears the chat
+    """
+    # Load or initialize chat
+    if "chat_history" not in st.session_state or clear:
+        if clear:
+            if os.path.exists(CHAT_HISTORY_FILE):
+                os.remove(CHAT_HISTORY_FILE)
+            st.session_state.chat_history = []
+            return
+
+        if os.path.exists(CHAT_HISTORY_FILE):
+            with open(CHAT_HISTORY_FILE, "r", encoding="utf-8") as f:
+                st.session_state.chat_history = json.load(f)
+        else:
+            st.session_state.chat_history = []
+
+    # Add new messages
+    if user_input:
+        st.session_state.chat_history.append({
+            "role": "user",
+            "content": user_input,
+            "timestamp": datetime.datetime.now().isoformat()
+        })
+    if response:
+        st.session_state.chat_history.append({
+            "role": "assistant",
+            "content": response,
+            "timestamp": datetime.datetime.now().isoformat()
+        })
+
+    # Save to file
+    with open(CHAT_HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(st.session_state.chat_history, f, ensure_ascii=False, indent=2)
+
+
+
+
+
+
+
+
+
+
 import fitz  # For PDF
 import docx  # For DOCX
 import pandas as pd  # For Excel and CSV
