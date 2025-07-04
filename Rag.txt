@@ -1,3 +1,54 @@
+import fitz  # For PDF
+import docx  # For DOCX
+import pandas as pd  # For Excel and CSV
+from langchain.schema import Document
+
+def extract_text_from_uploaded(uploaded_file):
+    """
+    Load uploaded file via Streamlit and return it as a Document object.
+    Supports: PDF, TXT, DOCX, CSV, XLSX.
+    """
+    filename = uploaded_file.name.lower()
+
+    # === PDF ===
+    if filename.endswith(".pdf"):
+        doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
+        text = "\n".join([page.get_text() for page in doc])
+
+    # === TXT ===
+    elif filename.endswith(".txt"):
+        text = uploaded_file.read().decode("utf-8")
+
+    # === DOCX ===
+    elif filename.endswith(".docx"):
+        doc = docx.Document(uploaded_file)
+        text = "\n".join([p.text for p in doc.paragraphs])
+
+    # === CSV ===
+    elif filename.endswith(".csv"):
+        df = pd.read_csv(uploaded_file)
+        text = df.to_string(index=False)
+
+    # === XLSX / Excel ===
+    elif filename.endswith(".xlsx"):
+        df = pd.read_excel(uploaded_file)
+        text = df.to_string(index=False)
+
+    # ❌ Unsupported
+    else:
+        return None
+
+    return Document(
+        page_content=text,
+        metadata={
+            "source_file": uploaded_file.name,
+            "source_type": filename.split(".")[-1]
+        }
+    )
+
+
+
+
 import fitz  # PyMuPDF
 import docx
 from langchain.schema import Document
