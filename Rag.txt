@@ -1,3 +1,48 @@
+def show_copy_and_download_buttons(answer_text):
+    # === Copy to clipboard (only works in browser)
+    st.markdown(
+        f"""
+        <button onclick="navigator.clipboard.writeText(`{answer_text}`)"
+        style="background-color:#4CAF50;color:white;padding:10px;border:none;border-radius:5px;margin-bottom:10px;">
+        📋 Copy Answer to Clipboard
+        </button>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # === PDF Download
+    pdf_buffer = create_pdf_from_text(answer_text)
+    b64_pdf = base64.b64encode(pdf_buffer.read()).decode("utf-8")
+
+    st.download_button(
+        label="📥 Download Answer as PDF",
+        data=base64.b64decode(b64_pdf),
+        file_name="answer.pdf",
+        mime="application/pdf"
+    )
+
+from fpdf import FPDF
+from io import BytesIO
+import base64
+
+def create_pdf_from_text(text):
+    pdf = FPDF()
+    pdf.add_page()
+
+    # Use standard font
+    pdf.set_font("Arial", size=12)
+
+    for line in text.split("\n"):
+        pdf.multi_cell(0, 10, line)
+
+    buffer = BytesIO()
+    pdf.output(buffer)
+    buffer.seek(0)
+    return buffer
+
+
+
+
 from fpdf import FPDF
 from io import BytesIO
 import base64
