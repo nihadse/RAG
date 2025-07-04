@@ -1,3 +1,11 @@
+from langchain.schema import Document
+
+docs = [Document(page_content=raw_text)]
+cleaned_docs = clean_documents(docs, lowercase=True)
+chunks = split_documents_semantic(cleaned_docs)
+
+
+
 import streamlit as st
 import datetime
 
