@@ -1,3 +1,26 @@
+def show_copy_and_download_buttons(answer_text):
+    # === Manual Copy Option
+    with st.expander("📋 Copy Answer"):
+        st.text_area("Copy the answer manually:", value=answer_text, height=200)
+
+    # === PDF Download
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    for line in answer_text.split("\n"):
+        pdf.multi_cell(0, 10, line)
+
+    pdf_bytes = pdf.output(dest="S").encode("latin-1")  # Fresh bytes each time
+
+    st.download_button(
+        label="📥 Download Answer as PDF",
+        data=pdf_bytes,
+        file_name="answer.pdf",
+        mime="application/pdf"
+    )
+
+
+
 def create_pdf_from_text(text):
     pdf = FPDF()
     pdf.add_page()
