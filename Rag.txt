@@ -1,3 +1,21 @@
+# === Display previous chat
+if "chat_history" not in st.session_state:
+    handle_chat_history()
+
+for message in st.session_state.chat_history:
+    if not isinstance(message, dict) or "role" not in message or "content" not in message:
+        continue  # Skip invalid messages
+
+    with st.chat_message(message["role"]):
+        if message["role"] == "user" and "timestamp" in message:
+            st.markdown(f"_{message['timestamp']}_", unsafe_allow_html=True)
+        st.markdown(message["content"], unsafe_allow_html=True)
+
+
+
+
+
+
 import os
 import json
 import datetime
