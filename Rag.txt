@@ -1,3 +1,76 @@
+from fpdf import FPDF
+import base64
+
+def show_copy_and_download_buttons(answer_text: str):
+    # === PDF creation
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    for line in answer_text.split("\n"):
+        pdf.multi_cell(0, 10, line)
+    pdf_bytes = pdf.output(dest="S").encode("latin-1")
+
+    # === PDF download button
+    st.download_button(
+        label="📥 Download Answer as PDF",
+        data=pdf_bytes,
+        file_name="answer.pdf",
+        mime="application/pdf"
+    )
+import streamlit.components.v1 as components
+
+def show_copy_button(text_to_copy: str):
+    components.html(f"""
+        <script>
+        function copyText() {{
+            const text = `{text_to_copy}`;
+            navigator.clipboard.writeText(text).then(function() {{
+                alert("✅ Answer copied to clipboard!");
+            }}, function(err) {{
+                alert("❌ Failed to copy text: " + err);
+            }});
+        }}
+        </script>
+        <button onclick="copyText()" style="
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        ">📋 Copy Answer to Clipboard</button>
+    """, height=50)
+
+
+
+if user_input:
+    handle_chat_history(user_input=user_input)
+
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            response = rag_chatbot(user_input, temp_chunks=temp_chunks)
+            answer = response["answer"]
+
+            st.markdown(answer, unsafe_allow_html=True)
+
+            st.session_state["last_answer"] = answer  # 💾 Save for reuse
+            handle_chat_history(response=answer)
+
+# === Show Copy & Download Buttons if answer exists
+if "last_answer" in st.session_state:
+    show_copy_button(st.session_state["last_answer"])
+    show_copy_and_download_buttons(st.session_state["last_answer"])
+
+
+
+
+
+
+
+
+
+
 def show_copy_and_download_buttons(answer_text):
     # === Manual Copy Option
     with st.expander("📋 Copy Answer"):
