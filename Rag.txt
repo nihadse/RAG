@@ -1,3 +1,32 @@
+from fpdf import FPDF
+import streamlit as st
+from fpdf.fonts import FontFace
+
+def show_copy_and_download_buttons(answer_text: str):
+    pdf = FPDF()
+    pdf.add_page()
+
+    # Use bundled FreeSans font from fpdf2
+    pdf.set_font("helvetica", size=12)  # This works for basic Latin
+    pdf.set_font("helvetica", size=12)
+
+    # Safe fallback for limited unicode (é, ç, etc. — not Arabic)
+    for line in answer_text.split("\n"):
+        try:
+            pdf.multi_cell(0, 10, line)
+        except UnicodeEncodeError:
+            pdf.multi_cell(0, 10, line.encode("latin-1", "ignore").decode("latin-1"))
+
+    pdf_bytes = pdf.output(dest="S").encode("latin-1")
+
+    st.download_button(
+        label="📄 Download Answer as PDF",
+        data=pdf_bytes,
+        file_name="answer.pdf",
+        mime="application/pdf"
+    )
+
+
 https://github.com/dejavu-fonts/dejavu-fonts
 
 
