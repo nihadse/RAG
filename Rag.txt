@@ -1,3 +1,22 @@
+# Load chat sessions from file
+if "chat_sessions" not in st.session_state:
+    if os.path.exists(CHAT_HISTORY_FILE):
+        with open(CHAT_HISTORY_FILE, "r", encoding="utf-8") as f:
+            st.session_state.chat_sessions = json.load(f)
+    else:
+        st.session_state.chat_sessions = {}  # ✅ always dict
+
+
+
+if "chat_sessions" not in st.session_state or not isinstance(st.session_state.chat_sessions, dict):
+    st.session_state.chat_sessions = {}  # ✅ correct: initialize as dict
+
+
+
+
+
+
+
 import streamlit as st
 import datetime
 
