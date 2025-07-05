@@ -13,6 +13,65 @@ def handle_chat_history(user_input=None, response=None, clear=False):
             os.remove(CHAT_HISTORY_FILE)
         return
 
+    # Load from file only if not already in session
+    if "chat_sessions" not in st.session_state:
+        if os.path.exists(CHAT_HISTORY_FILE):
+            try:
+                with open(CHAT_HISTORY_FILE, "r", encoding="utf-8") as f:
+                    st.session_state.chat_sessions = json.load(f)
+            except json.JSONDecodeError:
+                st.session_state.chat_sessions = {}
+        else:
+            st.session_state.chat_sessions = {}
+
+    # Do not create a new chat unless there is user input or response
+    if (user_input or response):
+        if "current_chat" not in st.session_state or not st.session_state.current_chat:
+            st.session_state.current_chat = str(datetime.datetime.now())
+
+        current_chat = st.session_state.current_chat
+
+        if current_chat not in st.session_state.chat_sessions:
+            st.session_state.chat_sessions[current_chat] = {
+                "title": user_input[:30] if user_input else "New Chat",
+                "messages": []
+            }
+
+        if user_input:
+            st.session_state.chat_sessions[current_chat]["messages"].append({
+                "role": "user",
+                "content": user_input,
+                "timestamp": datetime.datetime.now().isoformat()
+            })
+
+        if response:
+            st.session_state.chat_sessions[current_chat]["messages"].append({
+                "role": "assistant",
+                "content": response,
+                "timestamp": datetime.datetime.now().isoformat()
+            })
+
+        # Save to disk
+        with open(CHAT_HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(st.session_state.chat_sessions, f, ensure_ascii=False, indent=2)
+
+
+
+import os
+import json
+import datetime
+import streamlit as st
+
+CHAT_HISTORY_FILE = "chat_history.json"
+
+def handle_chat_history(user_input=None, response=None, clear=False):
+    if clear:
+        st.session_state.chat_sessions = {}
+        st.session_state.current_chat = None
+        if os.path.exists(CHAT_HISTORY_FILE):
+            os.remove(CHAT_HISTORY_FILE)
+        return
+
     # Load chat sessions from file if not already in session_state
     if "chat_sessions" not in st.session_state or not isinstance(st.session_state.chat_sessions, dict):
         if os.path.exists(CHAT_HISTORY_FILE):
