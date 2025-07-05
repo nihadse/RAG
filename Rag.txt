@@ -1,3 +1,152 @@
+import streamlit as st
+import datetime
+
+def main():
+    st.title("💬 Chatbot BNP ED")
+
+    # === Session State Initialization ===
+    if "chat_sessions" not in st.session_state or not isinstance(st.session_state.chat_sessions, dict):
+        st.session_state.chat_sessions = {}
+
+    if "current_chat" not in st.session_state:
+        st.session_state.current_chat = str(datetime.datetime.now())
+
+    if "copy_time" not in st.session_state:
+        st.session_state.copy_time = datetime.datetime.now()
+
+    # === New Chat Button ===
+    if st.sidebar.button("➕ Start New Chat"):
+        st.session_state.current_chat = str(datetime.datetime.now())
+        st.session_state.chat_sessions[st.session_state.current_chat] = {
+            "title": "New Chat",
+            "messages": []
+        }
+
+    # === Select Existing Chat Sessions (Left Sidebar) ===
+    if st.session_state.chat_sessions:
+        selected = st.sidebar.radio(
+            "🗂 Chat Sessions",
+            list(st.session_state.chat_sessions.keys()),
+            format_func=lambda k: st.session_state.chat_sessions[k].get("title", k),
+            index=list(st.session_state.chat_sessions.keys()).index(st.session_state.current_chat)
+        )
+        st.session_state.current_chat = selected
+
+    chat_data = st.session_state.chat_sessions.get(st.session_state.current_chat)
+    if not chat_data:
+        chat_data = {"title": "New Chat", "messages": []}
+        st.session_state.chat_sessions[st.session_state.current_chat] = chat_data
+
+    chat = chat_data["messages"]
+    temp_chunks = []
+
+    # === File Upload ===
+    uploaded_file = st.sidebar.file_uploader("📎 Upload a document (optional)", type=["pdf", "txt", "docx", "csv", "xlsx"])
+    if uploaded_file:
+        filename = uploaded_file.name.lower()
+        existing = get_existing_sources()
+
+        if filename in existing:
+            st.sidebar.warning("⚠️ This file is already indexed in ChromaDB.")
+        else:
+            with st.spinner("Extracting and cleaning uploaded document..."):
+                raw_doc = extract_text_from_uploaded(uploaded_file)
+                if raw_doc is None:
+                    st.sidebar.error("❌ Unsupported file format.")
+                    return
+
+                docs = [raw_doc]
+                cleaned = clean_documents(docs)
+                temp_chunks = split_documents_semantic(cleaned)
+                st.sidebar.success(f"✅ File loaded with {len(temp_chunks)} temporary chunks.")
+
+    # === Display Previous Chat
+    for message in chat:
+        with st.chat_message(message["role"]):
+            if message["role"] == "user" and "timestamp" in message:
+                st.markdown(f"_{message['timestamp']}_", unsafe_allow_html=True)
+            st.markdown(message["content"], unsafe_allow_html=True)
+
+    # === Chat Input
+    user_input = st.chat_input("Type your message here...")
+    if user_input:
+        timestamp = datetime.datetime.now()
+        if chat_data["title"] == "New Chat":
+            chat_data["title"] = user_input[:30] + "..."
+
+        chat.append({
+            "role": "user",
+            "content": user_input,
+            "timestamp": timestamp.isoformat()
+        })
+
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking..."):
+                response = rag_chatbot(user_input, temp_chunks=temp_chunks)
+                answer = response["answer"]
+
+                st.markdown(answer, unsafe_allow_html=True)
+
+                chat.append({
+                    "role": "assistant",
+                    "content": answer,
+                    "timestamp": datetime.datetime.now().isoformat()
+                })
+
+                st.session_state.last_answer = answer
+                show_copy_and_download_buttons(answer)  # ✅ copy + download
+
+
+
+
+def handle_chat_history(user_input=None, response=None, clear=False):
+    if clear:
+        if os.path.exists(CHAT_HISTORY_FILE):
+            os.remove(CHAT_HISTORY_FILE)
+        st.session_state.chat_sessions = {}
+        st.session_state.current_chat = None
+        return
+
+    # Load from file
+    if "chat_sessions" not in st.session_state or not isinstance(st.session_state.chat_sessions, dict):
+        if os.path.exists(CHAT_HISTORY_FILE):
+            with open(CHAT_HISTORY_FILE, "r", encoding="utf-8") as f:
+                st.session_state.chat_sessions = json.load(f)
+        else:
+            st.session_state.chat_sessions = {}
+
+    if "current_chat" not in st.session_state:
+        st.session_state.current_chat = str(datetime.datetime.now())
+
+    current_chat = st.session_state.current_chat
+
+    if current_chat not in st.session_state.chat_sessions:
+        st.session_state.chat_sessions[current_chat] = {
+            "title": "New Chat",
+            "messages": []
+        }
+
+    if user_input:
+        st.session_state.chat_sessions[current_chat]["messages"].append({
+            "role": "user",
+            "content": user_input,
+            "timestamp": datetime.datetime.now().isoformat()
+        })
+
+    if response:
+        st.session_state.chat_sessions[current_chat]["messages"].append({
+            "role": "assistant",
+            "content": response,
+            "timestamp": datetime.datetime.now().isoformat()
+        })
+
+    # Save to file
+    with open(CHAT_HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(st.session_state.chat_sessions, f, ensure_ascii=False, indent=2)
+
+
+
+
 if clear:
     st.session_state.chat_sessions = {}  # ✅ dictionary, not list
     st.session_state.current_chat = None
