@@ -1,3 +1,9 @@
+if "last_answer" in st.session_state and st.session_state.chat_sessions[st.session_state.current_chat]["messages"]:
+    show_copy_button(st.session_state["last_answer"])
+    show_copy_and_download_buttons(st.session_state["last_answer"])
+
+
+
 import os
 import json
 import datetime
