@@ -1,3 +1,34 @@
+from fpdf import FPDF
+import streamlit as st
+import os
+
+def show_copy_and_download_buttons(answer_text: str):
+    pdf = FPDF()
+    pdf.add_page()
+
+    # Use a Unicode-compatible font
+    font_path = "fonts/DejaVuSans.ttf"  # Ensure this file exists
+    if not os.path.exists(font_path):
+        st.error("Font not found. Please place 'DejaVuSans.ttf' in a 'fonts/' folder.")
+        return
+
+    pdf.add_font("DejaVu", "", font_path, uni=True)
+    pdf.set_font("DejaVu", size=12)
+
+    for line in answer_text.split("\n"):
+        pdf.multi_cell(0, 10, line)
+
+    # Correct way to output PDF bytes
+    pdf_bytes = pdf.output(dest="S").encode("latin1")
+
+    st.download_button(
+        label="📄 Download Answer as PDF",
+        data=pdf_bytes,
+        file_name="answer.pdf",
+        mime="application/pdf"
+    )
+
+
 import streamlit as st
 import datetime
 
