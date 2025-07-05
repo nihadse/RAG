@@ -1,3 +1,47 @@
+def main():
+    st.title("Chatbot BNP ED")
+
+    handle_chat_history()
+
+    # Initialize session state properly
+    if "chat_sessions" not in st.session_state:
+        st.session_state.chat_sessions = {}
+
+    if "current_chat" not in st.session_state:
+        st.session_state.current_chat = None
+
+    if "copy_time" not in st.session_state:
+        st.session_state.copy_time = datetime.datetime.now()
+
+    if st.sidebar.button("+ Start New Chat"):
+        new_chat_id = str(datetime.datetime.now())
+        st.session_state.current_chat = new_chat_id
+        st.session_state.chat_sessions[new_chat_id] = {
+            "title": "New Chat", 
+            "messages": []
+        }
+
+    if st.session_state.chat_sessions:
+        chat_ids = list(st.session_state.chat_sessions.keys())
+
+        selected_chat = st.sidebar.radio(
+            "Chat Sessions", 
+            chat_ids, 
+            format_func=lambda x: st.session_state.chat_sessions[x]["title"],
+            index=chat_ids.index(st.session_state.current_chat) if st.session_state.current_chat in chat_ids else 0
+        )
+
+        st.session_state.current_chat = selected_chat
+
+        chat_data = st.session_state.chat_sessions.get(st.session_state.current_chat)
+
+        if not chat_data:
+            chat_data = {"title": "New Chat", "messages": []}
+            st.session_state.chat_sessions[st.session_state.current_chat] = chat_data
+
+        # File uploader and rest of your code continues...
+
+
 from fpdf import FPDF
 import streamlit as st
 from fpdf.fonts import FontFace
