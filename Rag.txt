@@ -1,3 +1,105 @@
+import os
+import json
+import datetime
+
+CHAT_HISTORY_FILE = "chat_history.json"
+
+def handle_chat_history(user_input=None, response=None, clear=False):
+    """
+    Manages all chat history:
+    - Initializes session state
+    - Creates new sessions
+    - Stores chat messages with timestamps
+    - Saves to and loads from disk
+    - Can clear all history
+    """
+    # === Load or initialize chat sessions
+    if "chat_sessions" not in st.session_state:
+        if os.path.exists(CHAT_HISTORY_FILE):
+            with open(CHAT_HISTORY_FILE, "r", encoding="utf-8") as f:
+                st.session_state.chat_sessions = json.load(f)
+        else:
+            st.session_state.chat_sessions = {}
+
+    if clear:
+        st.session_state.chat_sessions = {}
+        st.session_state.current_chat = None
+        if os.path.exists(CHAT_HISTORY_FILE):
+            os.remove(CHAT_HISTORY_FILE)
+        return
+
+    # === Set up current chat session
+    if "current_chat" not in st.session_state or st.session_state.current_chat is None:
+        st.session_state.current_chat = str(datetime.datetime.now())
+
+    # === Create session if it doesn't exist
+    if st.session_state.current_chat not in st.session_state.chat_sessions:
+        st.session_state.chat_sessions[st.session_state.current_chat] = {
+            "title": "New Chat",
+            "messages": []
+        }
+
+    session = st.session_state.chat_sessions[st.session_state.current_chat]
+
+    # === Add user message
+    if user_input:
+        session["messages"].append({
+            "role": "user",
+            "content": user_input,
+            "timestamp": datetime.datetime.now().isoformat()
+        })
+
+        # Set title if first user message
+        if session["title"] == "New Chat":
+            session["title"] = user_input[:30] + "..."
+
+    # === Add assistant response
+    if response:
+        session["messages"].append({
+            "role": "assistant",
+            "content": response,
+            "timestamp": datetime.datetime.now().isoformat()
+        })
+
+    # === Save sessions to disk
+    with open(CHAT_HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(st.session_state.chat_sessions, f, ensure_ascii=False, indent=2)
+
+
+
+st.sidebar.title("💬 Chat History")
+
+# Load session history
+handle_chat_history()
+
+# Sidebar session list
+session_titles = {
+    key: value["title"] for key, value in st.session_state.chat_sessions.items()
+}
+
+# Let user pick a session
+if session_titles:
+    selected_session = st.sidebar.radio("Select a chat", list(session_titles.keys()),
+                                        format_func=lambda k: session_titles[k])
+    st.session_state.current_chat = selected_session
+
+# New chat button
+if st.sidebar.button("➕ Start New Chat"):
+    st.session_state.current_chat = str(datetime.datetime.now())
+
+# Clear all
+if st.sidebar.button("🗑 Clear All Chats"):
+    handle_chat_history(clear=True)
+    st.experimental_rerun()
+
+
+
+
+
+
+
+
+
 from fpdf import FPDF
 import base64
 
