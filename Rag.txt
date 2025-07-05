@@ -1,3 +1,12 @@
+if clear:
+    st.session_state.chat_sessions = {}  # ✅ dictionary, not list
+    st.session_state.current_chat = None
+    if os.path.exists(CHAT_HISTORY_FILE):
+        os.remove(CHAT_HISTORY_FILE)
+    return
+
+
+
 # Load chat sessions from file
 if "chat_sessions" not in st.session_state:
     if os.path.exists(CHAT_HISTORY_FILE):
