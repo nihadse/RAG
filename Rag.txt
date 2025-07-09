@@ -1,3 +1,16 @@
+Objet : Ordre de Mission – Demande de frais de mission
+
+Bonjour [Nom du destinataire],
+
+Je vous envoie ci-joint mon Ordre de Mission dûment signé.
+Je souhaiterais recevoir mes frais de mission liés à ce déplacement.
+
+N’hésitez pas à me faire savoir si vous avez besoin d’informations ou de documents supplémentaires.
+
+Bien cordialement,
+[Votre prénom et nom]
+
+
 import os
 import json
 import datetime
