@@ -1,1 +1,28 @@
+pip install pdfplumber pandasimport pdfplumber
+import pandas as pd
+
+# Path to your PDF
+pdf_path = "banque_algerie.pdf"
+
+# Store all extracted tables
+all_tables = []
+
+with pdfplumber.open(pdf_path) as pdf:
+    for page_num, page in enumerate(pdf.pages):
+        print(f"Processing page {page_num + 1}...")
+        tables = page.extract_tables()
+        for table in tables:
+            df = pd.DataFrame(table[1:], columns=table[0])  # Use first row as header
+            all_tables.append(df)
+
+# Combine all tables into one
+final_df = pd.concat(all_tables, ignore_index=True)
+
+# Preview and save
+print(final_df.head())
+final_df.to_csv("banque_algerie_extracted.csv", index=False)
+
+
+
+
 pip install pdfplumber pandas
