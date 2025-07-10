@@ -1,3 +1,12 @@
+Objet : Problème d'accès au dossier
+
+Bonjour [Nom],
+Je rencontre un problème d’accès au dossier. Pourriez-vous me l’envoyer par email, s’il vous plaît ?
+
+Merci d’avance,
+Nihad
+
+
 Objet : Ordre de Mission – Demande de frais de mission
 
 Bonjour [Nom du destinataire],
