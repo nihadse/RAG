@@ -1,6 +1,45 @@
 import uuid
 import ipywidgets as widgets
 from IPython.display import display
+import time
+
+# Step 1: Create the upload widget
+upload_widget = widgets.FileUpload(accept='.mp3', multiple=False)
+display(upload_widget)
+
+# Step 2: Function to wait and extract uploaded file
+def get_uploaded_file():
+    print("📥 Waiting for upload...")
+    while not upload_widget.value:
+        time.sleep(1)
+
+    # Handle both dict-like or list-of-dict structures
+    uploaded_items = upload_widget.value
+
+    if isinstance(uploaded_items, dict):
+        uploaded_info = next(iter(uploaded_items.values()))
+    elif isinstance(uploaded_items, (list, tuple)):
+        uploaded_info = uploaded_items[0]
+    else:
+        raise ValueError("Unexpected upload format")
+
+    # Extract content and filename
+    file_bytes = uploaded_info["content"]
+    filename = uploaded_info.get("name", f"{uuid.uuid4()}.mp3")
+
+    # Save to /tmp
+    temp_mp3_path = f"/tmp/{uuid.uuid4()}.mp3"
+    with open(temp_mp3_path, "wb") as f:
+        f.write(file_bytes)
+
+    print(f"✅ Saved file '{filename}' to: {temp_mp3_path}")
+    return temp_mp3_path
+
+
+
+import uuid
+import ipywidgets as widgets
+from IPython.display import display
 
 # Display upload widget
 upload_widget = widgets.FileUpload(accept='.mp3', multiple=False)
