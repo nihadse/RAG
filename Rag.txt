@@ -1,3 +1,29 @@
+import uuid
+import ipywidgets as widgets
+from IPython.display import display
+
+# Display upload widget
+upload_widget = widgets.FileUpload(accept='.mp3', multiple=False)
+display(upload_widget)
+
+def get_uploaded_file():
+    import time
+    while not upload_widget.value:
+        time.sleep(1)  # Wait for upload
+
+    uploaded_data = list(upload_widget.value.values())[0]  # Get the first uploaded file's content
+    file_content = uploaded_data["content"]
+    filename = uploaded_data["metadata"]["name"]
+
+    temp_mp3_path = f"/tmp/{uuid.uuid4()}.mp3"
+    with open(temp_mp3_path, "wb") as f:
+        f.write(file_content)
+
+    print(f"✅ File '{filename}' saved to: {temp_mp3_path}")
+    return temp_mp3_path
+
+
+
 pip install whisper pydub httpx openai TTS soundfile torchaudio ipywidgets
 import os
 import uuid
