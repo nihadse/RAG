@@ -1,28 +1,135 @@
-pip install pdfplumber pandasimport pdfplumber
-import pandas as pd
+pip install whisper pydub httpx openai TTS soundfile torchaudio ipywidgets
+import os
+import uuid
+import whisper
+from pydub import AudioSegment
+import httpx
+from TTS.api import TTS
+from IPython.display import Audio, display
+import ipywidgets as widgets
+from IPython.display import display as ipydisplay
 
-# Path to your PDF
-pdf_path = "banque_algerie.pdf"
+# --------- Step 1: Upload MP3 file ---------
+upload_widget = widgets.FileUpload(accept='.mp3', multiple=False)
+ipydisplay(upload_widget)
+print("⬆️ Please upload your MP3 file")
 
-# Store all extracted tables
-all_tables = []
+def get_uploaded_file():
+    while not upload_widget.value:
+        pass  # Wait for upload
+    uploaded_filename = list(upload_widget.value.keys())[0]
+    content = upload_widget.value[uploaded_filename]['content']
+    temp_mp3_path = f"/tmp/{uuid.uuid4()}.mp3"
+    with open(temp_mp3_path, 'wb') as f:
+        f.write(content)
+    print(f"✅ Uploaded: {uploaded_filename}")
+    return temp_mp3_path
 
-with pdfplumber.open(pdf_path) as pdf:
-    for page_num, page in enumerate(pdf.pages):
-        print(f"Processing page {page_num + 1}...")
-        tables = page.extract_tables()
-        for table in tables:
-            df = pd.DataFrame(table[1:], columns=table[0])  # Use first row as header
-            all_tables.append(df)
+mp3_path = get_uploaded_file()
 
-# Combine all tables into one
-final_df = pd.concat(all_tables, ignore_index=True)
+# --------- Step 2: Convert MP3 to WAV ---------
+wav_path = f"/tmp/{uuid.uuid4()}.wav"
+audio = AudioSegment.from_file(mp3_path, format="mp3")
+audio.export(wav_path, format="wav")
+print("🎧 Converted MP3 to WAV")
 
-# Preview and save
-print(final_df.head())
-final_df.to_csv("banque_algerie_extracted.csv", index=False)
+# --------- Step 3: Transcribe audio with Whisper ---------
+model = whisper.load_model("base")  # You can use "small", "medium", "large" for better accuracy
+result = model.transcribe(wav_path)
+transcribed_text = result["text"]
+detected_language = result["language"]
 
+print(f"🗣 Detected Language: {detected_language}")
+print(f"📝 Transcription: {transcribed_text}")
 
+# --------- Step 4: Define the generate_response function ---------
+def generate_response(query: str, context: list) -> str:
+    """
+    Generate a structured, detailed response using Azure OpenAI chat completion.
 
+    Args:
+        query: User question string.
+        context: List of dicts, each with 'page_content' and 'metadata' keys.
 
-pip install pdfplumber pandas
+    Returns:
+        AI assistant's response as string.
+    """
+    sources = list(set(chunk["metadata"].get("source", "unknown") for chunk in context))
+    context_text = "\n\n".join(chunk["page_content"] for chunk in context)
+
+    prompt = f"""
+You are an AI assistant specialized in Retrieval-Augmented Generation (RAG) for banking system architecture.
+
+[Context - Sources: {', '.join(sources)}]
+
+{context_text}
+
+[Query]
+
+{query}
+
+Please provide a **structured and detailed answer**. For example:
+- If the context contains data architecture info and the query is about data location,
+  include the **table name** (e.g., TDT31), the **data code** (e.g., A00090),
+  and explain where it is located within the bank's data systems.
+- Always provide the name and codification of the data within the tables.
+- Provide definitions and explanations to help the user fully understand.
+"""
+
+    # Azure OpenAI API details - replace with your real info
+    AZURE_API_VERSION = "2023-05-15"
+    AZURE_ENDPOINT = "https://your-azure-openai-endpoint.openai.azure.com/"
+    AZURE_API_KEY = "YOUR_AZURE_API_KEY"
+
+    headers = {
+        "api-key": AZURE_API_KEY,
+        "Content-Type": "application/json"
+    }
+
+    json_payload = {
+        "model": "gpt4o",
+        "messages": [
+            {"role": "system", "content": "You are assistant based on RAG (Retrieval-Augmented Generation) for banking system architecture."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.5,
+        "max_tokens": 1000
+    }
+
+    with httpx.Client(verify=False) as client:
+        response = client.post(
+            url=f"{AZURE_ENDPOINT}openai/deployments/gpt4o/chat/completions?api-version={AZURE_API_VERSION}",
+            headers=headers,
+            json=json_payload
+        )
+        response.raise_for_status()
+        completion = response.json()
+
+    answer = completion["choices"][0]["message"]["content"]
+    return answer
+
+# --------- Step 5: Prepare example context ---------
+# Replace this with your real retrieved docs from vector DB
+context_example = [
+    {
+        "page_content": "Table TDT31 contains corporate account data. The data code A00090 represents client identification number in the Atlas system.",
+        "metadata": {"source": "Bank Data Architecture Doc"}
+    },
+    {
+        "page_content": "Corporate clients can open accounts by submitting documents X, Y, and Z as per regulation 2023.",
+        "metadata": {"source": "Corporate Account Opening Procedure"}
+    }
+]
+
+# --------- Step 6: Generate AI response ---------
+ai_response = generate_response(transcribed_text, context_example)
+print("🤖 AI Response:\n", ai_response)
+
+# --------- Step 7: Convert AI response to speech ---------
+tts = TTS(model_name="tts_models/multilingual/multi-dataset/your_tts", progress_bar=False)
+audio_response_path = f"/tmp/{uuid.uuid4()}.wav"
+tts.tts_to_file(text=ai_response, file_path=audio_response_path)
+print("🔊 Audio response generated!")
+
+# --------- Step 8: Play the audio response ---------
+display(Audio(audio_response_path))
