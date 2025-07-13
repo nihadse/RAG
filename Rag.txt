@@ -1,3 +1,22 @@
+import uuid
+from pydub import AudioSegment
+
+def convert_mp3_to_wav(mp3_path: str) -> str:
+    try:
+        # Set a temporary output file
+        wav_path = f"/tmp/{uuid.uuid4()}.wav"
+
+        # Load MP3 without needing ffmpeg
+        audio = AudioSegment.from_file(mp3_path, format="mp3")  # uses av now
+        audio.export(wav_path, format="wav")
+
+        print("🎧 Successfully converted MP3 to WAV.")
+        return wav_path
+    except Exception as e:
+        print("❌ Error converting MP3 to WAV:", e)
+        return None
+
+
 !apt-get update && apt-get install -y ffmpeg
 
 
