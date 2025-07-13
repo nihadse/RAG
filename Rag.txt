@@ -1,4 +1,17 @@
 row_num = header_row + 1
+max_row = ws.max_row
+while row_num <= max_row:
+    rc = ws.cell(row=row_num, column=header_map["Registre commerce"]).value
+    rc_key = str(rc).strip() if rc else None
+    row_data = csv_data.get(rc_key) if rc_key else None
+
+    # loop over fields and use row_data.get(...)
+    # use fast get_writable_cell with merged_map
+    # write only if needed
+
+    row_num += 1
+
+row_num = header_row + 1
 while row_num <= ws.max_row:
     rc = ws.cell(row=row_num, column=header_map["Registre commerce"]).value
     if rc is None or str(rc).strip() == "":
