@@ -11,7 +11,7 @@ def get_writable_cell(ws, row, col, merged_map):
     return ws.cell(row=row, column=col)
 
 def normalize_arabic(text):
-    if not text:
+    if not text: 
         return ""
     return (str(text)
             .replace("ی", "ي")
