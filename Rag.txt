@@ -1,3 +1,54 @@
+# 1. RC column is detected from header row (usually row 1)
+rc_col = header_map.get("Registre commerce")
+if not rc_col:
+    print(f"❌ RC column not found in sheet {sheetname}")
+    continue
+
+# 2. Start scanning rows from row 2 to the last row
+for row_num in range(2, ws.max_row + 1):
+    rc_cell = ws.cell(row=row_num, column=rc_col)
+    rc = rc_cell.value
+    if rc is None or str(rc).strip() == "":
+        continue  # Skip empty rows
+
+    rc_key = str(rc).strip()
+    matched = rc_key in csv_df.index
+
+    # Now your logic for processing this row:
+    for csv_col, (field_key, yn_val) in csv_column_map.items():
+        if "yn" in field_key:
+            yes_col = header_map.get(f"{field_key} yes")
+            no_col = header_map.get(f"{field_key} no")
+            if yes_col and no_col:
+                yes_cell = get_writable_cell(ws, row_num, yes_col)
+                no_cell = get_writable_cell(ws, row_num, no_col)
+                if matched:
+                    val = csv_df.at[rc_key, csv_col]
+                    if isinstance(val, str) and val.strip().upper() == "X":
+                        if yn_val == "نعم":
+                            yes_cell.value = "/"
+                        elif yn_val == "لا":
+                            no_cell.value = "/"
+                        updated = True
+                else:
+                    if not yes_cell.value and not no_cell.value:
+                        no_cell.value = "/"
+                        updated = True
+        elif "date" in field_key:
+            date_col = header_map.get(field_key)
+            if matched and date_col:
+                date_val = csv_df.at[rc_key, csv_col]
+                if isinstance(date_val, pd.Series):
+                    date_val = date_val.iloc[0]
+                if date_val:
+                    date_cell = get_writable_cell(ws, row_num, date_col)
+                    if not date_cell.value:
+                        date_cell.value = date_val
+                        updated = True
+
+
+
+
 # Step 1: Find first row with actual data under the header
 data_start_row = None
 for r in range(header_row + 1, ws.max_row + 1):
