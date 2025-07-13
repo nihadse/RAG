@@ -1,3 +1,9 @@
+if rc is None or str(rc).strip() == "":
+    row_num += 1
+    continue
+
+
+
 # 1. RC column is detected from header row (usually row 1)
 rc_col = header_map.get("Registre commerce")
 if not rc_col:
