@@ -1,3 +1,133 @@
+import os from pathlib import Path import pandas as pd from openpyxl import load_workbook from openpyxl.cell.cell import MergedCell
+
+def get_writable_cell(ws, row, col, merged_map): if (row, col) in merged_map: min_row, min_col = merged_map[(row, col)] return ws.cell(row=min_row, column=min_col) return ws.cell(row=row, column=col)
+
+def normalize_arabic(text): if not text: return "" return (str(text) .replace("ی", "ي") .replace("ك", "ك") .replace("ـ", "") .replace("\u200f", "") .replace("\u200e", "") .strip())
+
+def find_merged_column_by_text(ws, header_lines, target_text): target_text = normalize_arabic(target_text) for col in range(1, ws.max_column + 1): header_parts = [] for row in range(1, header_lines + 1): val = ws.cell(row=row, column=col).value if val: header_parts.append(normalize_arabic(val)) full_header = "".join(header_parts) if target_text in full_header: return col return None
+
+def collect_excel_files(folder): return list(Path(folder).rglob("*.xlsx"))
+
+def fill_excel_from_csv(csv_path, excel_folder, output_folder): os.makedirs(output_folder, exist_ok=True)
+
+rc_headers = ["رقم السجل التجاري", "الرقم السجل التجاري", "registre du commerce", "رقم السجل d'inscription"]
+loan_yn_header = "من استفاد المتعامل الاقتصادي من فرع بنكي"
+import_yn_header = "هل قام المتعامل الاقتصادي بعمليات استيراد"
+loan_date_header = "Derniere date effet credit"
+import_date_header = "Derniere date import"
+
+csv_df = pd.read_csv(csv_path, dtype=str).fillna("")
+if "Registre commerce" not in csv_df.columns:
+    print("X Registre commerce column missing in CSV.")
+    return
+csv_df.set_index("Registre commerce", inplace=True)
+csv_data = csv_df.to_dict("index")
+
+excel_files = collect_excel_files(excel_folder)
+
+for file_path in excel_files:
+    input_path = str(file_path)
+    output_path = os.path.join(output_folder, os.path.relpath(input_path, excel_folder))
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    wb = load_workbook(input_path)
+    updated = False
+
+    for sheetname in wb.sheetnames:
+        ws = wb[sheetname]
+        merged_map = {}
+        for merged in ws.merged_cells.ranges:
+            for row in range(merged.min_row, merged.max_row + 1):
+                for col in range(merged.min_col, merged.max_col + 1):
+                    merged_map[(row, col)] = (merged.min_row, merged.min_col)
+
+        header_row = None
+        header_map = {}
+
+        for i in range(1, 100):
+            row_vals = [str(cell.value).strip() if cell.value else "" for cell in ws[i]]
+            for idx, val in enumerate(row_vals):
+                if normalize_arabic(val) in [normalize_arabic(h) for h in rc_headers]:
+                    header_row = i
+                    header_map["Registre commerce"] = idx + 1
+                    break
+            if header_row:
+                break
+
+        if not header_row:
+            print(f"No RC column found in {input_path}/ Sheet {sheetname}")
+            continue
+
+        header_map["loan date"] = find_merged_column_by_text(ws, 10, loan_date_header)
+        header_map["import date"] = find_merged_column_by_text(ws, 10, import_date_header)
+
+        for row in range(1, 11):
+            for merged in ws.merged_cells.ranges:
+                cell = ws.cell(row=row, column=merged.min_col)
+                if not cell.value:
+                    continue
+                val = str(cell.value).strip()
+                if normalize_arabic(val) == normalize_arabic(loan_yn_header):
+                    header_map["loan yn_yes"] = merged.min_col
+                    header_map["loan yn_no"] = merged.min_col + 1
+                elif normalize_arabic(val) == normalize_arabic(import_yn_header):
+                    header_map["import yn_yes"] = merged.min_col
+                    header_map["import yn_no"] = merged.min_col + 1
+
+        row_num = header_row + 1
+        max_row = ws.max_row
+
+        while row_num <= max_row:
+            rc = ws.cell(row=row_num, column=header_map["Registre commerce"]).value
+            rc_key = str(rc).strip() if rc else None
+            row_data = csv_data.get(rc_key) if rc_key else None
+
+            for csv_col, (field_key, yn_val) in {
+                "beneficiaire credit": ("loan yn", "نعم"),
+                "Operation Import": ("import yn", "نعم"),
+                "Derniere date effet credit": ("loan date", None),
+                "Derniere date import": ("import date", None)
+            }.items():
+                if "yn" in field_key:
+                    yes_col = header_map.get(f"{field_key}_yes")
+                    no_col = header_map.get(f"{field_key}_no")
+                    if yes_col and no_col:
+                        yes_cell = get_writable_cell(ws, row_num, yes_col, merged_map)
+                        no_cell = get_writable_cell(ws, row_num, no_col, merged_map)
+                        if row_data:
+                            val = row_data.get(csv_col)
+                            if isinstance(val, str) and val.strip().upper() == "X":
+                                if yn_val == "نعم":
+                                    yes_cell.value = "/"
+                                elif yn_val == "Y":
+                                    no_cell.value = "/"
+                                updated = True
+                            elif not yes_cell.value and not no_cell.value:
+                                no_cell.value = "/"
+                                updated = True
+                elif "date" in field_key:
+                    date_col = header_map.get(field_key)
+                    if row_data and date_col:
+                        date_val = row_data.get(csv_col)
+                        if isinstance(date_val, pd.Series):
+                            date_val = date_val.iloc[0]
+                        if date_val:
+                            date_cell = get_writable_cell(ws, row_num, date_col, merged_map)
+                            if not date_cell.value:
+                                date_cell.value = date_val
+                                updated = True
+
+            row_num += 1
+
+    wb.save(output_path)
+    print(f"{'Saved' if updated else 'No updates made'}: {output_path}")
+
+
+
+
+
+
+
 row_num = header_row + 1
 max_row = ws.max_row
 while row_num <= max_row:
