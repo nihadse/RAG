@@ -1,3 +1,22 @@
+Objet : Demande de gravure de fichiers zippés
+
+Bonjour l’équipe support,
+
+Je vous prie de bien vouloir graver les deux fichiers zippés disponibles aux liens suivants :
+
+[Lien fichier 1]
+
+[Lien fichier 2]
+
+
+N'hésitez pas à me contacter si vous avez besoin d’informations supplémentaires.
+
+Merci d’avance pour votre aide.
+
+Cordialement,
+[Votre nom]
+
+
 import uuid
 from pydub import AudioSegment
 
