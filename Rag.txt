@@ -1,3 +1,21 @@
+row_num = header_row + 1
+while row_num <= ws.max_row:
+    rc = ws.cell(row=row_num, column=header_map["Registre commerce"]).value
+    if rc is None or str(rc).strip() == "":
+        row_num += 1
+        continue  # Nothing here, skip
+
+    rc_key = str(rc).strip()
+    if rc_key not in csv_df.index:
+        row_num += 1
+        continue  # No matching record, skip
+
+    # Process the row...
+
+    row_num += 1  # Always move to the next row
+
+
+
 if rc is None or str(rc).strip() == "":
     row_num += 1
     continue
