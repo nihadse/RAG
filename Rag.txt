@@ -1,3 +1,25 @@
+# Step 1: Find first row with actual data under the header
+data_start_row = None
+for r in range(header_row + 1, ws.max_row + 1):
+    val = ws.cell(row=r, column=header_map["Registre commerce"]).value
+    if val and str(val).strip():
+        data_start_row = r
+        break
+
+if not data_start_row:
+    print(f"⚠️ No data found under Registre commerce in {input_path} / Sheet({sheet_name})")
+    continue
+
+# Step 2: Start from first data row
+row_num = data_start_row
+while True:
+    rc_cell = ws.cell(row=row_num, column=header_map["Registre commerce"])
+    rc = rc_cell.value
+    if rc is None:
+        break
+
+
+
 Objet : Demande de gravure de fichiers zippés
 
 Bonjour l’équipe support,
