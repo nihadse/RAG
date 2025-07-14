@@ -1,3 +1,31 @@
+rc_col = header_map.get("Registre_commerce")
+if not rc_col or rc_col < 1:
+    print(f"❌ 'Registre_commerce' column not found or invalid in: {input_path}")
+    continue
+
+row_num = header_row + 1
+empty_count = 0
+
+while row_num <= ws.max_row:
+    rc_cell = ws.cell(row=row_num, column=rc_col)
+    rc = rc_cell.value
+
+    if rc is None or str(rc).strip() == "":
+        row_num += 1
+        empty_count += 1
+        if empty_count > 100:
+            break
+        continue
+
+    empty_count = 0
+    rc_key = str(rc).strip()
+    matched = rc_key in csv_df.index
+
+    # ... your processing logic ...
+
+    row_num += 1
+
+
 row_num = header_row + 1
 empty_count = 0
 
