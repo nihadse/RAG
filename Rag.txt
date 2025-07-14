@@ -1,3 +1,41 @@
+for csv_col, (field_key, yn_val) in csv_column_map.items():
+    if "yn" in field_key:
+        yes_col = header_map.get(f"{field_key}_yes")
+        no_col = header_map.get(f"{field_key}_no")
+
+        if yes_col and no_col:
+            yes_cell = get_writable_cell(ws, row_num, yes_col)
+            no_cell = get_writable_cell(ws, row_num, no_col)
+
+            if matched:
+                val = csv_df.at[rc_key, csv_col]
+                if isinstance(val, str) and val.strip().upper() == "X":
+                    if yn_val == "نعم":
+                        yes_cell.value = "/"
+                    elif yn_val == "Y":
+                        no_cell.value = "/"
+                    updated = True
+                else:
+                    if not yes_cell.value and not no_cell.value:
+                        no_cell.value = "/"
+                        updated = True
+
+    elif "date" in field_key:
+        # ✅ FIX: Lookup column first
+        date_col = header_map.get(field_key) or header_map.get(field_key.replace(" ", "_"))
+
+        if matched and date_col:
+            date_val = csv_df.at[rc_key, csv_col]
+            if isinstance(date_val, pd.Series):
+                date_val = date_val.iloc[0]
+
+            if date_val and str(date_val).strip():
+                date_cell = get_writable_cell(ws, row_num, date_col)
+                if not str(date_cell.value).strip():
+                    date_cell.value = date_val
+                    updated = True
+
+
 elif "date" in field_key:
     date_col = header_map.get(field_key) or header_map.get(field_key.replace(" ", "_"))
 
