@@ -1,3 +1,28 @@
+row_num = header_row + 1
+empty_count = 0
+
+while row_num <= ws.max_row:
+    rc_cell = ws.cell(row=row_num, column=header_map["Registre commerce"] + 1)
+    rc = rc_cell.value
+
+    # Skip if RC is empty
+    if rc is None or str(rc).strip() == "":
+        row_num += 1
+        empty_count += 1
+        if empty_count > 100:  # If 100 consecutive empty RCs, stop
+            break
+        continue
+
+    empty_count = 0  # Reset when we find a non-empty RC
+    rc_key = str(rc).strip()
+    matched = rc_key in csv_df.index
+
+    # (keep the rest of your processing code here...)
+
+    row_num += 1
+
+
+
 import os
 import pandas as pd
 from pathlib import Path
