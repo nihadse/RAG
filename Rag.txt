@@ -1,3 +1,26 @@
+if isinstance(date_val, pd.Series):
+    date_val = date_val.iloc[0]
+if date_val and str(date_val).strip():
+    date_cell = get_writable_cell(ws, row_num, date_col)
+    if not str(date_cell.value).strip():
+        date_cell.value = date_val
+        updated = True
+
+
+
+rc_key = str(rc).strip()
+matched = rc_key in csv_df.index
+
+if rc is None or str(rc).strip() == "":
+    row_num += 1
+    empty_count += 1
+    if empty_count > 100:
+        break
+    continue
+
+
+
+
 import os
 import pandas as pd
 from openpyxl import load_workbook
