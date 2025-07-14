@@ -1,3 +1,25 @@
+import xlrd
+import openpyxl
+from openpyxl import Workbook
+from pathlib import Path
+
+def convert_xls_to_xlsx(xls_path):
+    wb_xls = xlrd.open_workbook(xls_path)
+    wb_xlsx = Workbook()
+    sheet_xlsx = wb_xlsx.active
+
+    sheet_xls = wb_xls.sheet_by_index(0)
+
+    for row in range(sheet_xls.nrows):
+        for col in range(sheet_xls.ncols):
+            sheet_xlsx.cell(row=row+1, column=col+1).value = sheet_xls.cell_value(row, col)
+
+    new_path = Path(xls_path).with_suffix('.xlsx')
+    wb_xlsx.save(new_path)
+    return str(new_path)
+
+
+
 for csv_col, (field_key, yn_val) in csv_column_map.items():
     if "yn" in field_key:
         yes_col = header_map.get(f"{field_key}_yes")
