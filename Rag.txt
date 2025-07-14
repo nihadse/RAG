@@ -1,3 +1,10 @@
+def collect_excel_files(folder):
+    return [
+        str(path) for path in Path(folder).rglob("*")
+        if path.suffix.lower() == ".xlsx"
+    ]
+
+
 import xlrd
 import openpyxl
 from openpyxl import Workbook
