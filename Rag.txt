@@ -1,3 +1,181 @@
+import os
+import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.cell.cell import MergedCell
+from pathlib import Path
+
+def get_writable_cell(ws, row, col):
+    cell = ws.cell(row=row, column=col)
+    if isinstance(cell, MergedCell):
+        for merged in ws.merged_cells.ranges:
+            if (row, col) in merged.cells:
+                return ws.cell(row=merged.min_row, column=merged.min_col)
+    return cell
+
+def normalize_arabic(text):
+    if not text:
+        return ""
+    return str(text).replace("ی", "ي").replace("ك", "ك").replace("‌", "").replace("-", "") \
+        .replace("\u200f", "").replace("\u200e", "").strip()
+
+def find_merged_column_by_text(ws, header_lines, target_text):
+    target_text = normalize_arabic(target_text)
+    for col in range(1, ws.max_column + 1):
+        header_parts = []
+        for row in range(1, header_lines + 1):
+            val = ws.cell(row=row, column=col).value
+            if val:
+                header_parts.append(normalize_arabic(val))
+        full_header = "".join(header_parts)
+        if target_text in full_header:
+            return col
+    return None
+
+def collect_excel_files(folder):
+    return list(Path(folder).rglob("*.xlsx"))
+
+def fill_excel_from_csv(csv_path, excel_folder, output_folder):
+    os.makedirs(output_folder, exist_ok=True)
+
+    rc_cols = [
+        "رقم السجل التجاري", "N° du registre du commerce",
+        "رقم السجل d'inscription", "N"
+    ]
+
+    loan_yn_header = "هل استفاد المتعامل الاقتصادي من قرض بنكي"
+    import_yn_header = "هل قام المتعامل الاقتصادي بتوطين بنكي لعمليات استيراد"
+    loan_date_header = "تاريخ آخر استفادة من قرض بنكي"
+    import_date_header = "تاريخ آخر توطين بنكي لعمليات استيراد"
+
+    csv_column_map = {
+        "beneficiaire credit Oui": ("loan_yn", "نعم"),
+        "beneficiaire credit Non": ("loan_yn", "لا"),
+        "Operation import Oui": ("import_yn", "نعم"),
+        "Operation import Non": ("import_yn", "لا"),
+        "Derniere date effet crédit": ("loan date", None),
+        "Derniere date import": ("import date", None)
+    }
+
+    csv_df = pd.read_csv(csv_path, dtype=str).fillna("")
+    if "Registre_commerce" not in csv_df.columns:
+        print("🚫 'Registre_commerce' column missing in CSV.")
+        return
+
+    csv_df.set_index("Registre_commerce", inplace=True)
+
+    excel_files = collect_excel_files(excel_folder)
+
+    for file_path in excel_files:
+        input_path = str(file_path)
+        output_path = os.path.join(output_folder, os.path.relpath(input_path, excel_folder))
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+        print(f"📂 Processing: {input_path}")
+
+        wb = load_workbook(input_path)
+        updated = False
+
+        for sheetname in wb.sheetnames:
+            ws = wb[sheetname]
+            header_row = None
+            header_map = {}
+
+            # Detect header
+            for i in range(1, 51):
+                row_vals = [str(cell.value).strip() if cell.value else "" for cell in ws[i]]
+                for idx, val in enumerate(row_vals):
+                    if val in rc_cols:
+                        header_row = i
+                        header_map["Registre_commerce"] = idx + 1
+                        break
+                if header_row:
+                    break
+
+            if not header_row:
+                print(f"⚠️ No RC column found in {input_path} / Sheet: {sheetname}")
+                continue
+
+            # Detect column positions for dates and booleans
+            header_map["loan date"] = find_merged_column_by_text(ws, 10, loan_date_header)
+            header_map["import date"] = find_merged_column_by_text(ws, 10, import_date_header)
+
+            for merged in ws.merged_cells.ranges:
+                cell = ws.cell(row=header_row, column=merged.min_col)
+                val = str(cell.value).strip() if cell.value else ""
+                if loan_yn_header in val:
+                    header_map["loan_yn_yes"] = merged.min_col
+                    header_map["loan_yn_no"] = merged.min_col + 1
+                elif import_yn_header in val:
+                    header_map["import_yn_yes"] = merged.min_col
+                    header_map["import_yn_no"] = merged.min_col + 1
+
+            rc_col = header_map.get("Registre_commerce")
+            if not rc_col:
+                print(f"⚠️ Invalid or missing RC column in: {input_path}")
+                continue
+
+            row_num = header_row + 1
+            empty_count = 0
+
+            while row_num <= ws.max_row:
+                rc_cell = ws.cell(row=row_num, column=rc_col)
+                rc = rc_cell.value
+
+                if rc is None or str(rc).strip() == "":
+                    row_num += 1
+                    empty_count += 1
+                    if empty_count > 100:
+                        break
+                    continue
+
+                empty_count = 0
+                rc_key = str(rc).strip()
+                matched = rc_key in csv_df.index
+
+                for csv_col, (field_key, yn_val) in csv_column_map.items():
+                    if "yn" in field_key:
+                        yes_col = header_map.get(f"{field_key}_yes")
+                        no_col = header_map.get(f"{field_key}_no")
+                        if yes_col and no_col:
+                            yes_cell = get_writable_cell(ws, row_num, yes_col)
+                            no_cell = get_writable_cell(ws, row_num, no_col)
+
+                            if matched:
+                                val = csv_df.at[rc_key, csv_col]
+                                if isinstance(val, str) and val.strip().upper() == "X":
+                                    if yn_val == "نعم":
+                                        yes_cell.value = "/"
+                                    elif yn_val == "لا":
+                                        no_cell.value = "/"
+                                    updated = True
+                                else:
+                                    if not yes_cell.value and not no_cell.value:
+                                        no_cell.value = "/"
+                                        updated = True
+                    elif "date" in field_key:
+                        date_col = header_map.get(field_key)
+                        if matched and date_col:
+                            date_val = csv_df.at[rc_key, csv_col]
+                            if isinstance(date_val, pd.Series):
+                                date_val = date_val.iloc[0]
+                            if date_val and str(date_val).strip():
+                                date_cell = get_writable_cell(ws, row_num, date_col)
+                                if not str(date_cell.value).strip():
+                                    date_cell.value = date_val
+                                    updated = True
+
+                row_num += 1
+
+        wb.save(output_path)
+        if updated:
+            print(f"✅ Saved: {output_path}")
+        else:
+            print(f"📄 No updates made: {output_path}")
+
+
+
+
+
 rc_col = header_map.get("Registre_commerce")
 if not rc_col or rc_col < 1:
     print(f"❌ 'Registre_commerce' column not found or invalid in: {input_path}")
