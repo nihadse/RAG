@@ -1,3 +1,6 @@
+elif "date" in field_key:
+    date_col = header_map.get(field_key) or header_map.get(field_key.replace(" ", "_"))
+
 if isinstance(date_val, pd.Series):
     date_val = date_val.iloc[0]
 if date_val and str(date_val).strip():
