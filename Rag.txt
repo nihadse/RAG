@@ -1,3 +1,11 @@
+
+Accès aux requêtes EDB des engagements – Nouvelle plateforme Business Objects
+
+
+
+L’accès aux requêtes EDB des engagements sur la nouvelle plateforme Business Objects est nécessaire afin de pouvoir démarrer la construction des jeux de données.Pourriez-vous, s’il vous plaît, nous donner l’accès aux requêtes
+
+
 Bonjour [Nom du manager],
 J’ai essayé de faire la formation plusieurs fois, mais elle ne fonctionne pas. Un blocage technique m’empêche de la finaliser.
 
