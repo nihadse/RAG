@@ -1,3 +1,24 @@
+Subject: Demande de récupération de notebooks – Workspace de l’ancien stagiaire
+
+Bonjour [Nom du support / Équipe Domino],
+
+Il s’agit du projet de notre ancien stagiaire, qui a quitté l’entreprise.
+Nous n’avons pas pu télécharger ses fichiers en raison de problèmes de synchronisation de son espace de travail, et il n’a pas pu effectuer cette opération avant son départ.
+
+Pouvez-vous, s’il vous plaît, nous aider à récupérer les notebooks ?
+Voici le lien vers son workspace : [lien du workspace]
+
+Comme précisé par mon manager, il n’est pas nécessaire d’accéder directement à la session du stagiaire.
+
+Cordialement,
+Nihad Senhadji
+
+
+
+
+
+
+
 "Les détails des anomalies tiers sans rôle, ainsi que leurs KPI, sont prêts."
 
 
