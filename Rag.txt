@@ -1,9 +1,179 @@
-Bonjour,
-
-Prière de nous transmettre la mise à jour de la liste des codes exploitant de mai 2025, en y ajoutant le code agence pour chaque exploitant.
-
-Nihad
+Très bien 👍 Tu souhaites un rapport en français plus détaillé, avec davantage d’explications sur le contexte, les résultats concrets et l’impact attendu.
+Voici une version enrichie et plus complète :
 
 
+---
 
-Vous devez télécharger les résultats du publipostage au format PDF et au format Word pour les deux lettres traitement decad NV.docx et traitement decad prorogation.docx, puis les enregistrer dans le dossier suivant : [lien vers le dossier]. Ensuite, vous devez les envoyer par e-mail.
+Rapport – Atelier Stratégie IA Agents
+
+Date : 16 juillet 2025
+Lieu : Louveciennes
+Préparé par : Nihad Senhadji
+
+
+---
+
+Contexte et objectifs
+
+Dans le cadre de la Stratégie EM IA 2030, un atelier a été organisé à Louveciennes afin d’explorer le rôle que les Agents IA pourront jouer dans les cinq prochaines années.
+L’objectif principal était de :
+
+Stimuler la créativité des participants autour de l’usage de l’IA dans nos métiers.
+
+Générer des idées disruptives permettant de repenser la relation client et les opérations.
+
+Identifier les cas d’usage concrets qui présentent à la fois un impact stratégique fort et une faisabilité technologique réaliste.
+
+Préparer le terrain pour des déclinaisons locales par pays d’ici septembre 2025.
+
+
+
+---
+
+Déroulement de l’atelier
+
+Session du matin :
+
+Travaux en groupes tournants sur trois thèmes :
+
+1. Agents pour les clients
+
+
+2. Agents pour les employés
+
+
+3. Agents pour l’écosystème et les systèmes internes
+
+
+
+Plus de 80 idées ont été générées dans ces trois axes.
+
+
+Session de l’après-midi :
+
+Revue collective et filtrage des idées selon deux critères : intérêt métier et impact stratégique.
+
+Sélection finale des 9 cas d’usage prioritaires (notés « très fort intérêt métier »).
+
+
+
+
+---
+
+Résultats et enseignements clés
+
+Une dynamique collaborative forte a permis de faire émerger un grand nombre d’idées, démontrant le potentiel des Agents IA dans des contextes variés (front-office, middle-office, back-office).
+
+Les cas retenus apportent une valeur ajoutée immédiate dans :
+
+L’amélioration de l’expérience client (rapidité, personnalisation, multilinguisme).
+
+L’efficacité des collaborateurs (réduction des tâches répétitives, assistance décisionnelle).
+
+Le renforcement de la conformité et de la gestion des risques.
+
+
+L’atelier a aussi révélé la nécessité d’un accompagnement au changement : au-delà de la technologie, il sera essentiel d’intégrer les Agents IA dans les process métier de façon progressive et sécurisée.
+
+
+
+---
+
+Top 9 Cas d’Usage Prioritaires
+
+1. Pour les clients (3 cas)
+
+Assistant Client Multilingue 24/7 (SPOC)
+Fournir un point d’entrée unique capable de répondre aux questions, détecter les risques (fraude, usurpation), proposer des solutions proactives et escalader les cas complexes vers les bons interlocuteurs.
+
+Assistant Demande de Crédit
+Aider les clients à constituer leur dossier crédit : explication des options, vérification des critères d’éligibilité, suivi du processus en temps réel.
+
+Agent de Collaboration Inter-Institutions
+Centraliser les interactions clients nécessitant la coordination de plusieurs établissements financiers, améliorer la transparence et la fluidité entre acteurs de l’écosystème.
+
+
+
+---
+
+2. Pour les employés (5 cas)
+
+Agent Conformité et Processus (KYC, réglementaire, juridique)
+Détecter automatiquement les évolutions réglementaires, mettre à jour la documentation interne et notifier les collaborateurs concernés.
+
+Assistant Analyse Crédit (Analystes & RMs)
+Agréger les données clients, évaluer le profil de risque, préparer des rapports et propositions de décision, réduire les délais d’analyse.
+
+Assistant de Travail Quotidien (Employee Copilot)
+
+Classement et priorisation des emails, rédaction automatique de réponses.
+
+Organisation et suivi des réunions (traduction, compte rendu, relances).
+
+Suggestion de tâches prioritaires en fonction du contexte métier.
+
+
+Agent Marketing / Analyse de Sentiment
+Suivi des interactions clients sur les réseaux sociaux et analyse des feedbacks afin de fournir des insights exploitables pour ajuster la stratégie marketing.
+
+Optimisation du Processus KYC
+Automatisation de la collecte et du partage d’informations entre banques pour simplifier et accélérer l’onboarding client.
+
+
+
+---
+
+3. Pour l’écosystème (1 cas)
+
+Agent de Collaboration Institutionnelle
+Création d’un réseau sécurisé permettant aux institutions financières de partager des données pertinentes, de coordonner certaines opérations et de renforcer la conformité collective.
+
+
+
+---
+
+Prochaines étapes
+
+1. Récapitulatif consolidé des idées et du filtrage (préparé par Estelle, Julien et Herbert).
+
+
+2. Organisation de sessions d’approfondissement (deep dive) sur les cas d’usage les plus prometteurs d’ici fin septembre 2025.
+
+
+3. Élaboration des plans locaux par pays, intégrant les priorités identifiées.
+
+
+4. Publication d’un livre blanc stratégique (avril–juillet 2025) qui sera enrichi jusqu’à novembre, et servira de référence pour les futures initiatives IA.
+
+
+
+
+---
+
+Impact attendu
+
+Clients : meilleure satisfaction grâce à des services plus rapides, personnalisés et accessibles en continu.
+
+Collaborateurs : productivité accrue via l’automatisation des tâches répétitives et l’aide à la décision.
+
+Organisation : conformité renforcée, réduction des risques, et positionnement en avance sur la concurrence en matière d’innovation IA.
+
+
+
+---
+
+Remerciements
+
+Un grand merci à l’ensemble des participants pour leur engagement, en particulier Gladys, Benoit et Estelle pour l’organisation.
+
+
+---
+
+Conclusion
+
+Cet atelier a marqué une étape clé dans la définition de notre stratégie IA 2030. Les 9 cas d’usage prioritaires identifiés constituent un socle solide pour l’intégration progressive des Agents IA dans nos activités. Ils ouvrent la voie à une transformation profonde de notre relation client, de l’efficacité opérationnelle et de notre positionnement dans l’écosystème bancaire.
+
+
+---
+
+👉 Veux-tu que je te propose aussi une mise en page type PowerPoint ou Word avec tableau et schémas visuels pour que le rapport soit plus percutant à présenter à ton manager ?
