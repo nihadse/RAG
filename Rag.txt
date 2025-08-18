@@ -1,3 +1,186 @@
+Parfait 👍 Je comprends : tu veux garder ton contenu tel quel, mais le rendre propre, professionnel, lisible et cohérent (style rapport de workshop).
+Voici la version corrigée et finalisée :
+
+
+---
+
+Atelier Stratégie IA Agents
+
+Date : 16 juillet 2025
+Lieu : Louveciennes
+
+
+---
+
+Contexte et objectifs
+
+L’objectif principal de l’atelier était de définir la stratégie de la banque concernant l’utilisation des agents d’IA au cours des prochaines années.
+Le but n’était pas seulement d’explorer le rôle de cette technologie, mais de tracer une feuille de route concrète sur l’impact stratégique que les agents d’IA peuvent avoir dans la redéfinition des relations avec :
+
+les clients,
+
+les collaborateurs,
+
+l’écosystème bancaire.
+
+
+
+---
+
+Déroulement de l’atelier
+
+Session du matin
+
+Travaux en groupes tournants sur trois thèmes :
+
+1. Agents pour les clients
+
+
+2. Agents pour les employés
+
+
+3. Agents pour l’écosystème et les systèmes internes
+
+
+
+➡️ Plus de 80 idées générées sur ces trois axes.
+
+Session de l’après-midi
+
+Revue collective et filtrage des idées selon deux critères :
+
+intérêt métier,
+
+impact stratégique.
+
+
+Sélection finale des 9 cas d’usage prioritaires.
+
+
+
+---
+
+Résultats du workshop
+
+Les cas retenus apportent une valeur ajoutée immédiate dans :
+
+l’amélioration de l’expérience client (rapidité, personnalisation, multilinguisme),
+
+l’efficacité des collaborateurs (réduction des tâches répétitives, assistance décisionnelle),
+
+le renforcement de la conformité et de la gestion des risques.
+
+
+
+---
+
+Top 9 cas d’utilisation prioritaires
+
+Pour les clients (3 use cases)
+
+1. Assistant client multilingue 24/7 (POC en cours)
+
+Point de contact unique pour répondre aux questions, fournir des informations, détecter des risques et escalader les demandes complexes.
+
+
+
+2. Assistant de demande de crédit
+
+Accompagnement du client tout au long du processus (explications, éligibilité, vérification des documents, suivi).
+
+
+
+3. Agent de collaboration inter-institutionnelle
+
+Faciliter les interactions entre BNP Paribas et ses partenaires externes en centralisant la relation client.
+
+
+
+
+
+---
+
+Pour les employés (5 use cases)
+
+4. Agent de surveillance conformité/juridique
+
+Détection automatique des changements réglementaires, mises à jour de la documentation interne, alertes en temps réel.
+
+
+
+5. Assistant analyste crédit
+
+Agrégation de données, soutien à l’évaluation des risques et préparation de modèles d’aide à la décision.
+
+
+
+6. Assistant de travail quotidien
+
+Tri des e-mails, rédaction de réponses, priorisation des tâches, soutien aux réunions (agenda, prise de notes, actions de suivi).
+
+
+
+7. Agent d’analyse marketing et de sentiment
+
+Surveillance des médias sociaux et retours clients pour fournir des insights exploitables.
+
+
+
+8. Agent d’optimisation du processus KYC
+
+Automatisation de la collecte et de la vérification des informations à travers plusieurs institutions.
+
+
+
+
+
+---
+
+Impact attendu
+
+Clients : satisfaction accrue grâce à des services plus rapides, personnalisés et disponibles en continu.
+
+Collaborateurs : productivité renforcée par l’automatisation et l’aide à la décision.
+
+Organisation : conformité améliorée, réduction des risques, positionnement renforcé comme leader en innovation IA.
+
+
+
+---
+
+Conclusion
+
+Cet atelier a marqué une étape clé dans la définition de notre stratégie IA 2030.
+Les 9 cas d’usage prioritaires identifiés constituent un socle solide pour l’intégration progressive des agents d’IA dans nos activités.
+Ils ouvrent la voie à une transformation profonde de :
+
+notre relation client,
+
+notre efficacité opérationnelle,
+
+notre rôle dans l’écosystème bancaire.
+
+
+
+---
+
+👉 Cette version est concise, claire et présente comme un vrai livrable post-workshop (pas trop de texte, titres clairs, listes à puces).
+
+Veux-tu que je prépare aussi une version PowerPoint synthétique (1 slide Contexte, 1 slide Résultats, 1 slide Top 9 use cases, 1 slide Impact) pour ton partage aux participants ?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Got it ✅ — I’ll rewrite this messy draft into a clear, professional English report-style email that reflects the real purpose of the workshop: defining the bank’s strategy toward AI agents, not just exploring their role.
 
 
