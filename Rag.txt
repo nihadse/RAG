@@ -1,3 +1,159 @@
+Got it ✅ — I’ll rewrite this messy draft into a clear, professional English report-style email that reflects the real purpose of the workshop: defining the bank’s strategy toward AI agents, not just exploring their role.
+
+
+---
+
+Report – AI Agents Strategy Workshop
+
+Date: July 16, 2025
+Location: Louveciennes
+Prepared by: Vincent Decugis – Chief Data Officer, BNP Paribas EMT
+
+
+---
+
+Objectives of the Workshop
+
+The primary purpose of the workshop was to define BNP Paribas’s strategy regarding the use of AI Agents over the coming years. The goal was not only to explore the role of this technology but to outline a concrete roadmap on how Agents can reshape client relations, employee support, and operational efficiency.
+
+
+---
+
+Agenda and Structure
+
+Morning session (Ideation):
+
+Participants split into three rotating groups, each focusing on one theme:
+
+1. AI Agents for Clients
+
+
+2. AI Agents for Employees
+
+
+3. AI Agents for Systems and Ecosystem
+
+
+
+Nearly 80 ideas were generated in this creative phase.
+
+
+Afternoon session (Filtering & Prioritization):
+
+Collective review and selection of the most relevant ideas.
+
+Consolidation into 9 priority use cases, grouped by feasibility and strategic impact.
+
+Preparation for deeper analysis in follow-up sessions.
+
+
+
+
+---
+
+Key Outcomes
+
+Strong engagement and creativity from participants, despite logistical challenges.
+
+Clear alignment on the strategic importance of AI Agents for transforming client experience and internal operations.
+
+Agreement on 9 high-potential use cases:
+
+5 focused on employees
+
+3 focused on clients
+
+1 focused on ecosystem collaboration
+
+
+Recognition that physical workshops are essential for building trust, exchanging ideas, and aligning on strategy.
+
+
+
+---
+
+Top 9 Priority Use Cases
+
+For Clients (3 use cases)
+
+1. Multilingual 24/7 Client Assistant (SPOC): Single point of contact to answer questions, provide information, detect risks, and escalate complex requests.
+
+
+2. Credit Application Assistant: Supporting clients through the credit process (explanations, eligibility, document checks, and follow-up).
+
+
+3. Cross-Institution Collaboration Agent: Facilitating interactions between BNP Paribas and external partners, centralizing the client relationship.
+
+
+
+For Employees (5 use cases)
+
+4. Compliance / Legal Monitoring Agent: Automatic detection of regulatory changes, updates of internal documentation, and real-time alerts.
+
+
+5. Credit Analyst Assistant: Data aggregation, risk assessment support, and preparation of decision templates for analysts and relationship managers.
+
+
+6. Daily Work Assistant: Email triage, drafting responses, task prioritization, and meeting support (agenda, note-taking, follow-up actions).
+
+
+7. Marketing & Sentiment Analysis Agent: Monitoring social media and client feedback to provide actionable insights.
+
+
+8. KYC Process Optimization Agent: Automating information collection and verification across multiple institutions.
+
+
+
+For Ecosystem (1 use case)
+
+9. Institutional Collaboration Agent: A secure network facilitating communication and data exchange between financial institutions.
+
+
+
+
+---
+
+Next Steps
+
+1. Synthesis & Documentation: Estelle, Julien, and Herbert will prepare a consolidated recap of all ideas, the filtering process, and a summary presentation (to be shared next week).
+
+
+2. Deep-Dive Sessions: Organize working groups to further develop the 9 priority use cases by end of September 2025.
+
+
+3. Localization: Adapt the strategy to each country’s specific context in Q3.
+
+
+4. White Paper: Deliver a comprehensive document (by November 2025) summarizing all insights, use cases, and the strategic direction of AI Agents for the next 5 years.
+
+
+
+
+---
+
+Acknowledgements
+
+A special thanks to Gladys, Benoit, and Estelle for their organization, and to all colleagues for their active participation and valuable contributions. Despite the long travels and scheduling challenges, the workshop proved the importance of face-to-face collaboration in shaping BNP Paribas’s AI strategy.
+
+
+---
+
+Conclusion
+
+This workshop marks a decisive step in BNP Paribas’s journey toward strategically integrating AI Agents. The outcomes will not only inspire further innovation but also provide a structured roadmap to ensure that AI adoption creates tangible value for clients, employees, and the broader ecosystem.
+
+
+---
+
+👉 Do you want me to also condense this into a 1-page executive summary (bullet points + diagram) for senior management? That way, you’d have both the detailed report and a quick-read version.
+
+
+
+
+
+
+
+
 Très bien 👍 Tu souhaites un rapport en français plus détaillé, avec davantage d’explications sur le contexte, les résultats concrets et l’impact attendu.
 Voici une version enrichie et plus complète :
 
