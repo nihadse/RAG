@@ -1,3 +1,9 @@
+Here’s the updated version with “à tous”:
+
+Bonjour à tous, voici le rapport final du workshop Agents IA 2030, n’hésitez pas à y ajouter vos remarques ou informations complémentaires.
+
+
+
 Rapport du Workshop
 
 Les 9 cas d’usage prioritaires identifiés lors de l’atelier sont présentés de façon détaillée dans les tableaux en annexe.
