@@ -1,3 +1,86 @@
+Alright, let’s expand it with more technical flavor, while keeping it clear and structured so it’s presentation-ready. Here’s a detailed résumé you can drop into slides or use as speaker notes.
+
+
+---
+
+Domino Data Lab – Expanded Summary
+
+Core Platform & Workspace
+
+Enterprise-grade AI/MLOps platform for managing the entire lifecycle: data → training → deployment → monitoring.
+
+Self-service workbench: launch Jupyter, RStudio, VS Code, or custom tools directly inside Domino.
+
+Flexible compute: choose CPUs/GPUs (NVIDIA A100, V100 w/ NVLink) and distributed clusters (Spark, Ray, Dask, MPI).
+
+Domino Reproducibility Engine automatically tracks code, data, results, and environment — ensuring every experiment is reproducible.
+
+
+
+---
+
+Collaboration, Data, & Code Management
+
+Centralized project repository: host code, datasets, and results for easy sharing and re-use across teams.
+
+Secure integration with corporate Git platforms (GitLab, Bitbucket) for version control.
+
+Native data connectors to internal/external sources (databases, data lakes, cloud storage, Snowflake, S3, Azure Blob, GCS).
+
+Support for large portfolios of projects, with snapshots and dataset versioning.
+
+Ability to install and persist custom libraries in your environment for specialized AI workloads.
+
+
+
+---
+
+AI Development, Jobs, and Deployment
+
+Scale workloads: move from small experiments to distributed training with a single click.
+
+Batch Jobs: schedule and run repeatable ML/AI workflows (ETL, preprocessing, model training).
+
+Launchers: pre-configured buttons to trigger pipelines, simplify recurring tasks, and accelerate onboarding for new users.
+
+Model deployment: publish trained models as REST APIs or batch endpoints.
+
+Build interactive Web Apps (Dash, Streamlit, Flask) to demo models directly for business users.
+
+
+
+---
+
+Monitoring, Governance & Infrastructure
+
+Domino Model Monitor: automated monitoring for drift, bias, data quality, and model degradation.
+
+Infrastructure monitoring: advanced Kibana dashboards for usage, performance, and system health.
+
+Security and governance: role-based access control, audit logs, compliance-ready environment.
+
+Optional paid extensions for deeper monitoring and advanced compliance reporting.
+
+
+
+---
+
+Why Domino for AI Teams
+
+Accelerates the cycle from idea → experiment → production without infrastructure bottlenecks.
+
+Ensures enterprise-grade governance, reproducibility, and collaboration.
+
+Bridges the gap between data science R&D and IT/production systems.
+
+Trusted by global enterprises (finance, healthcare, energy, technology) to scale AI securely.
+
+
+
+---
+
+This version gives you enough technical depth (tools, GPUs, frameworks, jobs, monitoring) but also a strategic story about why Domino is v
+Would you like me to now chunk this expanded résumé directly into 4 polished slides (with clear headers pe
 Here’s the updated version with “à tous”:
 
 Bonjour à tous, voici le rapport final du workshop Agents IA 2030, n’hésitez pas à y ajouter vos remarques ou informations complémentaires.
