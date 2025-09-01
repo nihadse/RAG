@@ -1,3 +1,78 @@
+Perfect — thanks for the clarifications! Let’s tighten it up, make it more tech-oriented, fix Jour/Homme (instead of Jours/H), emphasize semantic similarity, and specify the use of a Sentence Transformer model. Here’s a refined presentation script that follows your slides’ structure but speaks in a more technical, precise way:
+
+
+---
+
+Script – Use Case DECAD AI
+
+Slide 1 – Use case DECAD AI
+Each month, the Bank of Algeria sends a DECAD file listing cheque defaulters. On average, this file has about 2,200 entries. The file is not structured, which complicates processing.
+
+Client names are often inconsistent with our Atlas customer database — sometimes reversed or spelled differently. Previously, the Domestic Flow team had to manually search to identify defaulters in Atlas. This was time-consuming, error-prone, and inefficient.
+
+Our Solution – DECAD AI
+We deployed an AI system based on Natural Language Processing (NLP). Using a Sentence Transformer model, the system calculates semantic similarity between Atlas’ client database and the Bank of Algeria’s blacklist.
+
+The comparison is not only on names and surnames, but also includes:
+
+legal entity type,
+
+date of birth or company creation date, and
+
+place of birth.
+
+
+The Current Situation
+DECAD AI has been running in production over the last three months (June, July, August).
+
+It generates a consolidated output file with verified client matches, drastically reducing manual research.
+
+It automates repetitive checks, minimizes human error, and ensures higher precision.
+
+
+The Gains
+
+Before: 252 Jour/Homme per year.
+
+After: 7.2 Jour/Homme per year.
+
+Gain: 244.8 Jour/Homme, representing a 97% reduction in manual search time.
+
+
+
+---
+
+Slide 2 – How it works
+The DECAD AI process relies on semantic similarity search using a Sentence Transformer model.
+
+1. For each entry in the DECAD file, the system computes similarity scores with clients in the Atlas database.
+
+
+2. It then cross-checks additional attributes — date of birth or company creation, and place of birth — to confirm identity.
+
+
+3. The final results are exported into Excel with two sheets:
+
+one containing matches with similarity ≥ 95%,
+
+and another for matches < 95%.
+
+
+
+
+This architecture significantly improves the accuracy of identifying defaulters while cutting down manual validation work almost entirely.
+
+
+---
+
+This version balances technical depth (sentence transformer, semantic similarity, workflow) with the structured business storytelling from your slides.
+
+Do you want me to also draft it in a bullet-point style, so you can copy directly into PowerPoint notes for each slide?
+
+
+
+
+
 Alright, let’s expand it with more technical flavor, while keeping it clear and structured so it’s presentation-ready. Here’s a detailed résumé you can drop into slides or use as speaker notes.
 
 
