@@ -1,3 +1,50 @@
+Here’s a polished English version of your DECAD AI script, adapted for a video flow (clear, engaging, professional, but simple to follow):
+
+
+---
+
+DECAD AI – English Script
+
+Thanks to the SG workshop, we identified a promising use case for artificial intelligence.
+
+To give some context: one of the tasks of the Domestic Flow team is to verify whether clients are on the “restricted list.” Every month, the Bank of Algeria provides a text file with around 2,200 entries. The team must manually check this data using the “Intier” transaction in ATIAS.
+
+Each month, 6 employees are mobilized for this regulatory activity, which represents about 21 working days. This repetitive, manual, and heavy task carries a high risk of error. The issue was raised during the SG workshop to find a solution that could reduce workload, lower risk, and improve employee efficiency.
+
+The solution came through collaboration between the Data team and the IT department: DECAD AI was born.
+
+This solution is based on Natural Language Processing (NLP). DECAD AI is designed to detect similarities between our client database and the restricted list, focusing on first name, last name, company name, and date of birth or creation date.
+
+Here’s how it works:
+
+We calculate similarity scores between names in the restricted list and our client records.
+
+Then we verify dates of birth or creation to confirm the identity of individuals with potential matches.
+
+Finally, we generate a global similarity score.
+
+
+The results are presented as similarity scores with clear thresholds. With DECAD AI, manual research was reduced by 97%—from 257 man-days to just 7.2. That’s a productivity gain of 224.8 man-days.
+
+This solution ensures accurate and efficient detection, while significantly reducing human effort.
+
+Now, think of any challenge in your daily tasks. With DECAD AI, we are here to solve it together—with tailored solutions adapted to your needs.
+
+
+---
+
+Would you like me to also reshape this into a shorter, punchier version (like a 1–2 minute promo video script), or keep it more technical and explanatory for internal training/demo purposes?
+
+
+
+
+
+
+
+
+
+
+
 Perfect — thanks for the clarifications! Let’s tighten it up, make it more tech-oriented, fix Jour/Homme (instead of Jours/H), emphasize semantic similarity, and specify the use of a Sentence Transformer model. Here’s a refined presentation script that follows your slides’ structure but speaks in a more technical, precise way:
 
 
