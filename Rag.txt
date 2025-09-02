@@ -1,3 +1,7 @@
+“Manual verification of clients on the restricted list for checkbooks.”
+
+
+
 Here’s a polished English version of your DECAD AI script, adapted for a video flow (clear, engaging, professional, but simple to follow):
 
 
