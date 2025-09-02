@@ -1,3 +1,19 @@
+
+In Excel file – 3 sheets
+Results of Similarities
+
+1. Audit Trail – Full File
+
+
+2. DECAD Similarity >95%
+
+
+3. DECAD Similarity <95%
+
+
+
+
+
 Got it — you want the video to inspire the audience, not just inform them. Since your audience is tech-savvy, the presentation can balance storytelling + technical clarity. Think of it as a “mini product launch” rather than a dry report.
 
 Here’s how you could structure it, with script mood + visuals for inspiration:
