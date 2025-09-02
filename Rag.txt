@@ -1,3 +1,107 @@
+Got it — you want the video to inspire the audience, not just inform them. Since your audience is tech-savvy, the presentation can balance storytelling + technical clarity. Think of it as a “mini product launch” rather than a dry report.
+
+Here’s how you could structure it, with script mood + visuals for inspiration:
+
+
+---
+
+1. Opening Hook (30 sec)
+
+Narration:
+“Every month, our teams spend over 250 man-days doing one repetitive task: checking clients against the restricted list. It’s manual. It’s heavy. And it’s risky. But what if AI could change that?”
+
+Visuals:
+Show a tired team manually scanning endless spreadsheets → cut to fast-paced visuals of data files flowing into a system.
+Dark → bright transition (to symbolize transformation).
+
+
+
+---
+
+2. The Problem (40 sec)
+
+Narration:
+“The Bank of Algeria sends a file with 2,200 entries each month. Six employees spend 21 working days verifying data using the Intier transaction in ATIAS. Errors are inevitable. Productivity is lost. Something had to change.”
+
+Visuals:
+Animation of a “data file” dropping each month → icons of people working long hours → red warning signs “Error risk.”
+
+
+
+---
+
+3. The Solution: DECAD AI (1 min)
+
+Narration:
+“Through collaboration between the Data team and IT, we built DECAD AI.
+A solution powered by Natural Language Processing, capable of comparing names, company data, and birth dates with advanced similarity scoring.”
+
+Visuals:
+Show data flowing into an AI “engine” → words like “NLP,” “Similarity Score,” “Automation” floating around → dashboard with scores appearing.
+
+
+
+---
+
+4. How It Works (1 min)
+
+Narration:
+“DECAD AI calculates similarity scores, validates key attributes, and generates a global confidence score. Results are precise, fast, and transparent.”
+
+Visuals:
+Step-by-step animation of pipeline:
+File input → NLP engine → scoring → output (green check, red cross).
+Add motion graphics of percentages rising (95%, 97%).
+
+
+
+---
+
+5. The Impact (1 min)
+
+Narration:
+“From 257 man-days to 7.2. A 97% reduction in manual work. A gain of 224.8 man-days every year. Less risk, more efficiency, smarter workflows.”
+
+Visuals:
+Before/after bar chart → calendar shrinking → happy employees freed up for meaningful work.
+
+
+
+---
+
+6. Closing Inspiring Message (30 sec)
+
+Narration:
+“This is just the beginning. Imagine the daily challenges across our workflows. With DECAD AI, we’re ready to solve them—together, faster, smarter.”
+
+Visuals:
+Logo “DECAD AI” glowing → futuristic city or data-grid background → tagline: “Efficiency powered by AI.”
+
+
+
+---
+
+Video Style Ideas
+
+Design: Futuristic, clean, corporate tech style.
+
+Colors: Blue/green (trust, data, AI), avoid too flashy.
+
+Music: Motivational, rising energy (not too dramatic).
+
+Tone: Confident, innovative, but approachable.
+
+
+
+---
+
+Want me to draft you a scene-by-scene storyboard with text + suggested animations/graphics (so you can hand it directly to a video editor/animator)?
+
+
+
+
+
+
 • 6 employees mobilized for 21 working days
 • Manual, repetitive, high risk of errors
 
