@@ -1,3 +1,9 @@
+Individual account (for a natural person).
+
+Corporate account or Business account (for a legal person / legal entity).
+
+
+
 
 In Excel file – 3 sheets
 Results of Similarities
