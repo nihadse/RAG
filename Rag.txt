@@ -1,3 +1,66 @@
+Perfect 👍 since you want to use it as an audio script, I’ll expand and detail it so it sounds clear, structured, and professional when spoken aloud. Here’s a polished version you can read or record:
+
+
+---
+
+🎤 Audio Script
+
+Each month, the Bank of Algeria provides a DECAD file that lists cheque defaulters. On average, this file contains around two thousand two hundred entries.
+
+However, the file is not structured, which makes processing and searching within it quite complicated. The file contains several columns, including:
+
+Name
+
+Family name
+
+Address
+
+Date of birth
+
+Place of birth
+
+Commune and state code
+
+The effective date
+
+And the lifting date.
+
+
+For example, a typical entry may look like this:
+
+Name: Joe
+
+Family name: Doe
+
+
+Despite these details, there are several challenges that prevent us from automating the search process:
+
+1. There is missing information in many parts of the DECAD file.
+
+
+2. The file contains a mix of individual client accounts and business accounts, which adds complexity.
+
+
+3. Most importantly, the DECAD file does not contain any unique identifier, such as a national ID number or account number, that could facilitate an accurate and reliable search.
+
+
+
+Because of these limitations, each search requires manual verification in order to confirm the identity of the person or the business.
+
+
+---
+
+✨ This version is clear, professional, and flows naturally for speech.
+
+👉 Do you want me to make it shorter, punchier (like for a 1-minute presentation), or keep it detailed and explanatory (like for a training or report audio)?
+
+
+
+
+
+
+
+
 Individual account (for a natural person).
 
 Corporate account or Business account (for a legal person / legal entity).
