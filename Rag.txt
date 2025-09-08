@@ -1,3 +1,14 @@
+"Before implementing our solution, manual searches required 252 man-days. After automation, this effort was reduced to only 7.2 man-days. That represents a gain of 244.8 man-days saved. In other words, we achieved a 97% reduction in manual search time — freeing up resources, cutting costs, and allowing teams to focus on higher-value work."
+
+
+
+
+
+
+
+
+
+
 Subject: Prise en charge de l’usine Fiable – mois d’août
 
 Body:
