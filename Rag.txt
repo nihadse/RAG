@@ -1,3 +1,22 @@
+Subject: Access to BO and Risque File + Connixis Project Update
+
+Bonjour [Manager’s Name],
+
+Nous avons eu une réunion avec Baquali Chaima. Elle nous a expliqué le reporting, les extractions, ainsi que les requêtes BO. Pour y accéder, nous devons passer par leur SharePoint BO. Nous l’avons relancée deux fois, et aujourd’hui je l’ai de nouveau contactée : elle nous a confirmé que les requêtes sont désormais déposées.
+
+À ce stade, il est nécessaire d’envoyer une demande à El Hadi et à DS afin d’obtenir l’accès au fichier Risque.
+
+Concernant l’autre projet Connixis, je ne l’ai pas encore démarré. Je prévois de le lancer à mon retour.
+
+Cordialement,
+[Your Name]
+
+
+---
+
+
+
+
 
 L’extraction vise à produire un dashboard de suivi des clients MYDIGIBANK.
 Elle regroupe les comptes éligibles, leurs soldes et la catégorie clientèle filtrée.
