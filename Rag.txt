@@ -1,3 +1,9 @@
+
+L’extraction vise à produire un dashboard de suivi des clients MYDIGIBANK.
+Elle regroupe les comptes éligibles, leurs soldes et la catégorie clientèle filtrée.
+Le statut des clients est déterminé (actif/dormant, décédé/non-décédé).
+Enfin, elle affiche les principales informations liées aux produits détenus.
+
 "Before implementing our solution, manual searches required 252 man-days. After automation, this effort was reduced to only 7.2 man-days. That represents a gain of 244.8 man-days saved. In other words, we achieved a 97% reduction in manual search time — freeing up resources, cutting costs, and allowing teams to focus on higher-value work."
 
 
