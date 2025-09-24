@@ -1,3 +1,59 @@
+Parfait 👍 je vais fusionner et reformuler comme demandé :
+
+
+---
+
+Compte rendu – Atelier IA & Stratégie
+
+Atelier & Communication
+
+Tous les COE des entités se réuniront avec François le 7 octobre à Paris afin de discuter de la stratégie des entités, François recherchant des KPI business quantifiables pour appuyer la prise de décision.
+
+Il nous revient de fournir aux COE des entités les informations relatives à l’atelier IA en cours.
+
+Vincent enverra un email avec plus de détails.
+
+
+Stratégie & Solutions
+
+La stratégie IA actuelle n’est pas encore finalisée à 100 % et pourra être mise à jour.
+
+BNP Paribas est en recherche de solutions d’Agents IA déjà existantes.
+
+Des solutions disponibles sont déjà en cours d’étude et d’évaluation.
+
+
+Technologies & Partenariats
+
+Microsoft Azure : tests en cours d’un Agent IA pour la surveillance réglementaire. Une discussion de suivi est prévue en octobre.
+
+Dataiku : BNP Paribas est déjà en discussion avec eux concernant les solutions existantes d’Agents IA disponibles sur le Cloud BNP.
+
+Contify : cas d’usage d’ex-agent client avec KPI business et P&J.
+
+
+Cas d’usage
+
+Lutte contre le blanchiment d’argent : application potentielle des Agents IA (les parties intéressées doivent nous contacter).
+
+Technologie RAG : explorée via Dataiku.
+
+
+Personnes
+
+Paulina
+
+Turk → vision forte
+
+
+
+---
+
+Veux-tu que je polisse ce texte en version email directement adressée à ton manager (objet + corps + formule de clôture), ou tu veux garder ce style compte rendu brut ?
+
+
+
+
 Parfait 👌 voici une version claire et professionnelle du rapport de réunion en français :
 
 
