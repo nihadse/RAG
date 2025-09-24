@@ -1,3 +1,18 @@
+Objet : Suppression des workspaces Domino Data Lab après 30 jours d’inactivité
+
+Chers collègues,
+
+Je vous informe que les workspaces de Domino Data Lab sont supprimés automatiquement après 30 jours d’inactivité, afin de garantir un accès équitable aux ressources partagées pour l’ensemble des utilisateurs de la plateforme.
+
+👉 Il est donc important de :
+
+Synchroniser régulièrement votre code (mais pas vos données) dans la codebase du projet. Les workspaces sont par nature éphémères, leur suppression ne doit pas poser de problème si votre code est correctement sauvegardé.
+
+Stocker vos données dans une source de données adaptée, et non uniquement dans le workspace.
+
+
+
+
 Parfait 👍 je vais fusionner et reformuler comme demandé :
 
 
