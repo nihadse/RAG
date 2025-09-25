@@ -1,3 +1,16 @@
+Objet : BE trouvés dans Atlas mais absents du fichier
+
+Bonjour [Nom du destinataire],
+
+Nous avons identifié certains BE qui figurent dans Atlas mais qui ne sont pas présents dans le fichier fourni.
+Pourriez-vous nous donner des informations détaillées sur la raison pour laquelle ces BE n’y apparaissent pas ?
+
+Cordialement,
+[Votre Nom]
+
+
+
+
 Objet : Suppression des workspaces Domino Data Lab après 30 jours d’inactivité
 
 Chers collègues,
