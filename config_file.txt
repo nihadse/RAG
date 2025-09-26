@@ -1,0 +1,109 @@
+# config.yaml - Configuration file for the AI Agent Analyzer
+
+# OpenAI Configuration
+openai:
+  model: "gpt-4"  # or "gpt-3.5-turbo" for faster/cheaper analysis
+  max_tokens: 2000
+  temperature: 0.3  # Lower = more consistent, Higher = more creative
+  timeout: 30  # seconds
+
+# Analysis Settings
+analysis:
+  include_performance_optimization: true
+  include_error_handling_details: true
+  include_monitoring_recommendations: true
+  generate_implementation_code: false  # Future feature
+  
+# Output Settings  
+output:
+  create_json: true
+  create_mermaid: true
+  create_markdown_report: true
+  create_html_visualization: false  # Future feature
+  
+# Mermaid Diagram Settings
+mermaid:
+  theme: "default"  # default, dark, forest, neutral
+  direction: "TD"   # TD (top-down), LR (left-right), RL, BT
+  include_styling: true
+  include_error_nodes: true
+  include_monitoring_nodes: true
+  
+# AI Agent Mapping (customize how Alteryx tools map to AI agents)
+agent_mapping:
+  "Text Input": "Data Ingestion Agent"
+  "Input Data": "Data Source Agent" 
+  "Summarize": "Aggregation Agent"
+  "Formula": "Calculation Agent"
+  "Join": "Data Join Agent"
+  "Union": "Data Merge Agent"
+  "Filter": "Data Filtering Agent"
+  "Sort": "Data Sorting Agent"
+  "Browse": "Output Validation Agent"
+  "Output Data": "Data Export Agent"
+  
+# Capabilities for each agent type
+agent_capabilities:
+  "Data Ingestion Agent":
+    - "Schema inference and validation"
+    - "Data type detection"
+    - "Encoding detection" 
+    - "Format recognition"
+    - "Quality assessment"
+    
+  "Aggregation Agent":
+    - "Statistical analysis"
+    - "Outlier detection"
+    - "Performance optimization"
+    - "Memory management"
+    - "Parallel processing"
+    
+  "Calculation Agent":
+    - "Expression optimization"
+    - "Mathematical validation"
+    - "Error handling (division by zero, etc.)"
+    - "Precision management"
+    - "Formula auditing"
+    
+  "Data Join Agent":
+    - "Fuzzy matching algorithms"
+    - "Join optimization"
+    - "Relationship discovery"
+    - "Duplicate resolution"
+    - "Performance tuning"
+    
+# Error Handling Strategies
+error_handling:
+  data_quality_issues:
+    strategy: "auto_remediation"
+    actions: ["data_repair", "outlier_handling", "missing_value_imputation"]
+    
+  processing_errors:
+    strategy: "intelligent_retry"
+    max_retries: 3
+    backoff_factor: 2
+    
+  system_errors:
+    strategy: "alert_and_escalate"
+    notification_channels: ["log", "email", "slack"]
+    
+# Monitoring Configuration
+monitoring:
+  performance_metrics:
+    - "processing_time"
+    - "memory_usage" 
+    - "cpu_utilization"
+    - "throughput"
+    
+  quality_metrics:
+    - "data_completeness"
+    - "data_accuracy"
+    - "schema_compliance"
+    - "business_rule_validation"
+    
+  alerting:
+    enabled: true
+    thresholds:
+      processing_time_max: 300  # seconds
+      memory_usage_max: 80      # percentage
+      error_rate_max: 5         # percentage

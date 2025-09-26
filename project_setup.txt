@@ -1,0 +1,167 @@
+# requirements.txt
+openai>=1.0.0
+pathlib2>=2.3.0
+xmltodict>=0.13.0
+
+# README.md
+# Alteryx to AI-Agent Workflow Analyzer
+
+A Python-based AI agent that analyzes Alteryx workflows (.yxmd files) and converts them into AI-agent implementation plans with Mermaid flowcharts.
+
+## Features
+
+- 🔍 **Workflow Parsing**: Extracts nodes, connections, and configurations from Alteryx workflows
+- 🤖 **AI Analysis**: Uses ChatGPT to analyze workflows and design AI-agent implementations  
+- 🎨 **Mermaid Diagrams**: Generates visual flowcharts showing AI-agent workflow architecture
+- 📊 **Detailed Reports**: Creates comprehensive analysis reports in JSON and Markdown
+- 🔄 **Batch Processing**: Analyze multiple workflow files at once
+- 🛠️ **Error Handling**: Robust error handling with fallback analysis
+
+## Installation
+
+1. **Clone or download the project files**
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Set up OpenAI API Key**:
+   - Get your API key from: https://platform.openai.com/api-keys
+   - Set environment variable:
+     ```bash
+     export OPENAI_API_KEY="your-api-key-here"
+     ```
+   - Or enter it when prompted by the application
+
+## Usage
+
+### Command Line Interface
+
+```bash
+python usage_example.py
+```
+
+This will show an interactive menu with options to:
+1. Analyze a single workflow file
+2. Create a sample workflow for testing
+3. Batch analyze all workflows in directory
+4. Exit
+
+### Programmatic Usage
+
+```python
+from alteryx_ai_agent_analyzer import WorkflowAnalyzer
+
+# Initialize analyzer
+analyzer = WorkflowAnalyzer("your-openai-api-key")
+
+# Analyze workflow
+result = analyzer.analyze_workflow_file("your_workflow.yxmd")
+
+print(f"Analysis saved to: {result['analysis_file']}")
+print(f"Mermaid diagram: {result['mermaid_file']}")
+print(f"Report: {result['report_file']}")
+```
+
+### Direct Command Line
+
+```bash
+python alteryx_ai_agent_analyzer.py workflow.yxmd --api-key YOUR_API_KEY --output-dir ./results
+```
+
+## Output Files
+
+The analyzer generates three types of output files:
+
+1. **Analysis JSON** (`*_analysis.json`): Structured data about AI agents and capabilities
+2. **Mermaid Diagram** (`*_ai_agent_workflow.mmd`): Visual flowchart code
+3. **Detailed Report** (`*_ai_agent_report.md`): Human-readable analysis report
+
+## Mermaid Visualization
+
+To visualize the generated Mermaid diagrams:
+
+1. **Online**: Copy content to https://mermaid.live/
+2. **VS Code**: Install Mermaid Preview extension
+3. **GitHub**: Mermaid diagrams render automatically in README files
+
+## Supported Alteryx Tools
+
+The analyzer recognizes and converts these Alteryx tools to AI agents:
+
+| Alteryx Tool | AI Agent | Capabilities |
+|--------------|----------|--------------|
+| Text Input | Data Ingestion Agent | Schema inference, validation |
+| Summarize | Aggregation Agent | Statistical analysis, optimization |
+| Formula | Calculation Agent | Expression optimization, error handling |
+| Join | Data Join Agent | Fuzzy matching, optimization |
+| Filter | Data Filtering Agent | Pattern recognition, anomaly detection |
+| Browse | Output Validation Agent | Quality scoring, profiling |
+
+## Example Output
+
+### AI Agents Generated
+- **Data Ingestion Agent**: Handles data input with validation
+- **Aggregation Agent**: Performs statistical operations with optimization
+- **Data Enrichment Agent**: Manages data joining and merging
+- **Calculation Agent**: Processes formulas with error handling
+- **Output Validation Agent**: Validates and profiles results
+
+### Mermaid Diagram Sample
+```mermaid
+flowchart TD
+    A1[Data Ingestion Agent] --> A2[Aggregation Agent]
+    A2 --> A3[Data Enrichment Agent] 
+    A3 --> A4[Calculation Agent]
+    A4 --> A5[Output Validation Agent]
+```
+
+## Architecture
+
+The system consists of four main components:
+
+1. **AlteryxWorkflowParser**: Parses .yxmd XML files
+2. **AIAgentWorkflowConverter**: Uses ChatGPT for intelligent analysis  
+3. **WorkflowAnalyzer**: Orchestrates the analysis process
+4. **Output Generators**: Creates JSON, Mermaid, and Markdown files
+
+## Error Handling
+
+- **File not found**: Clear error messages with suggestions
+- **Invalid XML**: Graceful parsing with error reporting
+- **API failures**: Fallback to rule-based analysis
+- **Network issues**: Retry logic with exponential backoff
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details
+
+## Troubleshooting
+
+**Q: "ModuleNotFoundError" when running the script**
+A: Install dependencies with `pip install -r requirements.txt`
+
+**Q: "Invalid API key" error**
+A: Verify your OpenAI API key is correct and has sufficient credits
+
+**Q: "File not found" when analyzing workflow**
+A: Ensure the .yxmd file path is correct and the file exists
+
+**Q: Mermaid diagram not rendering**
+A: Check the .mmd file syntax at https://mermaid.live/ for validation
+
+## Support
+
+For issues or questions:
+1. Check the troubleshooting section above
+2. Review the example usage in `usage_example.py`
+3. Create an issue with detailed error information
