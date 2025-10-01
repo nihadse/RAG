@@ -1,3 +1,14 @@
+Objet : Requête – Donnée test BNP Net
+
+Bonjour,
+Dans le cadre de la construction du dataset pour le tableau de bord BNP Net, nous avons identifié ton nom dans l’EDB comme contact. Pourrais-tu nous partager la requête relative à la donnée test ainsi que sa définition afin d’assurer la cohérence du travail ?
+
+Cordialement,
+Nihad
+
+
+
+
 Objet : BE trouvés dans Atlas mais absents du fichier
 
 Bonjour [Nom du destinataire],
