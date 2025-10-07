@@ -1,3 +1,7 @@
+REGEX_Replace([YourColumn], "^data_[^_]*_", "")
+
+
+
 Objet : Requête – Donnée test BNP Net
 
 Bonjour,
