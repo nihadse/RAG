@@ -1,3 +1,13 @@
+
+
+Bonjour [Name],
+
+J’ai essayé de télécharger les fichiers, mais cela ne fonctionne pas. Je pense qu’il y a un problème avec le chargement du fichier. Vous trouverez ci-joint une capture d’écran montrant le problème.
+
+Cordialement,
+
+
+
 REGEX_Replace([YourColumn], "^data_[^_]*_", "")
 
 
