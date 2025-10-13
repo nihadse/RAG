@@ -1,2 +1,78 @@
+
+Voici la version complète et professionnelle de ton email en français, incluant la mention du fichier Excel avec les KPIs des tiers sans rôle 👇
+
+
+---
+
+Objet : Détail de la requête utilisée pour l’extraction des données clients et indicateurs mensuels
+
+Bonjour [Prénom du manager],
+
+Je vous partage ci-dessous le détail des critères appliqués dans la requête SQL pour la sélection des données clients.
+👉 La requête concerne uniquement les tiers ouverts.
+
+Critères appliqués :
+
+Type de relation : Client
+
+Tiers ouverts sans comptes rattachés
+
+Sans garanties ni autorisations rattachées
+
+Tiers non bénéficiaires effectifs (# BE = Actionnaire, Dirigeant, Dirigeant_non_BE, Administrateur)
+
+Tiers non garants
+
+Tiers non mandataires
+
+Tiers non co-emprunteurs
+
+Tiers chapeau collectif PP → non encore compris / à clarifier
+
+Tiers non co-titulaires
+
+Absence de sous-solde sur un sous-compte rattaché ou présence d’un sous-solde égal à zéro
+
+Motif ERR différent des valeurs (“6”, “31”, “84”, “85”, “87”, “88”, “11”)
+
+Champs concernés :
+
+code_EER
+
+libellé_motif_entree_relation
+
+
+
+Code	Libellé
+
+6	EXT RELATI
+31	APPORTEUR
+84	APBUCCCLI
+85	APLEASCLI
+87	APBUCCNCLI
+88	APLEASNCLI
+11	ADEO
+
+
+Cette requête permet d’isoler les tiers ouverts répondant à ces conditions, en vue d’une analyse plus précise du périmètre client.
+
+En complément, vous trouverez dans le fichier Excel joint les KPIs des “tiers sans rôle” pour le mois en cours.
+Ce fichier présente les statistiques relatives à la clôture des tiers du mois actuel ainsi que celles du mois précédent, afin de faciliter la comparaison et le suivi de l’évolution.
+
+Je reste à votre disposition pour toute précision complémentaire.
+
+Bien cordialement,
+Nihad Senhadji
+Data Scientist – BNP Paribas El Djazaïr
+
+
+---
+
+Souhaites-tu que je t’ajoute une phrase d’introduction du type “dans le cadre du suivi mensuel des tiers sans rôle” au début pour rendre le message encore plus clair et contextuel ?
+
+
+
+
+
 Merci pour l’information.
 Tenez-moi au courant dès que ce sera réglé, s’il vous plaît, car nous sommes bloqués dans notre production.
