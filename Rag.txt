@@ -1,3 +1,33 @@
+Bonjour [Prénom],
+
+Oui, le chantier ayant débuté en juillet, nous constatons bien une évolution depuis cette date.
+Par ailleurs, le fichier KPI contient les statistiques complètes du fichier de juillet, afin de permettre le suivi de l’évolution depuis le démarrage du chantier.
+
+Concernant le critère “Tiers chapeau collectif PP (CODE_TYPE_LIAISON_INTER_TIERS = 0 ou 4)”, il s’agit bien des tiers non chapeau collectif PP.
+
+Je vais également ajouter les disclaimers dont nous avons parlé hier, à savoir :
+
+Pas de filtre appliqué sur les CATCLI, segments, etc.
+
+Présence de tiers ouverts récemment.
+
+Base des BE arrêtée à fin septembre.
+
+
+Je vais aussi ajouter les données complémentaires et partagerai le fichier une fois la mise à jour terminée.
+
+Bien cordialement,
+Nihad Senhadji
+
+
+
+
+
+
+
+
+
+
 
 Voici la version complète et professionnelle de ton email en français, incluant la mention du fichier Excel avec les KPIs des tiers sans rôle 👇
 
