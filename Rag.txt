@@ -1,3 +1,32 @@
+Objet : Re : Suivi du chantier et précisions sur la requête
+
+Bonjour [Prénom],
+
+Désolée pour ma réponse tardive.
+
+Les KPIs correspondent à ceux de l’ensemble du chantier, depuis son démarrage.
+En effet, le chantier ayant débuté en juillet 2025, nous constatons une évolution depuis cette date. Par ailleurs, le fichier KPI contient les statistiques du chantier de juillet 2025, afin de permettre le suivi de l’évolution depuis le lancement et jusqu’à la clôture.
+
+Concernant le critère “Tiers chapeau collectif PP (CODE_TYPE_LIAISON_INTER_TIERS = 0 ou 4)”, il s’agit bien des tiers non chapeau collectif PP, comme indiqué dans les critères des tiers sans rôle.
+
+Je vais également ajouter les disclaimers dont nous avons parlé hier, à savoir :
+
+Pas de filtre appliqué sur les CATCLI, segments, etc.
+
+Présence de tiers ouverts récemment.
+
+Base des BE arrêtée à fin septembre.
+
+
+À noter que ce workflow est mensuel et suit l’usine de Fiable.
+Il n’intègre donc pas les nouveaux “tiers sans rôle” ajoutés quotidiennement, mais uniquement ceux présents lors de la dernière exécution mensuelle.
+
+Bien cordialement,
+Nihad Senha
+
+
+
+
 Bonjour [Prénom],
 
 Oui, le chantier ayant débuté en juillet, nous constatons bien une évolution depuis cette date.
