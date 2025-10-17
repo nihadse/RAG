@@ -1,3 +1,64 @@
+Très bien, voici le mail mis à jour avec la mention de la suppression des “décédés / particularité non client”, formulée de manière professionnelle et claire :
+
+
+---
+
+Objet : Analyse et rapprochement des deux extractions (Data vs Retail) + Nouvelle extraction disponible
+
+Bonjour Sarah,
+
+Suite à l’échange concernant le rapprochement entre notre extraction Data et celle transmise par le département Retail, j’ai procédé à une analyse approfondie des deux jeux de données.
+
+Voici les principaux constats :
+
+L’extraction Retail contient 235 577 tiers, contre 152 890 dans notre extraction, soit un écart de 90 383 enregistrements.
+
+L’extraction Retail inclut notamment :
+
+68 959 tiers clôturés,
+
+11 167 comptes clôturés,
+
+7 487 tiers avec comptes sans produit clôturé.
+
+
+À l’inverse, notre extraction Data ne contient pas de tiers clôturés, de comptes clôturés, de tiers sans compte, ni de tiers ou comptes sans produit.
+
+L’écart principal provient du filtre appliqué sur les comptes dormants de plus d’un an, qui avait été neutralisé dans l’APA précédente.
+
+
+Concernant les catégories de clients, notre extraction d’août incluait toutes les catégories de clients et non uniquement les suivantes : ("340", "380", "390", "500", "550", "555").
+
+Pour la nouvelle version de l’APA, nous avons :
+
+supprimé le filtre sur les comptes dormants,
+
+exclu les tiers clôturés, les comptes clôturés, les tiers sans compte, ainsi que les tiers et comptes sans produit,
+
+supprimé les tiers avec particularité “décédé / non client”,
+
+et conservé les catégories de clients suivantes : ("340", "380", "390", "500", "550", "555"), sans autre condition restrictive.
+
+
+👉 Vous trouverez dans ce lien la nouvelle extraction ainsi que l’APA mise à jour :
+[Insérer le lien ici]
+
+Merci de vérifier et de me confirmer la cohérence avec le fonds de commerce Retail.
+
+Bien cordialement,
+Nihad SENHADJI
+Data Science – [Nom du département ou entité]
+
+
+---
+
+Souhaites-tu que j’ajoute une courte phrase finale du type « Cette version sera désormais considérée comme référence pour les prochains échanges » pour officialiser la correction ?
+
+
+
+
+
+
 Version corrigée du QAC
 
 Salut [Prénom],
