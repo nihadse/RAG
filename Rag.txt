@@ -1,208 +1,214 @@
-Très bien, voici le mail mis à jour avec la mention de la suppression des “décédés / particularité non client”, formulée de manière professionnelle et claire :
+Parfait. Voici ton rapport actualisé sans la conclusion, remplacée par une section finale en mode “recommandations opérationnelles”, formulée en phrases affirmatives et directives — comme dans un plan d’action analytique clair et professionnel.
 
 
 ---
 
-Objet : Analyse et rapprochement des deux extractions (Data vs Retail) + Nouvelle extraction disponible
+Rapport d’Analyse Conceptuelle : Réconciliation des Données Xiscash (SWIFT)
 
-Bonjour Sarah,
+1. Contexte
 
-Suite à l’échange concernant le rapprochement entre notre extraction Data et celle transmise par le département Retail, j’ai procédé à une analyse approfondie des deux jeux de données.
+Cette analyse porte sur deux fichiers extraits de l’application Xiscash, utilisée par des professionnels bancaires pour des opérations SWIFT, et non pour des paiements particuliers ou de détail.
 
-Voici les principaux constats :
+L’objectif est d’établir une compréhension logique et cohérente des relations entre :
 
-L’extraction Retail contient 235 577 tiers, contre 152 890 dans notre extraction, soit un écart de 90 383 enregistrements.
+le fichier des utilisateurs (User File), qui décrit les professionnels enregistrés sur la plateforme,
 
-L’extraction Retail inclut notamment :
-
-68 959 tiers clôturés,
-
-11 167 comptes clôturés,
-
-7 487 tiers avec comptes sans produit clôturé.
+et le fichier des comptes (Account File), qui regroupe les comptes associés à ces utilisateurs, utilisés exclusivement pour des transactions SWIFT.
 
 
-À l’inverse, notre extraction Data ne contient pas de tiers clôturés, de comptes clôturés, de tiers sans compte, ni de tiers ou comptes sans produit.
-
-L’écart principal provient du filtre appliqué sur les comptes dormants de plus d’un an, qui avait été neutralisé dans l’APA précédente.
-
-
-Concernant les catégories de clients, notre extraction d’août incluait toutes les catégories de clients et non uniquement les suivantes : ("340", "380", "390", "500", "550", "555").
-
-Pour la nouvelle version de l’APA, nous avons :
-
-supprimé le filtre sur les comptes dormants,
-
-exclu les tiers clôturés, les comptes clôturés, les tiers sans compte, ainsi que les tiers et comptes sans produit,
-
-supprimé les tiers avec particularité “décédé / non client”,
-
-et conservé les catégories de clients suivantes : ("340", "380", "390", "500", "550", "555"), sans autre condition restrictive.
-
-
-👉 Vous trouverez dans ce lien la nouvelle extraction ainsi que l’APA mise à jour :
-[Insérer le lien ici]
-
-Merci de vérifier et de me confirmer la cohérence avec le fonds de commerce Retail.
-
-Bien cordialement,
-Nihad SENHADJI
-Data Science – [Nom du département ou entité]
+Aucune programmation n’est impliquée : il s’agit ici d’un travail d’analyse et de raisonnement métier basé sur la cohérence des identifiants et des relations logiques.
 
 
 ---
 
-Souhaites-tu que j’ajoute une courte phrase finale du type « Cette version sera désormais considérée comme référence pour les prochains échanges » pour officialiser la correction ?
+2. Objectif de l’analyse
 
+L’objectif est de reconstruire la logique de correspondance entre les deux sources afin de :
 
+identifier les clés de correspondance fiables,
 
+détecter les incohérences et doublons,
 
+comprendre la structure hiérarchique entre entités, utilisateurs et comptes,
 
+et évaluer les limites empêchant une vision complète de la base client et de son activité.
 
-Version corrigée du QAC
-
-Salut [Prénom],
-
-Tu trouveras la version corrigée du QAC à ce lien : [insère le lien].
-
-À bientôt,
-[Nihad]
-
-
-Objet : Re : Suivi du chantier et précisions sur la requête
-
-Bonjour [Prénom],
-
-Désolée pour ma réponse tardive.
-
-Les KPIs correspondent à ceux de l’ensemble du chantier, depuis son démarrage.
-En effet, le chantier ayant débuté en juillet 2025, nous constatons une évolution depuis cette date. Par ailleurs, le fichier KPI contient les statistiques du chantier de juillet 2025, afin de permettre le suivi de l’évolution depuis le lancement et jusqu’à la clôture.
-
-Concernant le critère “Tiers chapeau collectif PP (CODE_TYPE_LIAISON_INTER_TIERS = 0 ou 4)”, il s’agit bien des tiers non chapeau collectif PP, comme indiqué dans les critères des tiers sans rôle.
-
-Je vais également ajouter les disclaimers dont nous avons parlé hier, à savoir :
-
-Pas de filtre appliqué sur les CATCLI, segments, etc.
-
-Présence de tiers ouverts récemment.
-
-Base des BE arrêtée à fin septembre.
-
-
-À noter que ce workflow est mensuel et suit l’usine de Fiable.
-Il n’intègre donc pas les nouveaux “tiers sans rôle” ajoutés quotidiennement, mais uniquement ceux présents lors de la dernière exécution mensuelle.
-
-Bien cordialement,
-Nihad Senha
-
-
-
-
-Bonjour [Prénom],
-
-Oui, le chantier ayant débuté en juillet, nous constatons bien une évolution depuis cette date.
-Par ailleurs, le fichier KPI contient les statistiques complètes du fichier de juillet, afin de permettre le suivi de l’évolution depuis le démarrage du chantier.
-
-Concernant le critère “Tiers chapeau collectif PP (CODE_TYPE_LIAISON_INTER_TIERS = 0 ou 4)”, il s’agit bien des tiers non chapeau collectif PP.
-
-Je vais également ajouter les disclaimers dont nous avons parlé hier, à savoir :
-
-Pas de filtre appliqué sur les CATCLI, segments, etc.
-
-Présence de tiers ouverts récemment.
-
-Base des BE arrêtée à fin septembre.
-
-
-Je vais aussi ajouter les données complémentaires et partagerai le fichier une fois la mise à jour terminée.
-
-Bien cordialement,
-Nihad Senhadji
-
-
-
-
-
-
-
-
-
-
-
-Voici la version complète et professionnelle de ton email en français, incluant la mention du fichier Excel avec les KPIs des tiers sans rôle 👇
 
 
 ---
 
-Objet : Détail de la requête utilisée pour l’extraction des données clients et indicateurs mensuels
+3. Constats et Observations
 
-Bonjour [Prénom du manager],
+3.1. Méthodologie de détection des identifiants manquants
 
-Je vous partage ci-dessous le détail des critères appliqués dans la requête SQL pour la sélection des données clients.
-👉 La requête concerne uniquement les tiers ouverts.
+Au départ, plusieurs utilisateurs du fichier user présentaient un LOCAL_IDENTIFIER manquant.
+Pour corriger cela, une vérification croisée a été effectuée avec la base de données RMPM disponible en interne.
 
-Critères appliqués :
+Grâce à cette extraction RMPM, il a été possible :
 
-Type de relation : Client
+de retrouver et renseigner les identifiants locaux manquants pour la majorité des utilisateurs,
 
-Tiers ouverts sans comptes rattachés
+de réduire considérablement les écarts entre les fichiers user et account,
 
-Sans garanties ni autorisations rattachées
+bien qu’il subsiste quatre utilisateurs dont les identifiants locaux n’ont pas pu être retrouvés, même après recherche manuelle via la plateforme AMPM Web.
 
-Tiers non bénéficiaires effectifs (# BE = Actionnaire, Dirigeant, Dirigeant_non_BE, Administrateur)
-
-Tiers non garants
-
-Tiers non mandataires
-
-Tiers non co-emprunteurs
-
-Tiers chapeau collectif PP → non encore compris / à clarifier
-
-Tiers non co-titulaires
-
-Absence de sous-solde sur un sous-compte rattaché ou présence d’un sous-solde égal à zéro
-
-Motif ERR différent des valeurs (“6”, “31”, “84”, “85”, “87”, “88”, “11”)
-
-Champs concernés :
-
-code_EER
-
-libellé_motif_entree_relation
-
-
-
-Code	Libellé
-
-6	EXT RELATI
-31	APPORTEUR
-84	APBUCCCLI
-85	APLEASCLI
-87	APBUCCNCLI
-88	APLEASNCLI
-11	ADEO
-
-
-Cette requête permet d’isoler les tiers ouverts répondant à ces conditions, en vue d’une analyse plus précise du périmètre client.
-
-En complément, vous trouverez dans le fichier Excel joint les KPIs des “tiers sans rôle” pour le mois en cours.
-Ce fichier présente les statistiques relatives à la clôture des tiers du mois actuel ainsi que celles du mois précédent, afin de faciliter la comparaison et le suivi de l’évolution.
-
-Je reste à votre disposition pour toute précision complémentaire.
-
-Bien cordialement,
-Nihad Senhadji
-Data Scientist – BNP Paribas El Djazaïr
 
 
 ---
 
-Souhaites-tu que je t’ajoute une phrase d’introduction du type “dans le cadre du suivi mensuel des tiers sans rôle” au début pour rendre le message encore plus clair et contextuel ?
+3.2. Liaison entre User File et Account File
+
+Le champ LOCAL_IDENTIFIER apparaît comme la clé principale de correspondance entre les deux fichiers.
+Cependant :
+
+certains identifiants locaux existent dans le fichier user mais pas dans le fichier account, et inversement ;
+
+certains identifiants locaux sont associés à plusieurs ENTITY_ID, rompant la logique de correspondance unique.
+
+
+Exemples :
+
+LOCAL_IDENTIFIER = 87970058839 apparaît dans les deux fichiers mais sous des ENTITY_ID différents.
+
+LOCAL_IDENTIFIER = 87000001006 (dans le fichier comptes) ne correspond pas à 07800000134 (dans le fichier utilisateurs).
+
+
+
+---
+
+3.3. Cohérence logique et interprétation métier
+
+Un même utilisateur peut être rattaché à plusieurs comptes, parfois sous des entités différentes.
+
+Le fichier account contient des comptes sans utilisateur associé, pouvant correspondre à :
+
+des comptes inactifs,
+
+des comptes issus de migrations,
+
+ou des créations automatiques sans rattachement utilisateur.
+
+
+
+À l’inverse, certains utilisateurs du User File n’ont aucun compte associé.
+Ces utilisateurs présentent néanmoins des connexions récentes, la dernière activité observée remontant à février 2025, soit la période de l’extraction.
+Cela montre que leur profil est toujours actif dans Xiscash, même si aucun compte SWIFT n’est visible dans le fichier comptes.
+
+Parallèlement, plusieurs comptes orphelins apparaissent dans le fichier comptes :
+leurs dates de création remontent à 2022, ce qui suggère des ouvertures anciennes sans activité utilisateur identifiée depuis plusieurs années.
+
+
+---
+
+3.4. Incohérences d’identifiants
+
+Plusieurs anomalies structurelles ont été relevées :
+
+un même email utilisateur correspond à plusieurs USER_ID et LOCAL_IDENTIFIER,
+
+ex. amar.abbes@axa.de est lié à plusieurs identifiants locaux et entités ;
+
+allal@groupe-chilail.com apparaît sous plusieurs entités avec différents identifiants locaux.
+
+
+
+Cela traduit des duplications de profils ou des créations multiples au sein de structures de groupe.
+
+
+---
+
+3.5. Chronologie de création des comptes
+
+Dans le fichier account, le champ CREATE_DATE suit un schéma chronologique cohérent pour un même identifiant local :
+chaque nouveau compte ajouté vient prolonger la relation existante.
+Cette logique confirme une continuité d’activité client au niveau du LOCAL_IDENTIFIER plutôt qu’une création d’utilisateurs distincts.
+
+
+---
+
+4. Difficultés d’analyse
+
+1. Filtrage par date de création :
+Filtrer sur le CREATE_DATE dans le fichier comptes fausse les résultats.
+De nombreux liens valides disparaissent, car certains utilisateurs existent avant la création de leurs premiers comptes.
+
+
+2. Granularité de définition d’un utilisateur :
+Pour un même LOCAL_IDENTIFIER, plusieurs USER_ID existent.
+Il faut donc choisir si le comptage des utilisateurs doit se baser sur le USER_ID (vue technique) ou sur le LOCAL_IDENTIFIER (vue client logique).
+
+
+3. Indicateurs d’activité limités :
+
+NB_LOG_TOTAL représente les connexions cumulées depuis la création du compte, pas sur une période donnée.
+
+NB_LOG_30DAYS ne donne qu’une vision ponctuelle.
+Pour estimer une activité trimestrielle, il faudrait disposer de plusieurs extractions consécutives.
 
 
 
 
 
-Merci pour l’information.
-Tenez-moi au courant dès que ce sera réglé, s’il vous plaît, car nous sommes bloqués dans notre production.
+---
+
+5. Structures et Modèles Détectés
+
+L’analyse révèle les schémas suivants :
+
+Un ENTITY_ID correspond généralement à un MOM unique et un LOCAL_IDENTIFIER unique, mais peut regrouper plusieurs USER_ID.
+
+Un USER_ID peut être rattaché à plusieurs ENTITY_ID et LOCAL_IDENTIFIER, reflétant des droits multi-entités (cas des utilisateurs de groupes).
+
+Les dates de création dans le fichier comptes progressent de manière logique, confirmant la continuité client au fil du temps.
+
+
+
+---
+
+6. Recommandations Opérationnelles
+
+1. Adopter le LOCAL_IDENTIFIER comme clé de correspondance principale entre les deux fichiers, tout en le validant dans le périmètre de chaque ENTITY_ID pour éviter les chevauchements entre entités.
+
+
+2. Éliminer les doublons en consolidant les multiples USER_ID rattachés à un même LOCAL_IDENTIFIER afin de reconstruire une vision client unifiée.
+
+
+3. Établir une cartographie complète des correspondances entre utilisateurs et comptes :
+
+utilisateurs sans compte,
+
+comptes orphelins,
+
+utilisateurs multi-entités.
+
+
+
+4. Mettre à jour la base Xiscash en intégrant les LOCAL_IDENTIFIER retrouvés via la base RMPM et en documentant les quatre cas restants non résolus après vérification AMPM Web.
+
+
+5. Créer un indicateur de cohérence temporelle pour identifier les comptes anciens (créés avant 2023) sans activité utilisateur récente, et les utilisateurs actifs (février 2025) sans compte associé.
+
+
+6. Standardiser les règles de création et de rattachement des utilisateurs dans Xiscash afin d’éviter les multiplicités d’identifiants entre entités.
+
+
+7. Mettre en place un tableau de bord de suivi de qualité de données, regroupant :
+
+taux d’utilisateurs sans compte,
+
+taux de comptes orphelins,
+
+doublons détectés,
+
+cohérence entre ENTITY_ID et LOCAL_IDENTIFIER,
+
+activité utilisateur (connexion, dernière date, etc.).
+
+
+
+
+
+---
+
+Souhaites-tu que je te le mette en version Word modifiable (mise en page professionnelle avec titres hiérarchisés, en-tête et pied de page normalisés) avant de générer la version PDF officielle ?
+
