@@ -1,3 +1,10 @@
+Les analyses des pays de retraits montrent une concentration notable des opérations en Turquie et en France, avec des montants d’extraction significatifs dans ces deux zones. Ces résultats confirment que ces pays demeurent les principaux pôles d’activité suspecte identifiés sur la période étudiée.
+
+
+
+
+
+
 Les communautés détectées par le modèle Sentinilia présentent une répartition variable selon le nombre de tiers, allant d’une seule entité jusqu’à 35 dans certains cas. Cette diversité traduit des schémas de fraude de taille et de complexité différentes, allant de comportements isolés à des réseaux plus structurés.
 
 
