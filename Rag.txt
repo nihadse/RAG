@@ -1,19 +1,46 @@
-Parfait. Voici ton rapport actualisé sans la conclusion, remplacée par une section finale en mode “recommandations opérationnelles”, formulée en phrases affirmatives et directives — comme dans un plan d’action analytique clair et professionnel.
+Voici une version claire et professionnelle de ton email de rapport, dans le même style que celui de 2023, mais adaptée à ta nouvelle extraction (2024–2025) et à ce que montrent les fichiers en photo :
 
 
 ---
 
-Rapport d’Analyse Conceptuelle : Réconciliation des Données Xiscash (SWIFT)
+Objet : Résultats du modèle Sentinilia – Détection des communautés de fraude (2024–2025)
 
-1. Contexte
+Bonjour [Nom ou équipe],
 
-Cette analyse porte sur deux fichiers extraits de l’application Xiscash, utilisée par des professionnels bancaires pour des opérations SWIFT, et non pour des paiements particuliers ou de détail.
+Dans le cadre du suivi de notre dispositif Sentinilia, nous partageons ci-dessous les résultats issus de la détection des communautés de fraude pour la période du 02 janvier 2024 au 19 octobre 2025, basée sur les opérations extraites d’Atlas.
 
-L’objectif est d’établir une compréhension logique et cohérente des relations entre :
+Contrairement au premier POC limité à la Turquie, cette nouvelle itération prend en compte l’ensemble des pays dans l’analyse, afin d’élargir la couverture et d’identifier de nouveaux comportements suspects à l’échelle globale.
 
-le fichier des utilisateurs (User File), qui décrit les professionnels enregistrés sur la plateforme,
+Notre modèle de détection de communautés frauduleuses (Sentinilia) repose sur des analyses de connexions entre clients présentant des similarités comportementales dans leurs transactions.
+Les communautés ainsi détectées regroupent des clients ayant effectué des retraits ou des opérations corrélées dans des schémas répétitifs et atypiques.
 
-et le fichier des comptes (Account File), qui regroupe les comptes associés à ces utilisateurs, utilisés exclusivement pour des transactions SWIFT.
+Résultats observés :
+
+Le modèle a identifié plusieurs communautés distinctes de fraude, regroupant des ensembles de tiers différents, selon la période et les liens de comportement (voir fichier joint).
+
+Le nombre de tiers par communauté varie fortement, illustrant des structures de réseau plus ou moins denses.
+
+Le montant total des retraits par communauté présente également une hétérogénéité significative, confirmant que les comportements suspects ne sont pas concentrés sur un seul profil, mais distribués sur plusieurs groupes.
+
+
+Fichiers joints :
+
+Final_Resultat_groupe_2024_2025.xlsx : liste complète des communautés détectées par Sentinilia.
+
+Synthèse_nb_communautés.xlsx : récapitulatif du nombre de communautés et de tiers associés.
+
+
+Nous restons disponibles pour tout échange complémentaire sur l’interprétation des résultats ou pour affiner les seuils d’alerte selon vos retours.
+
+Bien cordialement,
+[Ton prénom / Ton nom]
+Data Scientist – [Nom de ton service / direction]
+
+
+---
+
+Souhaites-tu que je te reformate ce texte pour un envoi en anglais aussi (pour un partenaire ou rapport interne bilingue) ?
+
 
 
 Aucune programmation n’est impliquée : il s’agit ici d’un travail d’analyse et de raisonnement métier basé sur la cohérence des identifiants et des relations logiques.
