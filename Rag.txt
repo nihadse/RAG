@@ -1,17 +1,24 @@
-Les analyses des pays de retraits montrent une concentration notable des opérations en Turquie et en France, avec des montants d’extraction significatifs dans ces deux zones. Ces résultats confirment que ces pays demeurent les principaux pôles d’activité suspecte identifiés sur la période étudiée.
+Bonjour Nihad
 
+Merci pour toute tes disponibilités et ton support. Stp on a un sujet concernant l'APA de Djihane (Mass)
 
+Deux données ont disparu depuis la dernière mise a jours d'août qui sont nécessaire pour le dash.
 
+Les données en question sont: Dernier solde et Type de compte, qui existe au 31 Août 2025
 
+@BECHE Khaled @KHETTABI Djihane Sakina @SENHADII Nihad afin qu'on soit tous au même niveau d'information. Je vous proper sp
 
+APA V1 devient APA My digibank
 
-Les communautés détectées par le modèle Sentinilia présentent une répartition variable selon le nombre de tiers, allant d’une seule entité jusqu’à 35 dans certains cas. Cette diversité traduit des schémas de fraude de taille et de complexité différentes, allant de comportements isolés à des réseaux plus structurés.
+I:\DATA EOIDEPARTEMENT_DATAIAPA Data viz11-MY DIGIBANK
 
+APA V 3 devient APA Mass
 
+1:\DATA EOIDEPARTEMENT DATAVAPA Data viz12-MASS AFLUENT
 
+APA V2 sera archive car c'était une phase intermédiaire
 
-Voici une version claire et professionnelle de ton email de rapport, dans le même style que celui de 2023, mais adaptée à ta nouvelle extraction (2024–2025) et à ce que montrent les fichiers en photo :
-
+Le répertoire de partage I:\DATA EO\DEPARTEMENT DATALAPA Data viz est en cours de REFONTE
 
 ---
 
