@@ -1,3 +1,19 @@
+Objet : Fichier décade transmis par la BA – Volume supérieur à la normale
+
+Bonjour,
+
+Le fichier décade transmis par la BA ce mois-ci contient 6068 noms, soit un volume supérieur à la normale.
+Nous avons identifié 1137 noms au-dessus du seuil de similarité (0,95) et 6068 en dessous du seuil.
+
+À noter que des doublons sont présents, car certains noms apparaissent à la fois dans les deux listes. Cela s’explique par le score de similarité : un même nom peut obtenir des scores différents selon les correspondances trouvées, ce qui le place parfois au-dessus et parfois en dessous du seuil.
+
+Cordialement,
+
+
+
+
+
+
 
 Objet : Mise à jour des fichiers APA
 
