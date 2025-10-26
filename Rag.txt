@@ -1,3 +1,57 @@
+import os
+import streamlit as st
+import httpx
+from openai import AzureOpenAI
+
+# ---- Azure config ----
+API_KEY = os.getenv("AZURE_OPENAI_KEY")
+API_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION", "2024-08-01-preview")
+
+client = AzureOpenAI(
+    azure_endpoint=API_ENDPOINT,
+    api_key=API_KEY,
+    api_version=API_VERSION,
+)
+
+def generate_response(query: str, context: str = "") -> str:
+    prompt = (
+        "[Contexte]\n"
+        f"{context}\n\n"
+        "[Requête]\n"
+        f"{query}"
+    )
+
+    with httpx.Client(verify=False) as http_client:
+        try:
+            completion = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are an assistant that answers people's questions clearly."},
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.5,
+            )
+            return completion.choices[0].message.content.strip()
+
+        except Exception as e:
+            return f"⚠️ API Error: {str(e)}"
+
+
+# ---- Streamlit UI ----
+st.set_page_config(page_title="Azure AI Assistant")
+st.title("Azure AI Assistant")
+
+query = st.text_input("Ask something:")
+
+if query:
+    answer = generate_response(query)
+    st.write("🤖 " + answer)
+
+
+
+
+
 Objet : Fichier décade transmis par la BA – Volume supérieur à la normale
 
 Bonjour,
