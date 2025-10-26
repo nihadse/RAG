@@ -1,3 +1,10 @@
+Bonjour,
+
+Je te confirme qu’aucune modification ne sera apportée au niveau du DCC pour ce mois-ci.
+Nous maintenons la version actuelle sans changement.
+
+
+
 SELECT t1.*, t2.*, t3.*
 FROM table1 AS t1
 JOIN table2 AS t2
