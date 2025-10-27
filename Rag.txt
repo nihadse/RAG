@@ -1,5 +1,20 @@
 Bonjour,
 
+Merci pour ton message.
+
+Les données que nous extrayons proviennent du fichier PP dans GESKYC. Après une analyse approfondie, nous avons constaté un changement dans le contenu de la donnée qui sert à noter les informations. Les trois derniers mois, au lieu des valeurs « 01 / 02 / 03 » que nous recevions habituellement, cette colonne contient désormais « 1 / 2 / 3 ».
+De plus, notre DCC contient encore les valeurs « 01 / 02 / 03 » alors que le fichier source fournit maintenant « 1 / 2 / 3 ». Ces anomalies génèrent un décalage au niveau des détails BUCC.
+Nous allons gérer cela en ajustant le DCC, en supprimant le zéro de manière propre et contrôlée.
+
+Cordialement,
+Nihad
+
+
+
+
+
+Bonjour,
+
 Je te confirme qu’aucune modification ne sera apportée au niveau du DCC pour ce mois-ci.
 Nous maintenons la version actuelle sans changement.
 
