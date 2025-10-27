@@ -1,3 +1,34 @@
+from collections import defaultdict
+
+# Fetch metadata only (no vectors)
+results = collection.get(include=["metadatas"])
+
+pages_by_doc = defaultdict(set)
+
+for meta in results["metadatas"]:
+    # Ensure metadata has both doc and page
+    if "source" in meta and "page" in meta:
+        pages_by_doc[meta["source"]].add(meta["page"])
+
+# Display page counts by file
+total_pages = 0
+for doc, pages in pages_by_doc.items():
+    page_count = len(pages)
+    total_pages += page_count
+    print(f"{doc}: {page_count} pages")
+
+print("\nTOTAL INDEXED PAGES IN CHROMA:", total_pages)
+
+expected = 150_000  # your expected number
+missing = expected - total_pages
+print("Difference from expectation:", missing)
+
+
+
+
+
+
+
 Les anomalies remontées par BUCC n’ont aucun lien avec les lettres LR/MR
 
 
