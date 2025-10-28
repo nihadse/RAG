@@ -1,3 +1,19 @@
+from PyPDF2 import PdfReader, PdfWriter
+
+input_pdf = "input.pdf"
+output_pdf = "page_3.pdf"
+
+page_index = 2  # 0 = first page, so 2 = third page
+
+reader = PdfReader(input_pdf)
+writer = PdfWriter()
+
+writer.add_page(reader.pages[page_index])
+
+with open(output_pdf, "wb") as f:
+    writer.write(f)
+
+
 from collections import defaultdict
 
 # Fetch metadata only (no vectors)
