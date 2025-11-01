@@ -1,3 +1,15 @@
+res = collection.query(
+    query_texts=["A9455"],
+    n_results=500,
+    include=['documents', 'metadatas', 'distances']
+)
+print("Returned ids count:", len(res['documents'][0]))
+print("Top 5 excerpts:", [doc[:120].replace("\n", " ") for doc in res['documents'][0][:5]])
+print("Distances top 5:", res.get('distances', [None])[0][:5])
+
+
+
+
 # Récupérer documents/metadata pour inspection (limiter pour mémoire)
 docs = collection.get(include=['documents', 'metadatas'], limit=1000)  # augmente si besoin
 
