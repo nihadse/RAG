@@ -1,3 +1,16 @@
+reranked_chunks = reranker.rerank(query, retrieved_chunks)
+context = " ".join([chunk["content"] for chunk in reranked_chunks])
+completion = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "system", "content": context},
+              {"role": "user", "content": query}]
+)
+return completion.choices[0].message.content
+
+
+
+
+
 import string
 from rank_bm25 import BM25Okapi
 
