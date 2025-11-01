@@ -1,3 +1,106 @@
+import string
+from rank_bm25 import BM25Okapi
+
+
+# ------------------------------
+# 1. TEXT PREPROCESSING
+# ------------------------------
+def preprocess_text(text: str) -> list:
+    """Clean text and tokenize it into words for BM25."""
+    if not isinstance(text, str):
+        return []
+
+    # Remove punctuation and lowercase everything
+    tokenizer = str.maketrans('', '', string.punctuation)
+    cleaned_text = text.translate(tokenizer).lower()
+
+    # Split into words and remove empties
+    return [token for token in cleaned_text.split() if token.strip()]
+
+
+# ------------------------------
+# 2. TRAIN BM25 ON DOCUMENTS
+# ------------------------------
+def fit_bm25(documents: list):
+    """
+    Create a BM25 model trained on document texts.
+    Returns both the BM25 model and a mapping of doc indices to original docs.
+    """
+    if not documents:
+        raise ValueError("Cannot fit BM25 with empty document list")
+
+    tokenized_corpus = []
+    valid_documents = []
+
+    for i, doc in enumerate(documents):
+        if not isinstance(doc, dict):
+            continue
+
+        # Handle possible key variations
+        text = doc.get('text') or doc.get('page_content') or doc.get('content') or ""
+        tokens = preprocess_text(text)
+
+        if tokens:
+            tokenized_corpus.append(tokens)
+            valid_documents.append((i, doc))
+
+    if not tokenized_corpus:
+        raise ValueError("No valid documents with non-empty text for BM25 training")
+
+    document_map = {new_id: orig_doc for new_id, (_, orig_doc) in enumerate(valid_documents)}
+    bm25_model = BM25Okapi(tokenized_corpus)
+    return bm25_model, document_map
+
+
+# ------------------------------
+# 3. RERANK DOCUMENTS USING BM25
+# ------------------------------
+def rerank_bm25(query: str, documents: list, k: int = 10) -> list:
+    """Use BM25 to rerank a set of documents for a given query."""
+    if not documents:
+        return []
+
+    bm25_model, document_map = fit_bm25(documents)
+
+    query_tokens = preprocess_text(query)
+    if not query_tokens:
+        return documents[:k]
+
+    scores = bm25_model.get_scores(query_tokens)
+
+    # Pair each doc with its BM25 score
+    scored_docs = [(score, document_map[idx]) for idx, score in enumerate(scores)]
+    scored_docs.sort(reverse=True, key=lambda x: x[0])
+
+    # Return only the top k docs
+    return [doc for score, doc in scored_docs[:k]]
+
+
+# ------------------------------
+# 4. RETRIEVE FROM CHROMA + RERANK
+# ------------------------------
+def retrieve_with_bm25(collection, query: str, k: int = 50, rerank_k: int = 10) -> list:
+    """
+    Retrieve documents from Chroma and rerank them using BM25.
+    """
+    # Step 1: Retrieve initial candidate documents from Chroma
+    results = collection.query(
+        query_texts=[query],
+        n_results=k * 10,  # pull a large batch for recall
+        include=["documents", "metadatas"]
+    )
+
+    # Step 2: Format docs consistently
+    docs = [{"text": doc, "metadata": meta}
+            for doc, meta in zip(results["documents"][0], results["metadatas"][0])]
+
+    # Step 3: Apply BM25 reranking
+    reranked_docs = rerank_bm25(query, docs, k=rerank_k)
+    return reranked_docs
+
+
+
+
 import json
 from rank_bm25 import BM25Okapi
 import string
