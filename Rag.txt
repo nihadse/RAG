@@ -1,3 +1,102 @@
+import string
+from rank_bm25 import BM25Okapi
+
+class BM25Reranker:
+    """A document reranker using BM25 algorithm with error handling."""
+
+    def __init__(self, k=50):
+        self.k = k
+        self.bm25 = None
+        self.document_map = {}
+        self.tokenizer = str.maketrans('', '', string.punctuation)
+
+    def _preprocess(self, text):
+        """Lowercase, remove punctuation, and split text."""
+        if not isinstance(text, str):
+            return []
+        cleaned = text.translate(self.tokenizer).lower()
+        return [t for t in cleaned.split() if t.strip()]
+
+    def fit(self, documents):
+        """Fit BM25 model on a list of documents (list of dicts)."""
+        if not documents:
+            raise ValueError("Empty document list given to BM25Reranker")
+
+        tokenized_corpus = []
+        valid_docs = []
+
+        for i, doc in enumerate(documents):
+            text = doc.get("text") or doc.get("page_content") or doc.get("content") or ""
+            tokens = self._preprocess(text)
+            if tokens:
+                tokenized_corpus.append(tokens)
+                valid_docs.append((i, doc))
+
+        if not tokenized_corpus:
+            raise ValueError("No valid documents to fit BM25 model")
+
+        self.document_map = {i: doc for i, (_, doc) in enumerate(valid_docs)}
+        self.bm25 = BM25Okapi(tokenized_corpus)
+
+    def rerank(self, query, documents):
+        """Rerank a list of documents using BM25 for the given query."""
+        if not documents:
+            return []
+
+        self.fit(documents)
+        tokens = self._preprocess(query)
+        if not tokens:
+            return documents[:self.k]
+
+        scores = self.bm25.get_scores(tokens)
+        ranked = sorted(
+            zip(scores, self.document_map.values()), key=lambda x: x[0], reverse=True
+        )
+
+        return [doc for _, doc in ranked[:self.k]]
+
+
+class CustomRetrieverWithHistory:
+    """Retriever that uses Chroma and BM25 reranking with chat history support."""
+
+    def __init__(self, collection, chat_history=None, k=50, rerank_k=50):
+        self.collection = collection  # Chroma collection
+        self.chat_history = chat_history or []
+        self.k = k
+        self.reranker = BM25Reranker(k=rerank_k)
+
+    def get_relevant_documents(self, query):
+        """Retrieve from Chroma, rerank using BM25, and return structured docs."""
+        # Step 1: include chat history if available
+        if self.chat_history:
+            full_query = " ".join(self.chat_history) + " " + query
+        else:
+            full_query = query
+
+        # Step 2: retrieve initial candidates
+        results = self.collection.query(
+            query_texts=[full_query],
+            n_results=self.k * 5,  # fetch a larger batch for better recall
+            include=["documents", "metadatas"]
+        )
+
+        # Step 3: format the output into consistent doc dictionaries
+        # results["documents"] and results["metadatas"] are nested lists from Chroma
+        docs = [
+            {"text": doc, "metadata": meta}
+            for doc, meta in zip(results["documents"][0], results["metadatas"][0])
+        ]
+
+        # Step 4: rerank using BM25
+        reranked_docs = self.reranker.rerank(full_query, docs)
+
+        # Step 5: return top reranked docs
+        return reranked_docs
+
+
+
+retriever = CustomRetrieverWithHistory(collection, chat_history=["context"], k=50, rerank_k=10)
+docs = retriever.get_relevant_documents("A9455")
 
 
 # Check if "A9455" is in any of your stored documents
