@@ -1,3 +1,152 @@
+import json
+from rank_bm25 import BM25Okapi
+import string
+
+
+class BM25Reranker:
+    """A document reranker using the BM25 algorithm with error handling."""
+
+    def __init__(self, k=50):
+        self.k = k
+        self.bm25 = None
+        self.document_map = {}
+        self.tokenizer = str.maketrans('', '', string.punctuation)
+
+    def preprocess(self, text: str):
+        if not isinstance(text, str):
+            return []
+        cleaned_text = text.translate(self.tokenizer).lower()
+        return [token for token in cleaned_text.split() if token.strip()]
+
+    def fit(self, documents: list):
+        if not documents:
+            raise ValueError("Cannot fit BM25 with empty documents list")
+
+        tokenized_corpus = []
+        valid_documents = []
+
+        for i, doc in enumerate(documents):
+            if not isinstance(doc, dict):
+                continue
+            text = doc.get("text", "")
+            tokens = self.preprocess(text)
+            if tokens:
+                tokenized_corpus.append(tokens)
+                valid_documents.append((i, doc))
+
+        if not tokenized_corpus:
+            raise ValueError("No valid documents with non-empty text content for BM25 training")
+
+        self.document_map = {new_id: orig_doc for new_id, (_, orig_doc) in enumerate(valid_documents)}
+        self.bm25 = BM25Okapi(tokenized_corpus)
+        return self
+
+    def rerank(self, query: str, documents: list):
+        if not documents:
+            return []
+
+        if not self.bm25:
+            try:
+                self.fit(documents)
+            except Exception as e:
+                print(f"BM25 fit failed: {str(e)}")
+                return documents[:self.k]
+
+        try:
+            query_tokens = self.preprocess(query)
+            if not query_tokens:
+                return documents[:self.k]
+
+            scores = self.bm25.get_scores(query_tokens)
+            scored_docs = [(score, self.document_map[idx]) for idx, score in enumerate(scores) if idx in self.document_map]
+            scored_docs.sort(reverse=True, key=lambda x: x[0])
+            return [doc for score, doc in scored_docs[:self.k]]
+
+        except Exception as e:
+            print(f"BM25 reranking failed: {str(e)}")
+            return documents[:self.k]
+
+
+class CustomRetrieverWithHistory:
+    """Retriever that integrates chat history, Chroma retrieval, and BM25 reranking."""
+
+    def __init__(self, collection, chat_history=None, k=50, rerank_k=50):
+        self.collection = collection  # Chroma collection
+        self.chat_history = chat_history or []
+        self.k = k
+        self.reranker = BM25Reranker(k=rerank_k)
+
+    def get_relevant_documents(self, query: str):
+        """Retrieve and rerank documents with optional history-based query expansion."""
+        try:
+            # Step 1: Base retrieval
+            results = self.collection.query(
+                query_texts=[query],
+                n_results=self.k * 2,
+                include=["documents", "metadatas"]
+            )
+            docs = [
+                {"text": doc, "metadata": meta}
+                for doc, meta in zip(results["documents"][0], results["metadatas"][0])
+            ]
+
+            # Step 2: Enhance with recent chat history (last 3 Q&A)
+            if self.chat_history:
+                recent_history = self.chat_history[-3:] if len(self.chat_history) > 3 else self.chat_history
+                history_context = "\n".join([f"Q: {q}\nA: {a}" for q, a in recent_history])
+                enhanced_query = f"{query}\n\nRelated context:\n{history_context}"
+
+                # Step 3: Retrieve more using enhanced query
+                extra_results = self.collection.query(
+                    query_texts=[enhanced_query],
+                    n_results=100,
+                    include=["documents", "metadatas"]
+                )
+
+                extra_docs = [
+                    {"text": doc, "metadata": meta}
+                    for doc, meta in zip(extra_results["documents"][0], extra_results["metadatas"][0])
+                ]
+
+                # Step 4: Merge and deduplicate
+                all_docs = {d["text"]: d for d in docs + extra_docs}
+                docs = list(all_docs.values())
+
+            # Step 5: Rerank with BM25
+            return self.reranker.rerank(query, docs)
+
+        except Exception as e:
+            print(f"Error during retrieval: {str(e)}")
+            return []
+
+    def update_history(self, query: str, answer: str):
+        """Add query-answer pair to memory."""
+        self.chat_history.append((query, answer))
+
+    def save_history(self, file_path="bank_rag_state.json"):
+        """Save chat history to disk."""
+        try:
+            state = {"chat_history": self.chat_history}
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(state, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"Error saving history: {str(e)}")
+
+    def load_history(self, file_path="bank_rag_state.json"):
+        """Load chat history from disk."""
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                state = json.load(f)
+            self.chat_history = state.get("chat_history", [])
+            print(f"Loaded {len(self.chat_history)} previous conversations.")
+        except FileNotFoundError:
+            print("No previous history found.")
+        except Exception as e:
+            print(f"Error loading history: {str(e)}")
+
+
+
+
 import string
 from rank_bm25 import BM25Okapi
 
