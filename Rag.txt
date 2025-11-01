@@ -1,3 +1,75 @@
+import string
+from rank_bm25 import BM25Okapi
+
+class BM25Reranker:
+    """A document reranker using the BM25 algorithm."""
+
+    def __init__(self, k=50):
+        self.k = k
+        self.bm25 = None
+        self.document_map = {}
+        self.tokenizer = str.maketrans('', '', string.punctuation)
+
+    def preprocess(self, text: str):
+        if not isinstance(text, str):
+            return []
+        cleaned_text = text.translate(self.tokenizer).lower()
+        return [token for token in cleaned_text.split() if token.strip()]
+
+    def fit(self, documents: list):
+        if not documents:
+            raise ValueError("Cannot fit BM25 with empty documents list")
+
+        tokenized_corpus = []
+        valid_documents = []
+
+        for i, doc in enumerate(documents):
+            if not isinstance(doc, dict):
+                continue
+            text = doc.get("text", "")
+            tokens = self.preprocess(text)
+            if tokens:
+                tokenized_corpus.append(tokens)
+                valid_documents.append((i, doc))
+
+        if not tokenized_corpus:
+            raise ValueError("No valid documents with non-empty text content for BM25 training")
+
+        self.document_map = {new_id: orig_doc for new_id, (_, orig_doc) in enumerate(valid_documents)}
+        self.bm25 = BM25Okapi(tokenized_corpus)
+        return self
+
+    def rerank(self, query: str, documents: list):
+        if not documents:
+            return []
+
+        if not self.bm25:
+            try:
+                self.fit(documents)
+            except Exception as e:
+                print(f"BM25 fit failed: {str(e)}")
+                return documents[:self.k]
+
+        try:
+            query_tokens = self.preprocess(query)
+            if not query_tokens:
+                return documents[:self.k]
+
+            scores = self.bm25.get_scores(query_tokens)
+            scored_docs = [(score, self.document_map[idx]) for idx, score in enumerate(scores) if idx in self.document_map]
+            scored_docs.sort(reverse=True, key=lambda x: x[0])
+            return [doc for score, doc in scored_docs[:self.k]]
+
+        except Exception as e:
+            print(f"BM25 reranking failed: {str(e)}")
+            return documents[:self.k]
+
+
+
+
+
+
+
 res = collection.query(
     query_texts=["A9455"],
     n_results=500,
