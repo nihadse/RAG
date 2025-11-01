@@ -1,3 +1,29 @@
+# Récupérer documents/metadata pour inspection (limiter pour mémoire)
+docs = collection.get(include=['documents', 'metadatas'], limit=1000)  # augmente si besoin
+
+found = []
+for i, doc in enumerate(docs['documents']):
+    if 'A9455' in doc or 'a9455' in doc:
+        found.append((i, docs['metadatas'][i], doc[:400]))  # affiche un extrait
+
+if found:
+    print(f"Trouvé {len(found)} chunk(s) contenant 'A9455'. Extraits :")
+    for idx, meta, excerpt in found:
+        print("Index:", idx, "Metadata:", meta)
+        print(excerpt)
+else:
+    print("Aucun chunk textuel contenant 'A9455' parmi les documents récupérés.")
+
+
+
+
+
+
+
+
+
+
+
 prompt = f"""
 Vous êtes un assistant RAG spécialisé dans les systèmes bancaires, 
 l’architecture de données, et les produits financiers du groupe. 
