@@ -1,3 +1,26 @@
+
+
+# Check if "A9455" is in any of your stored documents
+results = collection.query(
+    query_texts=["A9455"],
+    n_results=5,
+    include=["documents", "metadatas"]
+)
+
+for doc, meta in zip(results["documents"][0], results["metadatas"][0]):
+    print("DOC:", doc)
+    print("META:", meta)
+    print("=" * 80)
+
+
+
+# Retrieve *all* stored documents containing that code
+all_docs = collection.get(include=["documents", "metadatas"])
+
+found = [doc for doc in all_docs["documents"] if "A9455" in doc]
+print(f"Found {len(found)} occurrences of 'A9455'")
+
+
 import string
 from rank_bm25 import BM25Okapi
 
