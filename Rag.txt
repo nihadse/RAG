@@ -1,3 +1,12 @@
+Bonjour Chaima,
+
+Merci pour l’envoi des fichiers.
+Pouvez-vous également nous transmettre les règles de gestion relatives aux garanties ?
+
+Cordialement,
+Nihad
+
+
 reranked_chunks = reranker.rerank(query, retrieved_chunks)
 context = " ".join([chunk["content"] for chunk in reranked_chunks])
 completion = client.chat.completions.create(
