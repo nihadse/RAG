@@ -1,3 +1,21 @@
+
+
+Présence de doublons dans les deux fichiers :
+– Lignes utilisateurs dupliquées.
+– Lignes de comptes dupliquées.
+– Certaines duplications portent sur les identifiants clés, ce qui crée des conflits dans les correspondances.
+
+En résumé, la base actuelle présente des incohérences structurelles qui empêchent d’établir des correspondances fiables entre utilisateurs, entités et comptes. Une clarification ou une nouvelle extraction plus propre serait nécessaire pour poursuivre le travail.
+
+Suite à cette analyse, nous avons construit une base de données finale structurée à partir de ces deux fichiers.
+
+
+voici la apa 
+
+
+
+
+
 Voici une version réécrite, fluide et professionnelle, toujours en français, et adaptée à un email :
 
 
