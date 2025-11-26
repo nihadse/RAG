@@ -1,3 +1,33 @@
+Voici une version qui dit oui, confirme que le mail reflète bien la réunion et reprend les détails des points (APA masse, MyDigibank, Connexis, Webdoc, etc.) sans ajouter d’interprétation :
+
+
+---
+
+Bonjour Youcef,
+
+Oui, je confirme que ce message reflète fidèlement les échanges de notre réunion de ce matin, notamment :
+
+– APA Masse : point corrigé côté DCD/client et statut en production.
+– APA Massa : ajout du Code OMC tier tel que demandé, simple rajout sans modification majeure.
+– APA MyDigibank : sujet d’erreur en cours de résolution, lancement en cours de test.
+– APA Connexis : reste à livrer pour les portefeuilles corpo et pro, ajout de la notion ayant connexis (1/0) et de la wilaya.
+– APA Webdoc : reste à livrer pour les portefeuilles corpo et pro, notion ayant webdoc (1/0).
+– Clarification attendue concernant la base used pour la distinction corpo/pro (catégorie, segment ou exploitant).
+
+Bien cordialement,
+Nihad SENHADJI
+
+
+---
+
+Si tu veux je peux faire une version plus courte ou plus neutre.
+
+
+
+
+
+
+
 D’accord, voici l’explication claire de ce que « DONE » signifie dans ton échange, en te basant sur le contenu exact de l’email que tu m’as donné.
 
 Je te le formule comme une réponse que tu peux envoyer à ton manager, toujours en français, professionnelle et simple :
