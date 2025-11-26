@@ -1,3 +1,32 @@
+Voici la version complète, propre, sans détour, avec l’ajout du début que tu veux :
+
+
+---
+
+Bonjour Youcef,
+
+J’ai annulé et je remplace le dernier mail que j’ai envoyé hier.
+
+Oui, je confirme que ce message reflète fidèlement les échanges de notre réunion de ce matin, notamment :
+
+– APA Masse : point corrigé côté DCD/client et statut en production.
+– Ajout du Code OMC tier : simple rajout de donnée sans modification majeure.
+– APA MyDigibank : sujet d’erreur en cours de résolution, lancement en cours de test.
+– APA Connexis : reste à livrer pour les portefeuilles corpo et pro, ajout de la notion « ayant connexis » (1/0) et de la wilaya.
+– APA Webdoc : reste à livrer pour les portefeuilles corpo et pro, notion « ayant webdoc » (1/0).
+– Clarification attendue sur la base utilisée pour la distinction corpo/pro (catégorie, segment ou exploitant).
+
+Bien cordialement,
+Nihad SENHADJI
+
+
+---
+
+Si tu veux une version encore plus concise ou plus formelle, je peux l’ajuster.
+
+
+
+
 Voici une version qui dit oui, confirme que le mail reflète bien la réunion et reprend les détails des points (APA masse, MyDigibank, Connexis, Webdoc, etc.) sans ajouter d’interprétation :
 
 
