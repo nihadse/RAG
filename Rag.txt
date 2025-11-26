@@ -1,3 +1,38 @@
+Here’s a clean, professional version of your email with each APA point in one bullet:
+
+
+---
+
+Subject: Compte rendu des APAs – Suivi des actions
+
+Bonjour Youcef,
+
+J’ai annulé et je remplace le dernier mail que j’ai envoyé hier.
+
+Oui, je confirme que le compte rendu reflète les échanges de notre réunion. Voici l’état de chaque APA :
+
+APA Masse : Ajout de la donnée Code OMC tier réalisé.
+
+APA MyDigibank : L’erreur message a été corrigée, il reste à tester de votre côté.
+
+APA Connexis : Les données ont été ajoutées pour les portefeuilles corpo et pro, y compris la notion ayant Connexis (1/0) et la wilaya.
+
+APA Webdoc : Les données ont été ajoutées pour les portefeuilles corpo et pro, y compris la notion ayant Webdoc (1/0).
+
+
+Bien cordialement,
+Nihad
+
+
+---
+
+If you want, I can also make a slightly more concise “ready-to-send” French version that’s very professional and easy to skim. Do you want me to do that?
+
+
+
+
+
+
 Voici la version complète, propre, sans détour, avec l’ajout du début que tu veux :
 
 
