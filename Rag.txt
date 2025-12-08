@@ -1,73 +1,16 @@
-Voici une version professionnelle intégrant ta demande de validation :
+# Cas d'usage DECAD AI
 
+Chaque mois, la Banque d'Algérie envoie un fichier DECAD répertoriant les émetteurs de chèques sans provision. En moyenne, ce fichier contient environ 2 200 entrées. Le fichier n'est pas structuré, ce qui complique son traitement.
 
----
+Les noms des clients sont souvent incohérents avec notre base de données clients Atlas - parfois inversés ou orthographiés différemment. Auparavant, l'équipe des Flux Domestiques devait effectuer des recherches manuelles pour identifier les émetteurs défaillants dans Atlas. C'était chronophage, sujet aux erreurs et inefficace. Le processus DECAD AI repose sur une recherche de similarité sémantique utilisant un modèle Sentence Transformer.
 
-Objet : Suivi Compte Rendu – APA My DigiBank
+## Solution DECAD AI
 
-Bonjour Youcef,
-
-Merci pour le compte rendu.
-
-Je vous confirme que l’APA My DigiBank est prête de mon côté. Conformément à votre demande, toute concaténation a été supprimée. Vous pouvez la consulter via le lien suivant : [insérer le lien ici].
-
-Merci de valider les résultats afin que l’équipe puisse poursuivre les tests et la validation complète.
-
-Je reste à votre disposition pour toute précision supplémentaire.
-
-Bien cordialement,
-[Votre Nom]
-
-
----
-
-Si tu veux, je peux aussi faire une version encore plus concise et directe qui attire l’attention sur le lien et la validation à faire. Veux‑tu que je fasse ça ?
+Nous avons déployé un système d'IA basé sur le Traitement du Langage Naturel (NLP). En utilisant un modèle Sentence Transformer, le système calcule la similarité sémantique entre Atlas, notre base de données clients, et la liste noire de la Banque d'Algérie.
 
 
 
 
-Voici la version mise à jour avec le lien :
-
-
----
-
-Objet : Suivi Compte Rendu – APA My DigiBank
-
-Bonjour Youcef,
-
-Merci pour le compte rendu.
-
-Je vous confirme que l’APA My DigiBank est prête de mon côté. Conformément à votre demande, toute concaténation a été supprimée. Vous pouvez la consulter via le lien suivant : [insérer le lien ici]. L’équipe peut maintenant prendre le relais pour les tests et la validation.
-
-Je reste à votre disposition pour toute précision supplémentaire.
-
-Bien cordialement,
-[Votre Nom]
-
-
----
-
-Si tu veux, je peux te rédiger une version encore plus percutante où le lien et l’action à faire ressortent immédiatement. Veux‑tu que je fasse ça ?
-
-
-Got it. Here’s a clean “situation/status” email you can send now, summarizing all APAs in bullet points:
-
-
----
-
-Subject: Situation des APAs – Suivi des actions
-
-Bonjour Youcef,
-
-Voici l’état actuel de chaque APA suite à nos échanges :
-
-APA Masse : Ajout de la donnée Code OMC tier réalisé.
-
-APA MyDigibank : L’erreur message a été corrigée, reste à tester de votre côté.
-
-APA Connexis : Les données ont été ajoutées pour les portefeuilles corpo et pro, incluant la notion ayant Connexis (1/0) et la wilaya.
-
-APA Webdoc : Les données ont été ajoutées pour les portefeuilles corpo et pro, incluant la notion ayant Webdoc (1/0).
 
 
 Bien cordialement,
@@ -84,13 +27,11 @@ Here’s a clean, professional version of your email with each APA point in one 
 
 ---
 
-Subject: Compte rendu des APAs – Suivi des actions
 
-Bonjour Youcef,
 
-J’ai annulé et je remplace le dernier mail que j’ai envoyé hier.
 
-Oui, je confirme que le compte rendu reflète les échanges de notre réunion. Voici l’état de chaque APA :
+
+échanges de notre réunion. Voici l’état de chaque APA :
 
 APA Masse : Ajout de la donnée Code OMC tier réalisé.
 
