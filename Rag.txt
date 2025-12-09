@@ -1,3 +1,32 @@
+Voici l’email adapté :
+
+
+---
+
+Objet : Workflow KPI Data Quality – Périmètre des données
+
+Bonjour,
+
+Voici le workflow du KPI Data Quality, incluant le périmètre des données par lignes de métier et par domaines.
+
+Vous trouverez le fichier au lien suivant :
+[insérer le lien ici]
+
+Bonne réception.
+
+Cordialement,
+[Votre nom]
+
+
+---
+
+Si tu veux le rendre plus ferme ou plus neutre, je peux ajuster.
+
+
+
+
+
+
 # Cas d'usage DECAD AI
 
 Chaque mois, la Banque d'Algérie envoie un fichier DECAD répertoriant les émetteurs de chèques sans provision. En moyenne, ce fichier contient environ 2 200 entrées. Le fichier n'est pas structuré, ce qui complique son traitement.
