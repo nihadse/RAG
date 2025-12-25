@@ -1,4 +1,38 @@
-Here’s a polished version including your thanks:
+Bonjour [Nom du manager],
+
+Je souhaite vous partager un point de situation concernant l’avancement des projets APA.
+
+1. Avancement général (APA ESP & APA Arrêté)
+Suite aux différents workshops organisés avec la DRAC, l’ensemble des règles de gestion a été confirmé et validé pour les deux projets.
+Un rapprochement a également été réalisé sur la base de leurs fichiers de novembre 2025.
+
+2. Projet APA ESP
+Un seul point reste identifié : un problème de code fusion concernant un compte unique.
+La DRAC m’a confirmé que ce point est déjà porté à votre connaissance.
+
+3. Projet APA Arrêté
+Un seul point est actuellement en suspens :
+
+- Un écart lié au solde du compte à vue.
+À ce stade, la DRAC n’est pas en mesure d’identifier la méthode ou la source utilisée pour le calcul de ce solde et doit effectuer des vérifications de son côté avant de nous apporter un retour définitif.
+
+4. Projet APA Leasing
+Le projet APA Leasing n’a pas encore été démarré à ce stade.
+
+Vous trouverez ci-dessous le lien regroupant les éléments pour les projets APA ESP et APA Arrêté :
+[Lien à insérer]
+
+Je reste à votre disposition pour toute précision complémentaire ou pour un point de suivi.
+
+Cordialement,
+Nihad Senhadji
+
+
+
+
+
+
+your thanks:
 
 "Je tiens à vous remercier pour votre accompagnement et vos conseils tout au long de l’année, et je souhaite continuer à contribuer activement à la réussite des objectifs de la Banque, tout en participant aux projets IA et métiers."
 
