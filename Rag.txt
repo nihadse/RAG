@@ -1,3 +1,47 @@
+Bonjour,
+
+Merci pour votre message et pour la transmission de l’Expression de Besoin (EDB) relative à l’automatisation du processus de traitement des agios réservés et de leurs reprises liées aux clients douteux – périmètre EPS.
+
+Suite à l’analyse de cette EDB et conformément aux éléments partagés, je vous prie de trouver en pièce jointe les résultats de l’APA relatifs au mois de décembre 2025.
+
+Ces résultats correspondent uniquement au traitement du mois de décembre 2025 et constituent la sortie actuelle de l’APA à ce stade.
+Le fichier Excel de résultats contient à la fois des clients sains et des clients douteux.
+
+Ils sont le fruit de plusieurs ateliers de travail menés avec Mouna, au cours desquels nous avons réalisé de nombreuses vérifications manuelles, ainsi que des rapprochements détaillés entre les résultats APA et les résultats manuels du mois d’octobre 2025, afin de valider les approches retenues.
+
+Vous trouverez ci-dessous les règles de gestion appliquées dans le cadre de cette APA, en cohérence avec les besoins fonctionnels et techniques décrits dans l’EDB et avec la recommandation de la Banque d’Algérie visant à remplacer le traitement manuel actuellement réalisé par l’équipe DRAC.
+
+Il s’agit actuellement d’une phase de test. Il est proposé de fonctionner selon ce mode sur les prochains mois, afin de confirmer la fiabilité du dispositif et de permettre la validation définitive des résultats par vos soins.
+
+Par ailleurs, l’APA sera livrée la semaine prochaine afin d’être déployée et exécutée sur les postes des utilisateurs concernés.
+À cet effet, nous aurons besoin :
+
+- de l’installation de l’APA sur les postes utilisateurs,
+- ainsi que de la mise à disposition d’un lien d’accès vers l’emplacement de dépôt des fichiers de sortie.
+
+Je reste bien entendu à votre disposition, ainsi qu’Amina, pour tout complément d’information ou si vous souhaitez planifier un point d’échange.
+
+Cordialement,
+Nihad Senhadji
+
+---
+
+If you want, I can now:
+
+- make a very formal / regulatory version (signature–engagement context), or
+- shorten it for a manager-level reply.
+
+
+
+
+
+
+
+
+
+
+
+
 Le fichier Excel de résultats contient à la fois des clients sains et des clients douteux
 
 
