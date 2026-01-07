@@ -1,3 +1,40 @@
+Bonjour,
+
+Merci pour votre message et pour les éléments transmis lors de notre échange de jeudi.
+
+Suite à l’analyse de l’expression de besoin relative à l’automatisation du traitement des agios réservés leasing, je vous prie de trouver en pièce jointe les résultats de l’APA.
+
+Ces résultats correspondent uniquement au traitement du mois en cours et constituent la sortie actuelle de l’APA à ce stade.
+
+Ils sont le fruit de plusieurs ateliers de travail menés avec Mouna, au cours desquels nous avons réalisé de nombreuses vérifications manuelles, ainsi que des rapprochements détaillés entre les résultats APA et les résultats manuels du mois d’octobre 2025, afin de valider les approches retenues.
+
+Vous trouverez ci-dessous les règles de gestion appliquées dans le cadre de cette APA.
+
+Il s’agit actuellement d’une phase de test. Il est proposé de fonctionner selon ce mode sur les prochains mois, afin de confirmer la fiabilité du dispositif et de permettre la validation définitive des résultats par vos soins.
+
+Par ailleurs, l’APA sera livrée la semaine prochaine afin d’être déployée et exécutée sur les postes des utilisateurs concernés.
+À cet effet, nous aurons besoin :
+
+- de l’installation de l’APA sur les postes utilisateurs,
+- ainsi que de la mise à disposition d’un lien d’accès vers l’emplacement de dépôt des fichiers de sortie.
+
+Je reste bien entendu à votre disposition pour tout complément d’information, retour ou ajustement nécessaire.
+
+Cordialement,
+Nihad Senhadji
+
+---
+
+If you want, I can also:
+
+- slightly strengthen the request for validation, or
+- adapt the wording to a more regulatory / audit-compliant style for DRAC.
+
+
+
+
+
+
 Bonjour [Nom du manager],
 
 Je souhaite vous partager un point de situation concernant l’avancement des projets APA.
