@@ -1,3 +1,6 @@
+Les colonnes du fichier fournissent toutes les informations nécessaires — identité, dates, lieux et références clients — afin de faciliter et structurer l’analyse des équipes sur ces cas sensibles.
+
+
 La deuxième feuille, avec un score de similarité inférieur à 95 %, correspond aux cas où le modèle d’IA a permis de réduire une grande partie de la recherche manuelle.
 Dans cette feuille, tous les noms qui ne figurent pas dans notre base clients Atlas sont automatiquement écartés, ce qui élimine les faux positifs et allège considérablement le travail des équipes opérationnelles.
 🔹 La troisième feuille, avec un score de similarité supérieur à 95 %, regroupe les noms nécessitant une analyse approfondie par l’équipe opérationnelle, car ils présentent une forte probabilité de correspondance.
