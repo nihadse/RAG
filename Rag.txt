@@ -1,3 +1,93 @@
+
+
+🎬 Script vidéo – Présentation de Decad AI Solution
+
+> Bonjour,
+
+Dans cette vidéo, je vais vous présenter Decad AI Solution, accessible via un lien de web application Domino.
+
+On commence par l’insertion du fichier DECAD, envoyé par la Banque d’Algérie, directement dans l’application.
+
+Ensuite, un simple clic permet de lancer le traitement. La solution s’appuie sur un modèle d’intelligence artificielle exécuté en arrière-plan, avec un temps d’exécution d’environ 10 minutes.
+
+Une fois le traitement terminé, on clique sur “Résultats” afin de télécharger le fichier Excel de sortie, comme vous pouvez le voir à l’écran.
+
+Le fichier Excel généré contient trois feuilles distinctes :
+
+🔹 La première feuille, appelée Pièce d’audit, regroupe les résultats avec des scores de similarité inférieurs et supérieurs à 95 %.
+
+🔹 La deuxième feuille contient les résultats avec un score inférieur à 95 %, correspondant aux cas non identifiés par le modèle d’IA.
+
+🔹 La troisième feuille regroupe les résultats avec un score supérieur à 95 %, qui représentent les cas prioritaires à analyser par l’équipe opérationnelle.
+
+Il est important de noter que les trois feuilles contiennent exactement les mêmes colonnes.
+
+Voici la liste des colonnes suivantes :
+
+COLONNE 1 et 2 DECAD
+
+Nom interdits chequiers
+
+Raison sociale base atlas
+
+Nom abrégé tiers
+
+Date naissance interdits chequiers ET DE NOTRE BASE ATLAS
+
+Date de création (entreprise)
+
+Date naissance Match
+
+Date de création Match
+
+Lieu naissance interdits chequier ET DE LA BASE atlas
+
+Lieu naissance
+
+Lieu naissance Match
+
+Date d'effet et de levée
+
+Compte client
+
+Code catégorie client
+
+Id tiers
+
+Score de similarité
+
+
+Grâce à cette structuration, Decad AI Solution permet de réduire le temps de traitement, de prioriser les analyses, et de sécuriser le processus de contrôle grâce à l’intelligence artificielle.
+
+Merci pour votre attention.
+
+
+
+
+---
+
+If you want, I can also make a version more “oral / dynamique”, so it sounds natural when you speak it in the video, like a real demo narration.
+
+Do you want me to do that?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Bonjour,
 
 Merci pour votre message et pour la transmission de l’Expression de Besoin (EDB) relative à l’automatisation du processus de traitement des agios réservés et de leurs reprises liées aux clients douteux – périmètre EPS.
