@@ -1,3 +1,6 @@
+Cet algorithme n’a pas été modifié depuis sa mise en place
+
+
 Afin de détecter les communautés de fraude, nous utilisons un algorithme appelé Louvain, qui permet de regrouper automatiquement les clients ayant des comportements similaires.
 
 
