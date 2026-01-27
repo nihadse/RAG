@@ -1,5 +1,50 @@
 Bonjour,
 
+Dans le cadre du projet AI Sentinilia dédié à la détection de communautés de fraude, la méthodologie utilisée repose sur les étapes suivantes :
+
+- Les liens entre clients sont d’abord identifiés à partir des critères suivants :
+
+   - la localisation du GAB (ATM) où les retraits ont été effectués ;
+   - la fréquence des retraits ;
+   - des coïncidences entre plusieurs clients lorsque les retraits ont eu lieu :
+      - à la même date,
+      - au même GAB,
+      - avec un montant supérieur ou égal à 500 euros,
+      - et ce au moins 5 fois entre deux clients ou plus.
+
+- Lorsque ces conditions sont réunies, les clients sont considérés comme liés, car leurs comportements de retrait présentent des similitudes répétées et inhabituelles.
+
+- La méthode de Louvain est ensuite utilisée pour regrouper automatiquement les clients liés :
+
+   - elle permet de constituer des communautés de clients fortement connectés ;
+   - chaque communauté représente un groupe potentiel de fraude, basé sur des comportements de retraits coordonnés.
+
+Je reste à votre disposition pour toute information complémentaire ou clarification si nécessaire.
+
+Cordialement,
+
+Nihad Senhadji
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bonjour,
+
 Je vous informe que j’ai annulé la version du fichier déjà envoyée précédemment.
 Nous sommes actuellement en train de finaliser la nouvelle version, et je vous l’enverrai dès que ce sera terminé.
 
