@@ -1,3 +1,53 @@
+Bien sûr ! Voici une version réécrite, fluide, professionnelle et claire de ton email :
+
+
+---
+
+Objet : Méthodologie – Détection de communautés de fraude (AI Sentinilia)
+
+Bonjour Ryma,
+
+Dans le cadre du projet AI Sentinilia dédié à la détection de communautés de fraude, la méthodologie utilisée repose sur les critères suivants :
+
+Les liens entre clients sont identifiés à partir de coïncidences lorsqu’ils effectuent des retraits :
+
+à la même date ;
+
+au même GAB (ATM) ;
+
+pour un montant supérieur ou égal à 500 euros ;
+
+avec une fréquence d’au moins 5 retraits entre deux clients ou plus.
+
+
+
+Lorsque ces conditions sont remplies, les clients sont considérés comme liés, car leurs comportements de retrait présentent des similitudes répétées et inhabituelles.
+
+Afin de détecter les communautés de fraude, nous utilisons un algorithme appelé Louvain, qui permet de regrouper automatiquement les clients ayant des comportements similaires. Chaque communauté ainsi identifiée représente un groupe potentiel de fraude, basé sur des comportements de retraits coordonnés.
+
+Cette solution n’a pas été modifiée depuis sa mise en place, et le suivi étant trimestriel, nous enverrons les prochains résultats en février 2026.
+
+Je reste à votre disposition pour toute information complémentaire ou clarification si nécessaire.
+
+Cordialement,
+Nihad Senhadji
+
+
+---
+
+Si tu veux, je peux aussi te faire une version encore plus courte et simple, parfaite pour des non-techniques, qui tient en 5-6 phrases.
+Veux‑tu que je fasse ça ?
+
+
+
+
+
+
+
+
+
+
+
 Comme le suivi est trimestriel, nous enverrons les prochains résultats en février 2025.
 
 
