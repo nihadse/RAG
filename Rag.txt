@@ -1,3 +1,6 @@
+Afin de détecter les communautés de fraude, nous utilisons un algorithme appelé Louvain, qui permet de regrouper automatiquement les clients ayant des comportements similaires.
+
+
 Bonjour,
 
 Dans le cadre du projet AI Sentinilia dédié à la détection de communautés de fraude, la méthodologie utilisée repose sur les étapes suivantes :
