@@ -1,3 +1,44 @@
+Bonjour à tous,
+
+Veuillez trouver ci-joint la nouvelle version du fichier État Central des Engagements arrêté au 31/12/2025.
+
+Lors du traitement, nous avons constaté que certaines dates d’impayés n’ont pas été retrouvées dans les données d’extraction disponibles.
+Pour cette raison, une nouvelle feuille a été ajoutée au fichier, intitulée :
+
+« État des engagements – Anomalies dates d’impayés »
+
+Cette feuille regroupe l’ensemble des engagements pour lesquels les dates d’impayés n’ont pas pu être identifiées à partir de l’extraction.
+
+Le fichier contient désormais les feuilles suivantes :
+
+1. État Central des Engagements
+2. État des engagements – Anomalies dates d’impayés
+3. État détaillé par chapitre
+4. Rapprochement des créances – Bilan
+5. Rapprochement des créances hors bilan
+6. Rapprochement CR / AR / CB
+7. Reporting social BG
+8. État détaillé par ratios prudentiels
+9. Risques – Rapprochement RP
+10. Risques – Grands Risques
+11. Risques – Grands Risques par entité
+12. Risques – Annexe 9000
+13. Rapprochement reporting provisions
+14. Rapprochement affectation des garanties
+15. État des garanties
+
+Je reste à votre disposition pour toute information complémentaire ou clarification si besoin.
+
+Cordialement,
+Nihad Senhadji
+GA-15
+
+
+
+
+
+
+
 Bien sûr ! Voici une version réécrite, fluide, professionnelle et claire de ton email :
 
 
