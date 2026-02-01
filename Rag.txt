@@ -1,5 +1,24 @@
 Bonjour à tous,
 
+Suite à notre précédent échange, je vous informe que nous avons pu identifier et renseigner les dates d’impayés en nous basant sur l’extraction transmise par Chaima.
+
+Toutefois, 11 cas restent pour lesquels les dates d’impayés n’ont pas pu être renseignées, malgré l’utilisation de cette extraction. Ces cas demeurent donc identifiés comme anomalies.
+
+Je reste à votre disposition pour toute précision complémentaire ou pour échanger sur ces cas si besoin.
+
+Cordialement,
+Nihad Senhadji
+GA-15
+
+
+
+
+
+
+
+
+Bonjour à tous,
+
 Veuillez trouver ci-joint la nouvelle version du fichier État Central des Engagements arrêté au 31/12/2025.
 
 Lors du traitement, nous avons constaté que certaines dates d’impayés n’ont pas été retrouvées dans les données d’extraction disponibles.
