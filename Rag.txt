@@ -1,3 +1,153 @@
+
+class BM25Reranker:
+    def __init__(self, documents, k=50):
+        """
+        documents: list of {"text": ..., "metadata": ...}
+        """
+        self.k = k
+        self.documents = documents
+        self.tokenized_corpus = [self._tokenize(d["text"]) for d in documents]
+        self.bm25 = BM25Okapi(self.tokenized_corpus)
+
+    def _tokenize(self, text: str):
+        # preserves table names, columns, acronyms
+        return re.findall(r"[A-Za-z0-9_\.]+", text.lower())
+
+    def retrieve(self, query: str):
+        tokens = self._tokenize(query)
+        scores = self.bm25.get_scores(tokens)
+
+        ranked = sorted(
+            zip(scores, self.documents),
+            key=lambda x: x[0],
+            reverse=True
+        )
+
+        return [doc for _, doc in ranked[:self.k]]
+
+
+class HybridRetriever:
+    def __init__(
+        self,
+        chroma_collection,
+        bm25_reranker,
+        k_dense=200,
+        k_final=20
+    ):
+        self.collection = chroma_collection
+        self.bm25 = bm25_reranker
+        self.k_dense = k_dense
+        self.k_final = k_final
+
+    def retrieve(self, query: str):
+        # ---- 1. Query expansion (light, safe) ----
+        expanded_query = (
+            query
+            + " table database schema column risk AML architecture"
+        )
+
+        # ---- 2. Dense retrieval (high recall) ----
+        dense = self.collection.query(
+            query_texts=[expanded_query],
+            n_results=self.k_dense,
+            include=["documents", "metadatas"]
+        )
+
+        dense_docs = [
+            {"text": d, "metadata": m}
+            for d, m in zip(dense["documents"][0], dense["metadatas"][0])
+        ]
+
+        # ---- 3. Sparse retrieval (BM25 rescue) ----
+        sparse_docs = self.bm25.retrieve(query)
+
+        # ---- 4. Union + dedup ----
+        merged = {}
+        for d in dense_docs + sparse_docs:
+            merged[hash(d["text"])] = d
+
+        merged_docs = list(merged.values())
+
+        return merged_docs[:self.k_final]
+
+def output_matching_chunks(collection, keyword: str):
+    data = collection.get(include=["documents", "metadatas"])
+
+    documents = data["documents"]
+    metadatas = data["metadatas"]
+
+    # handle list-of-lists
+    if documents and isinstance(documents[0], list):
+        documents = documents[0]
+        metadatas = metadatas[0]
+
+    hits = 0
+    for i, (doc, meta) in enumerate(zip(documents, metadatas)):
+        if keyword.lower() in doc.lower():
+            print(f"\n--- MATCHING CHUNK {i} ---")
+            print("Metadata:", meta)
+            print(doc)
+            hits += 1
+
+    print("\nTotal matching chunks:", hits)
+
+def build_context(docs):
+    blocks = []
+    for i, d in enumerate(docs):
+        meta = d.get("metadata", {})
+        header = f"""
+[Chunk {i+1}]
+Database: {meta.get('db', 'N/A')}
+Schema: {meta.get('schema', 'N/A')}
+Table: {meta.get('table', 'N/A')}
+"""
+        blocks.append(header + d["text"])
+    return "\n\n".join(blocks)
+
+# documents = same docs used for Chroma ingestion
+bm25 = BM25Reranker(documents, k=100)
+
+retriever = HybridRetriever(
+    chroma_collection=chroma_collection,
+    bm25_reranker=bm25,
+    k_dense=250,
+    k_final=20
+)
+
+query = "Which table stores AML risk classification for retail clients?"
+
+docs = retriever.retrieve(query)
+
+for d in docs:
+    print(d["metadata"])query = "Which table stores AML risk classification for retail clients?"
+
+docs = retriever.retrieve(query)
+
+for d in docs:
+    print(d["metadata"])
+
+context = build_context(docs)
+
+prompt = f"""
+You are a banking information system architect.
+
+Answer ONLY using the context.
+If not found, say "Information not found".
+
+Context:
+{context}
+
+Question:
+{query}
+"""
+
+
+
+
+
+
+
+
 keyword = "CLIENT_ACCOUNT"
 
 data = chroma_collection.get(
