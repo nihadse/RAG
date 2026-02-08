@@ -1,3 +1,34 @@
+Nouvelle slide – Public cible
+À qui s’adresse la solution RAG BNP ED ?
+RAG BNP ED a été développée pour accompagner différents profils impliqués dans l’exploitation et la transformation du système d’information :
+👥 Équipes métiers
+Accès rapide et fiable à la documentation ATLAS
+Recherche simplifiée sans connaissance technique
+Réponses claires, sourcées et contextualisées
+🏗️ Équipes IT / DSI
+Compréhension de l’architecture de la documentation ATLAS
+Accès structuré aux référentiels et aux dépendances documentaires
+Support à l’analyse et à la maintenance du SI
+🔄 Équipes Transformation du Système d’Information
+Accompagnement des projets de migration et d’évolution du SI
+Vision transverse de la documentation existante
+Réduction du temps de recherche et d’analyse documentaire
+💡 Variante plus synthétique (si tu veux une slide très légère)
+RAG BNP ED s’adresse aux équipes métiers, à la DSI et aux acteurs de la transformation du système d’information, en facilitant l’accès, la compréhension et l’exploitation de la documentation ATLAS.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 RAG BNP ED est un chatbot intelligent basé sur la méthode RAG (Retrieval Augmented Generation) et sur une base de connaissances centralisée contenant la documentation ATLAS.
 Il permet une recherche conversationnelle rapide et fiable, avec des réponses systématiquement sourcées à partir des documents officiels.
 La solution évolue automatiquement avec les nouvelles documentations, garantissant des réponses toujours à jour.
