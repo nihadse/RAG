@@ -1,3 +1,22 @@
+query = "How to configure user permissions in the system"
+
+top_docs = hybrid_retrieve_langchain(
+    collection=chroma_collection,
+    llm_client=azure_openai_client,
+    query=query,
+    k_dense=80,
+    k_final=20
+)
+
+for doc in top_docs:
+    print(doc["text"][:300], "...\n")
+
+
+
+
+
+
+
 import streamlit as st
 import chromadb
 from chromadb.utils import embedding_functions
