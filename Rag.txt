@@ -1,3 +1,22 @@
+bm25_reranker = BM25Reranker(
+    documents=documents,
+    k=50   # how many BM25 docs you want
+)
+
+
+hybrid_retriever = HybridRetriever(
+    collection=chroma_collection,
+    bm25_reranker=bm25_reranker,
+    k_dense=120,   # large recall
+    k_final=20     # final docs sent to LLM
+)
+
+query = "Which database stores AML risk classification for retail clients?"
+
+retrieved_docs = hybrid_retriever.retrieve(query)
+
+
+
 from rank_bm25 import BM25Okapi
 import re
 
