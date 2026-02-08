@@ -1,3 +1,38 @@
+keyword = "CLIENT_ACCOUNT"
+
+data = chroma_collection.get(
+    include=["documents", "metadatas"]
+)
+
+hits = 0
+
+documents = data["documents"]
+metadatas = data["metadatas"]
+
+# Handle both flat list and list-of-lists
+if documents and isinstance(documents[0], list):
+    documents = documents[0]
+    metadatas = metadatas[0]
+
+for i, (doc, meta) in enumerate(zip(documents, metadatas)):
+    if keyword.lower() in doc.lower():
+        print(f"\n--- MATCHING CHUNK {i} ---")
+        print("Metadata:", meta)
+        print(doc)
+        hits += 1
+
+print("\nTotal matching chunks:", hits)
+
+
+
+
+
+
+
+
+
+
+
 data = chroma_collection.get(
     where={"source": "core_banking_architecture.pdf"},
     include=["documents", "metadatas"]
