@@ -1,4 +1,57 @@
-from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
+from rank_bm25 import BM25Okapi
+import re
+
+class BM25Reranker:
+    def __init__(self, documents, k=20):
+        self.k = k
+        self.documents = documents
+        self.tokenized_corpus = [self._tokenize(d["text"]) for d in documents]
+        self.bm25 = BM25Okapi(self.tokenized_corpus)
+
+    def _tokenize(self, text):
+        return re.findall(r"[A-Za-z0-9_\.]+", text.lower())
+
+    def rerank(self, query):
+        query_tokens = self._tokenize(query)
+        scores = self.bm25.get_scores(query_tokens)
+
+        ranked = sorted(
+            zip(scores, self.documents),
+            key=lambda x: x[0],
+            reverse=True
+        )
+        return [doc for _, doc in ranked[:self.k]]class HybridRetriever:
+    def __init__(self, collection, bm25_reranker, k_dense=100, k_final=20):
+        self.collection = collection
+        self.bm25 = bm25_reranker
+        self.k_dense = k_dense
+        self.k_final = k_final
+
+    def retrieve(self, query):
+        dense = self.collection.query(
+            query_texts=[query],
+            n_results=self.k_dense,
+            include=["documents", "metadatas"]
+        )
+
+        dense_docs = [
+            {"text": d, "metadata": m}
+            for d, m in zip(dense["documents"][0], dense["metadatas"][0])
+        ]
+
+        # BM25 rescue
+        sparse_docs = self.bm25.rerank(query)
+
+        # Union + dedup
+        seen = set()
+        merged = []
+        for d in dense_docs + sparse_docs:
+            h = hash(d["text"])
+            if h not in seen:
+                seen.add(h)
+                merged.append(d)
+
+        return merged[:self.k_final]from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
 from langchain_community.document_compressors.rankllm_rerank import RankLLMRerank
 from typing import List
 
