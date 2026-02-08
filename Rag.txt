@@ -1,3 +1,10 @@
+La documentation ATLAS est volumineuse et critique pour les équipes métiers
+L’accès à l’information repose aujourd’hui sur une recherche manuelle chronophage
+Objectif : faciliter l’accès rapide, fiable et sourcé à l’information interne via un outil intelligent
+
+
+
+
 Bonjour,
 
 Pourriez-vous s’il vous plaît procéder à la réinitialisation de mon mot de passe ? Je vous remercie par avance.
