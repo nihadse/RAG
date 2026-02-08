@@ -1,3 +1,14 @@
+RAG BNP ED est un chatbot intelligent basé sur une base de connaissances centralisée (documentation ATLAS).
+Il permet une recherche conversationnelle rapide et fiable, avec des réponses systématiquement sourcées.
+La solution évolue automatiquement avec les nouvelles documentations, garantissant des réponses toujours à jour.
+
+
+
+
+
+
+
+
 La documentation ATLAS est volumineuse et critique pour les équipes métiers
 L’accès à l’information repose aujourd’hui sur une recherche manuelle chronophage
 Objectif : faciliter l’accès rapide, fiable et sourcé à l’information interne via un outil intelligent
