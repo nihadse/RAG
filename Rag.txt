@@ -1,3 +1,12 @@
+RAG BNP ED est un chatbot intelligent basé sur la méthode RAG (Retrieval Augmented Generation) et sur une base de connaissances centralisée contenant la documentation ATLAS.
+Il permet une recherche conversationnelle rapide et fiable, avec des réponses systématiquement sourcées à partir des documents officiels.
+La solution évolue automatiquement avec les nouvelles documentations, garantissant des réponses toujours à jour.
+
+
+
+
+
+
 RAG BNP ED est un chatbot intelligent basé sur une base de connaissances centralisée (documentation ATLAS).
 Il permet une recherche conversationnelle rapide et fiable, avec des réponses systématiquement sourcées.
 La solution évolue automatiquement avec les nouvelles documentations, garantissant des réponses toujours à jour.
