@@ -1,3 +1,22 @@
+query = "CLIENT_ACCOUNT risk_level AML"
+
+dense = chroma_collection.query(
+    query_texts=[query],
+    n_results=1000,   # very large on purpose
+    include=["documents"]
+)
+
+dense_docs = dense["documents"][0]
+
+found = any(
+    any(chunk_id in d for chunk_id in ["CLIENT_ACCOUNT", "risk_level"])
+    for d in dense_docs
+)
+
+print("Found in dense@1000:", found)
+
+
+
 
 class BM25Reranker:
     def __init__(self, documents, k=50):
