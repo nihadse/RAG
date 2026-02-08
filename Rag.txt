@@ -1,3 +1,16 @@
+data = chroma_collection.get(
+    where={"source": "core_banking_architecture.pdf"},
+    include=["documents", "metadatas"]
+)
+
+for i, doc in enumerate(data["documents"]):
+    print(f"\n--- CHUNK {i} ---\n")
+    print(doc)
+
+
+
+
+
 bm25_reranker = BM25Reranker(
     documents=documents,
     k=50   # how many BM25 docs you want
