@@ -1,3 +1,63 @@
+from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
+from langchain_community.document_compressors.rankllm_rerank import RankLLMRerank
+from typing import List
+
+def hybrid_retrieve_langchain(
+    collection,           # Your vector DB collection (Chroma/FAISS)
+    llm_client,           # Azure/OpenAI client (LLM)
+    query: str,
+    k_dense: int = 50,    # Number of top docs from embeddings
+    k_final: int = 20     # Number of final docs after reranking
+) -> List[dict]:
+    """
+    Hybrid Retrieval using:
+    Step 1: Dense retrieval from vector DB
+    Step 2: RankLLM reranking (via LangChain)
+    Returns top documents (text + metadata)
+    """
+
+    # --------------------------
+    # Step 1: Dense retrieval
+    # --------------------------
+    dense_results = collection.query(
+        query_texts=[query],
+        n_results=k_dense,
+        include=["documents", "metadatas"]
+    )
+
+    candidates = []
+    for text, meta in zip(dense_results["documents"][0], dense_results["metadatas"][0]):
+        candidates.append({"text": text, "metadata": meta})
+
+    if not candidates:
+        return []
+
+    # --------------------------
+    # Step 2: RankLLM reranker
+    # --------------------------
+    reranker = RankLLMRerank.from_llm(
+        llm=llm_client,  # your Azure/OpenAI client
+        top_n=k_final,
+        verbose=True
+    )
+
+    # Optional: wrap with ContextualCompressionRetriever if you want
+    # to compress context before passing to reranker (useful for long chunks)
+    retriever = ContextualCompressionRetriever(
+        base_retriever=candidates,  # here just the list of candidates
+        compressor=reranker
+    )
+
+    # Run reranking
+    reranked_docs = reranker.rerank(query=query, documents=candidates)
+
+    return reranked_docs[:k_final]
+
+
+
+
+
+
 query = "How to configure user permissions in the system"
 
 top_docs = hybrid_retrieve_langchain(
