@@ -1,3 +1,24 @@
+# Initialize retriever
+retriever = CustomRetrieverWithHistory(
+    collection=collection,      # your Chroma collection
+    query_model=query_model,    # BGE-M3 with instruction
+    doc_model=doc_model,        # BGE-M3 without instruction
+    chat_history=[],            # optional
+    k=100,                      # fetch top 100 dense docs
+    rerank_k=50                 # rerank top 50 with BM25
+)
+
+query = "Which table stores AML risk classification for retail clients?"
+
+docs = retriever.get_relevant_documents(query)
+
+# Output results
+for d in docs:
+    print(d["metadata"], "\n", d["text"])
+
+
+
+
 import string
 import re
 import numpy as np
