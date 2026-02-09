@@ -1,3 +1,77 @@
+def generate_response(query, context):
+    # Collect sources
+    sources = list(set([chunk["metadata"]["source"] for chunk in context]))
+
+    # Build prompt
+    context_text = build_context(context)
+    prompt = f"""
+Vous êtes un assistant RAG spécialisé dans les systèmes bancaires,
+l'architecture de données, et les produits financiers. Votre rôle est de répondre et d'expliquer clairement les
+informations issues des documents, en les rendant compréhensibles pour tout type d'utilisateur, du plus général au plus technique.
+
+[Contexte]
+{context_text}
+
+[Requête]
+{query}
+
+[INSTRUCTIONS GENERALES]
+1. Utilisez exclusivement les informations présentes dans le contexte ci-dessus.
+2. Fournissez une réponse claire, structurée et détaillée, adaptée à la compréhension de tout utilisateur.
+3. Citez immédiatement la source sous le format [Source: <nom du fichier.pdf, Page <numéro>].
+4. Si l'information n'existe pas dans les documents, indiquez-le clairement.
+5. Structure attendue:
+   a. Réponse détaillée
+   b. Synthèse (si utile)
+   c. Sources
+6. Objectif: rendre la réponse informative, explicative et vérifiable.
+"""
+
+    # Initialize Azure/OpenAI client
+    # Make sure the API key, endpoint, and version are correct
+    import httpx
+    from openai import OpenAI  # or your wrapper
+
+    client = OpenAI(
+        api_key="YOUR_API_KEY",
+        api_base="YOUR_AZURE_ENDPOINT",
+        api_type="azure",
+        api_version="2023-03-15-preview"  # replace with your version
+    )
+
+    # Call the model
+    completion = client.chat.completions.create(
+        model="gpt4o",
+        messages=[
+            {"role": "system", "content": "You are an assistant based on RAG for banking system architecture."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.5  # 0.5 is reasonable; 8.5 is invalid
+    )
+
+    # Handle return type (Azure wrapper may return string or dict)
+    if isinstance(completion, str):
+        response = completion
+    elif hasattr(completion, "choices"):
+        response = completion.choices[0].message["content"]
+    else:
+        raise ValueError(f"Unexpected completion type: {type(completion)}")
+
+    # Clean up whitespace for readability
+    lines = [line.strip() for line in response.split("\n") if line.strip()]
+    readable_response = "\n".join(lines)
+
+    return readable_response
+
+
+
+
+
+
+
+
+
+
 Here’s a polished French version of your email:
 
 
