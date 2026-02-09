@@ -1,3 +1,16 @@
+query = "Which table stores AML risk classification for retail clients?"
+
+query_embedding = query_model.encode([query])[0].tolist()
+
+results = collection.query(
+    query_embeddings=[query_embedding],
+    n_results=10,
+    include=["documents", "metadatas"]
+)
+
+
+
+
 MODEL_PATH = "/domino/edv/modelhub/ModelHub-model-huggingface-BAAI/bge-m3/main"
 
 # ---- Document embedding model (NO instruction) ----
