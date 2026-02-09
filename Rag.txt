@@ -1,3 +1,103 @@
+import string
+import re
+import numpy as np
+from rank_bm25 import BM25Okapi
+
+# ---------- BM25 Reranker ----------
+class BM25Reranker:
+    def __init__(self, k=50):
+        self.k = k
+        self.bm25 = None
+        self.document_map = {}
+        self.tokenizer = str.maketrans("", "", string.punctuation)
+
+    def _tokenize(self, text):
+        if not isinstance(text, str):
+            return []
+        cleaned = text.translate(self.tokenizer).lower()
+        return [t for t in cleaned.split() if t.strip()]
+
+    def fit(self, documents):
+        if not documents:
+            raise ValueError("Empty document list given to BM25Reranker")
+        tokenized_corpus = []
+        valid_docs = []
+        for i, doc in enumerate(documents):
+            text = doc.get("text") or doc.get("page content") or doc.get("content")
+            tokens = self._tokenize(text)
+            if tokens:
+                tokenized_corpus.append(tokens)
+                valid_docs.append((i, doc))
+        if not tokenized_corpus:
+            raise ValueError("No valid documents to fit BM25 model")
+        self.document_map = {i: doc for i, doc in valid_docs}
+        self.bm25 = BM25Okapi(tokenized_corpus)
+
+    def rerank(self, query, documents):
+        if not documents:
+            return []
+        self.fit(documents)
+        tokens = self._tokenize(query)
+        if not tokens:
+            return documents[:self.k]
+        scores = self.bm25.get_scores(tokens)
+        ranked = sorted(
+            zip(scores, self.document_map.values()),
+            key=lambda x: x[0],
+            reverse=True
+        )
+        return [doc for _, doc in ranked[:self.k]]
+
+
+
+# ---------- Custom Retriever with Query & Document Embeddings ----------
+class CustomRetrieverWithHistory:
+    def __init__(self, collection, query_model, doc_model, chat_history=None, k=50, rerank_k=50):
+        """
+        collection: Chroma collection
+        query_model: BGE-M3 model with query_instruction
+        doc_model: BGE-M3 model without instruction
+        chat_history: optional chat context
+        k: number of dense results to fetch
+        rerank_k: number of results for BM25 reranking
+        """
+        self.collection = collection
+        self.chat_history = chat_history or []
+        self.k = k
+        self.rerank_k = rerank_k
+        self.query_model = query_model
+        self.doc_model = doc_model
+        self.reranker = BM25Reranker(k=rerank_k)
+
+    def get_relevant_documents(self, query):
+        # --- combine chat history if exists ---
+        if self.chat_history:
+            full_query = " ".join(self.chat_history) + " " + query
+        else:
+            full_query = query
+
+        # --- encode the query using the correct query embedding model ---
+        query_embedding = self.query_model.encode([full_query])[0].tolist()
+
+        # --- dense retrieval using query embedding ---
+        results = self.collection.query(
+            query_embeddings=[query_embedding],
+            n_results=self.k,
+            include=["documents", "metadatas"]
+        )
+
+        # --- collect dense docs ---
+        dense_docs = [
+            {"text": d, "metadata": m}
+            for d, m in zip(results["documents"][0], results["metadatas"][0])
+        ]
+
+        # --- BM25 rerank over dense docs as hybrid step ---
+        reranked_docs = self.reranker.rerank(full_query, dense_docs)
+
+        return reranked_docs
+
+
 query = "Which table stores AML risk classification for retail clients?"
 
 query_embedding = query_model.encode([query])[0].tolist()
