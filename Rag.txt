@@ -1,3 +1,31 @@
+MODEL_PATH = "/domino/edv/modelhub/ModelHub-model-huggingface-BAAI/bge-m3/main"
+
+# ---- Document embedding model (NO instruction) ----
+doc_model = FlagModel(
+    MODEL_PATH,
+    use_fp16=True
+)
+
+# ---- Query embedding model (WITH instruction) ----
+query_model = FlagModel(
+    MODEL_PATH,
+    query_instruction_for_retrieval=(
+        "Generate representation for this sentence to retrieve relevant articles:"
+    ),
+    use_fp16=True
+)
+
+
+
+
+
+
+
+
+
+
+
+
 class BGE_M3_EmbeddingFunction:
     def __init__(self, model):
         self.model = model
