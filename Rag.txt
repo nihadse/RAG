@@ -1,3 +1,108 @@
+import os
+import glob
+
+from langchain.document_loaders import (
+    PyPDFLoader,
+    CSVLoader,
+    UnstructuredExcelLoader,
+    UnstructuredWordDocumentLoader
+)
+
+# Your real documents directory
+DOCS_DIR = "ant/"
+
+def load_documents():
+    documents = []
+
+    procedures_dir = os.path.join(DOCS_DIR, "Procedures")
+
+    # ---------- Load PDFs ----------
+    if os.path.exists(procedures_dir):
+        for file in glob.glob(os.path.join(procedures_dir, "*.pdf")):
+            try:
+                loader = PyPDFLoader(file)
+                docs = loader.load()
+
+                file_name = os.path.basename(file)
+                for doc in docs:
+                    doc.metadata["source_file"] = file_name
+                    doc.metadata["source_type"] = "pdf"
+
+                documents.extend(docs)
+                print(f"Loaded PDF: {file_name}")
+
+            except Exception as e:
+                print(f"Error loading PDF {file}: {e}")
+
+    # ---------- Load CSVs ----------
+    if os.path.exists(procedures_dir):
+        for file in glob.glob(os.path.join(procedures_dir, "*.csv")):
+            try:
+                loader = CSVLoader(file_path=file)
+                docs = loader.load()
+
+                file_name = os.path.basename(file)
+                for doc in docs:
+                    doc.metadata["source_file"] = file_name
+                    doc.metadata["source_type"] = "csv"
+
+                documents.extend(docs)
+                print(f"Loaded CSV: {file_name}")
+
+            except Exception as e:
+                print(f"Error loading CSV {file}: {e}")
+
+    # ---------- Load Excel ----------
+    if os.path.exists(procedures_dir):
+        for file in glob.glob(os.path.join(procedures_dir, "*.xlsx")):
+            try:
+                loader = UnstructuredExcelLoader(file_path=file)
+                docs = loader.load()
+
+                file_name = os.path.basename(file)
+                for doc in docs:
+                    doc.metadata["source_file"] = file_name
+                    doc.metadata["source_type"] = "excel"
+
+                documents.extend(docs)
+                print(f"Loaded Excel: {file_name}")
+
+            except Exception as e:
+                print(f"Error loading Excel {file}: {e}")
+
+    # ---------- Load Word (.docx) ----------
+    if os.path.exists(procedures_dir):
+        for file in glob.glob(os.path.join(procedures_dir, "*.docx")):
+            try:
+                loader = UnstructuredWordDocumentLoader(file_path=file)
+                docs = loader.load()
+
+                file_name = os.path.basename(file)
+                for doc in docs:
+                    doc.metadata["source_file"] = file_name
+                    doc.metadata["source_type"] = "word"
+
+                documents.extend(docs)
+                print(f"Loaded Word: {file_name}")
+
+            except Exception as e:
+                print(f"Error loading Word {file}: {e}")
+
+    print(f"\nLoaded {len(documents)} documents in total.")
+    return documents
+
+
+
+
+
+
+
+
+
+
+
+
+
 def main():
     st.title("💬 Chatbot BNP ED")
 
