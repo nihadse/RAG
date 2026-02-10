@@ -1,3 +1,30 @@
+if "chat_sessions" not in st.session_state:
+    st.session_state.chat_sessions = load_chat_sessions()
+
+import json
+import os
+
+CHAT_STORAGE_PATH = "chat_sessions.json"
+
+
+def load_chat_sessions():
+    if os.path.exists(CHAT_STORAGE_PATH):
+        with open(CHAT_STORAGE_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def save_chat_sessions(chat_sessions):
+    with open(CHAT_STORAGE_PATH, "w", encoding="utf-8") as f:
+        json.dump(chat_sessions, f, indent=2, ensure_ascii=False)
+
+
+
+
+
+
+
+
 
 if st.sidebar.button("➕ Start New Chat"):
     chat_id = str(datetime.datetime.now())
