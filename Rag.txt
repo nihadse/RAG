@@ -1,3 +1,95 @@
+
+def get_chat_history(max_turns=6):
+    messages = st.session_state.chat_sessions[
+        st.session_state.current_chat
+    ]["messages"]
+
+    history = []
+    for msg in messages[-max_turns:]:
+        role = msg["role"].capitalize()
+        history.append(f"{role}: {msg['content']}")
+
+    return history
+
+from openai import AzureOpenAI
+import httpx
+
+
+def generate_response(query, docs):
+    context = build_context(docs)
+    chat_history = get_chat_history()
+
+    history_text = "\n".join(chat_history)
+
+    prompt = f"""
+Vous êtes un assistant RAG spécialisé dans les systèmes bancaires,
+l’architecture de données et les produits financiers.
+
+[Historique]
+{history_text}
+
+[Contexte]
+{context}
+
+[Question]
+{query}
+
+INSTRUCTIONS:
+- Utilisez exclusivement le contexte
+- Citez les sources: [Source: fichier.pdf, Page X]
+- Si l'information n'existe pas, dites-le clairement
+"""
+
+    client = AzureOpenAI(
+        api_key=AZURE_OPENAI_API_KEY,
+        api_version=AZURE_OPENAI_API_VERSION,
+        azure_endpoint=AZURE_OPENAI_ENDPOINT,
+        http_client=httpx.Client(verify=False)
+    )
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "Assistant RAG bancaire"},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.3
+    )
+
+    return response.choices[0].message.content
+
+
+def rag_chatbot(query):
+    chat_history = get_chat_history()
+
+    retriever = CustomRetrieverWithHistory(
+        collection=collection,
+        chat_history=chat_history,
+        k=2500,
+        rerank_k=50
+    )
+
+    docs = retriever.get_relevant_documents(query)
+    answer = generate_response(query, docs)
+
+    return {
+        "answer": answer,
+        "documents": docs
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def generate_response(query, context):
     # Collect sources
     sources = list(set([chunk["metadata"]["source"] for chunk in context]))
