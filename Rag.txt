@@ -1,3 +1,16 @@
+chat_data["messages"].append({
+    "role": "user",
+    "content": user_input,
+    "timestamp": timestamp
+})
+
+save_chat_sessions(st.session_state.chat_sessions)  # ✅ ADD THIS
+
+
+
+
+
+
 import os
 import glob
 
