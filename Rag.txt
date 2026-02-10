@@ -1,3 +1,17 @@
+
+if st.sidebar.button("➕ Start New Chat"):
+    chat_id = str(datetime.datetime.now())
+    st.session_state.current_chat = chat_id
+    st.session_state.chat_sessions[chat_id] = {
+        "title": "New Chat",
+        "messages": []
+    }
+    save_chat_sessions(st.session_state.chat_sessions)  # ✅ ADD THIS
+
+
+
+
+
 chat_data["messages"].append({
     "role": "user",
     "content": user_input,
