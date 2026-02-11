@@ -1,3 +1,9 @@
+pip uninstall qwen zeta transformers torch triton -y
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install qwen==0.1.1 qwen-agent qwen-vl-utils
+pip install transformers==4.39.1 triton==2.2.0
+
+
 # Uninstall potentially conflicting packages
 pip uninstall qwen zeta -y
 
