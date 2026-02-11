@@ -1,3 +1,11 @@
+pip install torch torchvision torchaudio  # Core PyTorch
+pip install pillow                         # Image handling
+pip install pymupdf                        # PDF → images
+pip install qwen                           # Official Qwen VL package
+
+
+
+
 pip install tqdm                            # Progress bars
 pip install numpy                           # Array operations (often required by Qwen)
 pip install transformers                     # Only if you need extra transformer utils
