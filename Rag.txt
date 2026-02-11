@@ -1,3 +1,16 @@
+# Uninstall potentially conflicting packages
+pip uninstall qwen zeta -y
+
+# Install PyTorch first (if not already installed)
+pip install torch torchvision --break-system-packages
+
+# Install the correct Qwen package
+pip install transformers --break-system-packages
+pip install qwen-vl-utils --break-system-packages
+
+
+
+
 pip install torch torchvision torchaudio  # Core PyTorch
 pip install pillow                         # Image handling
 pip install pymupdf                        # PDF → images
