@@ -1,3 +1,17 @@
+pip install tqdm                            # Progress bars
+pip install numpy                           # Array operations (often required by Qwen)
+pip install transformers                     # Only if you need extra transformer utils
+
+
+pip install tqdm                            # Progress bars
+pip install numpy                           # Array operations (often required by Qwen)
+pip install transformers                     # Only if you need extra transformer utils
+
+
+
+
+
+
 import fitz  # PyMuPDF
 import json
 from PIL import Image
