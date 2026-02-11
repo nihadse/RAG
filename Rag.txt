@@ -1,6 +1,107 @@
 import fitz  # PyMuPDF
 import json
 from PIL import Image
+from qwen import QwenVL, QwenProcessor  # official Qwen VL loader
+
+# ===============================
+# CONFIG
+# ===============================
+MODEL_PATH = "/path/to/Qwen2.5-VL-32B-Instruct"  # your local folder
+PDF_PATH = "scanned.pdf"
+OUTPUT_FILE = "output.json"
+
+# ===============================
+# LOAD MODEL
+# ===============================
+print("Loading Qwen2.5-VL-32B-Instruct...")
+processor = QwenProcessor.from_pretrained(MODEL_PATH)
+model = QwenVL.from_pretrained(MODEL_PATH)
+model.eval()  # CPU by default
+print("Model loaded successfully.")
+
+# ===============================
+# CONVERT PDF TO IMAGES
+# ===============================
+def pdf_to_images(pdf_path):
+    doc = fitz.open(pdf_path)
+    images = []
+    for page_number in range(len(doc)):
+        page = doc[page_number]
+        pix = page.get_pixmap(dpi=300)
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        images.append(img)
+    return images
+
+# ===============================
+# EXTRACT JSON FROM IMAGE
+# ===============================
+def extract_json_from_image(image):
+    prompt = """
+You are a document extraction engine.
+
+Extract ALL visible text and structure from this scanned document.
+
+Return strictly valid JSON only.
+Do not add explanations or summaries.
+"""
+
+    # Preprocess the image + prompt
+    inputs = processor(prompt, image, return_tensors="pt")
+
+    # Generate the model output
+    with torch.no_grad():
+        output = model.generate(**inputs, max_new_tokens=2048, temperature=0.0)
+
+    # Decode text
+    text_output = processor.decode(output[0])
+    return text_output
+
+# ===============================
+# MAIN PIPELINE
+# ===============================
+def main():
+    images = pdf_to_images(PDF_PATH)
+    all_pages = []
+
+    for i, img in enumerate(images):
+        print(f"Processing page {i+1}...")
+        result_text = extract_json_from_image(img)
+
+        # Attempt to parse JSON, fallback to raw output
+        try:
+            parsed = json.loads(result_text)
+        except json.JSONDecodeError:
+            parsed = {"raw_output": result_text}
+
+        all_pages.append({
+            "page_number": i + 1,
+            "content": parsed
+        })
+
+    final_output = {
+        "document_name": PDF_PATH,
+        "total_pages": len(all_pages),
+        "pages": all_pages
+    }
+
+    # Save to JSON file
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        json.dump(final_output, f, indent=4, ensure_ascii=False)
+
+    print(f"Extraction complete. Saved to {OUTPUT_FILE}")
+
+# ===============================
+# ENTRY POINT
+# ===============================
+if __name__ == "__main__":
+    main()
+
+
+
+
+import fitz  # PyMuPDF
+import json
+from PIL import Image
 from transformers import AutoProcessor, AutoModelForVision2Seq
 
 # ===============================
