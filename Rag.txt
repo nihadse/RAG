@@ -1,3 +1,336 @@
+#!/usr/bin/env python3
+"""
+Text extraction from images using Vision-Language Models (VLMs)
+Supports: OpenAI GPT-4V, Anthropic Claude, Google Gemini
+No OCR preprocessing required
+"""
+
+import os
+import base64
+from pathlib import Path
+from typing import Optional, Dict, Any
+import json
+
+# Installation instructions:
+# pip install openai anthropic google-generativeai pillow --break-system-packages
+
+class VLMTextExtractor:
+    """Extract text from images using various VLM models"""
+    
+    def __init__(self):
+        self.image_path = None
+        self.base64_image = None
+    
+    def load_image(self, image_path: str) -> None:
+        """Load and encode image to base64"""
+        self.image_path = Path(image_path)
+        if not self.image_path.exists():
+            raise FileNotFoundError(f"Image not found: {image_path}")
+        
+        with open(self.image_path, "rb") as image_file:
+            self.base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+        
+        print(f"✓ Loaded image: {self.image_path.name}")
+    
+    def extract_with_gpt4v(self, api_key: str, model: str = "gpt-4o") -> Dict[str, Any]:
+        """
+        Extract text using OpenAI GPT-4 Vision
+        Models: gpt-4o, gpt-4o-mini, gpt-4-turbo
+        """
+        try:
+            from openai import OpenAI
+            
+            client = OpenAI(api_key=api_key)
+            
+            # Determine image format
+            ext = self.image_path.suffix.lower()
+            mime_type = {
+                '.jpg': 'image/jpeg',
+                '.jpeg': 'image/jpeg',
+                '.png': 'image/png',
+                '.webp': 'image/webp',
+                '.gif': 'image/gif'
+            }.get(ext, 'image/jpeg')
+            
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": """Extract ALL text from this image with maximum accuracy. 
+                                
+Instructions:
+1. Preserve the exact structure and layout
+2. Maintain all tables, headers, and formatting
+3. Include ALL numerical values, percentages, and currency amounts
+4. Keep French text exactly as shown
+5. Preserve line breaks and spacing where meaningful
+6. Output in markdown format for tables
+
+Please extract the complete text."""
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:{mime_type};base64,{self.base64_image}"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                max_tokens=4096,
+                temperature=0
+            )
+            
+            extracted_text = response.choices[0].message.content
+            
+            return {
+                "success": True,
+                "model": model,
+                "text": extracted_text,
+                "tokens_used": response.usage.total_tokens
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "model": model,
+                "error": str(e)
+            }
+    
+    def extract_with_claude(self, api_key: str, model: str = "claude-3-5-sonnet-20241022") -> Dict[str, Any]:
+        """
+        Extract text using Anthropic Claude Vision
+        Models: claude-3-5-sonnet-20241022, claude-3-opus-20240229, claude-3-haiku-20240307
+        """
+        try:
+            from anthropic import Anthropic
+            
+            client = Anthropic(api_key=api_key)
+            
+            # Determine media type
+            ext = self.image_path.suffix.lower()
+            media_type = {
+                '.jpg': 'image/jpeg',
+                '.jpeg': 'image/jpeg',
+                '.png': 'image/png',
+                '.webp': 'image/webp',
+                '.gif': 'image/gif'
+            }.get(ext, 'image/jpeg')
+            
+            message = client.messages.create(
+                model=model,
+                max_tokens=4096,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": media_type,
+                                    "data": self.base64_image,
+                                },
+                            },
+                            {
+                                "type": "text",
+                                "text": """Extract ALL text from this image with maximum accuracy.
+
+Instructions:
+1. Preserve the exact structure and layout
+2. Maintain all tables, headers, and formatting
+3. Include ALL numerical values, percentages, and currency amounts
+4. Keep French text exactly as shown
+5. Preserve line breaks and spacing where meaningful
+6. Output in markdown format for tables
+
+Please extract the complete text."""
+                            }
+                        ],
+                    }
+                ],
+            )
+            
+            extracted_text = message.content[0].text
+            
+            return {
+                "success": True,
+                "model": model,
+                "text": extracted_text,
+                "tokens_used": message.usage.input_tokens + message.usage.output_tokens
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "model": model,
+                "error": str(e)
+            }
+    
+    def extract_with_gemini(self, api_key: str, model: str = "gemini-1.5-pro") -> Dict[str, Any]:
+        """
+        Extract text using Google Gemini Vision
+        Models: gemini-1.5-pro, gemini-1.5-flash, gemini-pro-vision
+        """
+        try:
+            import google.generativeai as genai
+            from PIL import Image
+            
+            genai.configure(api_key=api_key)
+            
+            model_instance = genai.GenerativeModel(model)
+            
+            # Load image with PIL
+            img = Image.open(self.image_path)
+            
+            prompt = """Extract ALL text from this image with maximum accuracy.
+
+Instructions:
+1. Preserve the exact structure and layout
+2. Maintain all tables, headers, and formatting
+3. Include ALL numerical values, percentages, and currency amounts
+4. Keep French text exactly as shown
+5. Preserve line breaks and spacing where meaningful
+6. Output in markdown format for tables
+
+Please extract the complete text."""
+            
+            response = model_instance.generate_content([prompt, img])
+            
+            return {
+                "success": True,
+                "model": model,
+                "text": response.text,
+                "tokens_used": "N/A (not provided by Gemini API)"
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "model": model,
+                "error": str(e)
+            }
+    
+    def save_results(self, results: Dict[str, Any], output_path: str) -> None:
+        """Save extraction results to file"""
+        output_file = Path(output_path)
+        
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(f"# Text Extraction Results\n\n")
+            f.write(f"**Source Image:** {self.image_path.name}\n")
+            f.write(f"**Model:** {results['model']}\n")
+            f.write(f"**Success:** {results['success']}\n")
+            
+            if results['success']:
+                f.write(f"**Tokens Used:** {results.get('tokens_used', 'N/A')}\n\n")
+                f.write("---\n\n")
+                f.write("## Extracted Text\n\n")
+                f.write(results['text'])
+            else:
+                f.write(f"**Error:** {results['error']}\n")
+        
+        print(f"✓ Results saved to: {output_file}")
+
+
+def main():
+    """Main execution function"""
+    print("=" * 70)
+    print("VLM Text Extraction Tool")
+    print("=" * 70)
+    print("\nSupported Models:")
+    print("  1. OpenAI GPT-4V (gpt-4o, gpt-4o-mini)")
+    print("  2. Anthropic Claude (claude-3-5-sonnet, claude-3-opus)")
+    print("  3. Google Gemini (gemini-1.5-pro, gemini-1.5-flash)")
+    print("\n")
+    
+    # Configuration
+    IMAGE_PATH = "/mnt/user-data/uploads/1000024457.webp"
+    
+    # Initialize extractor
+    extractor = VLMTextExtractor()
+    extractor.load_image(IMAGE_PATH)
+    
+    print("\n" + "=" * 70)
+    print("Select extraction method:")
+    print("=" * 70)
+    print("1. OpenAI GPT-4V")
+    print("2. Anthropic Claude")
+    print("3. Google Gemini")
+    print("4. Extract with all models (requires all API keys)")
+    print("\n")
+    
+    choice = input("Enter your choice (1-4): ").strip()
+    
+    results = []
+    
+    if choice == "1":
+        api_key = input("\nEnter your OpenAI API key: ").strip()
+        model = input("Enter model name (default: gpt-4o): ").strip() or "gpt-4o"
+        print(f"\n🔄 Extracting text using {model}...")
+        result = extractor.extract_with_gpt4v(api_key, model)
+        results.append(("gpt4v", result))
+        
+    elif choice == "2":
+        api_key = input("\nEnter your Anthropic API key: ").strip()
+        model = input("Enter model name (default: claude-3-5-sonnet-20241022): ").strip() or "claude-3-5-sonnet-20241022"
+        print(f"\n🔄 Extracting text using {model}...")
+        result = extractor.extract_with_claude(api_key, model)
+        results.append(("claude", result))
+        
+    elif choice == "3":
+        api_key = input("\nEnter your Google API key: ").strip()
+        model = input("Enter model name (default: gemini-1.5-pro): ").strip() or "gemini-1.5-pro"
+        print(f"\n🔄 Extracting text using {model}...")
+        result = extractor.extract_with_gemini(api_key, model)
+        results.append(("gemini", result))
+        
+    elif choice == "4":
+        openai_key = input("\nEnter your OpenAI API key: ").strip()
+        claude_key = input("Enter your Anthropic API key: ").strip()
+        gemini_key = input("Enter your Google API key: ").strip()
+        
+        print("\n🔄 Extracting with GPT-4V...")
+        results.append(("gpt4v", extractor.extract_with_gpt4v(openai_key)))
+        
+        print("🔄 Extracting with Claude...")
+        results.append(("claude", extractor.extract_with_claude(claude_key)))
+        
+        print("🔄 Extracting with Gemini...")
+        results.append(("gemini", extractor.extract_with_gemini(gemini_key)))
+    
+    else:
+        print("❌ Invalid choice!")
+        return
+    
+    # Save results
+    print("\n" + "=" * 70)
+    print("Saving Results")
+    print("=" * 70)
+    
+    for name, result in results:
+        if result['success']:
+            output_path = f"/mnt/user-data/outputs/extracted_text_{name}.md"
+            extractor.save_results(result, output_path)
+            print(f"✓ {name.upper()}: Extraction successful")
+            print(f"  Preview: {result['text'][:100]}...")
+        else:
+            print(f"❌ {name.upper()}: Extraction failed - {result['error']}")
+    
+    print("\n✅ Process complete!")
+
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+
+
 import fitz  # PyMuPDF
 from PIL import Image
 from transformers import DonutProcessor, VisionEncoderDecoderModel
