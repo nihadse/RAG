@@ -1,5 +1,154 @@
 #!/usr/bin/env python3
 """
+Extract text from multi-page scanned PDFs using OpenAI GPT-4V (Vision).
+Each PDF page is converted to an image and processed individually.
+"""
+
+import base64
+from pathlib import Path
+from typing import List, Dict
+import fitz  # PyMuPDF
+from openai import OpenAI
+
+
+# -----------------------------
+# 1️⃣ Convert PDF pages to images
+# -----------------------------
+def pdf_to_images(pdf_path: str) -> List[str]:
+    """
+    Convert each page of PDF to a PNG image and return list of image file paths.
+    """
+    pdf_file = Path(pdf_path)
+    if not pdf_file.exists():
+        raise FileNotFoundError(f"PDF not found: {pdf_path}")
+    
+    doc = fitz.open(pdf_file)
+    images = []
+
+    for i, page in enumerate(doc):
+        pix = page.get_pixmap(dpi=300)
+        img_path = f"{pdf_file.stem}_page_{i+1}.png"
+        pix.save(img_path)
+        images.append(img_path)
+    
+    print(f"✓ Converted {len(images)} pages to images.")
+    return images
+
+
+# -----------------------------
+# 2️⃣ Encode image to base64
+# -----------------------------
+def encode_image_to_base64(image_path: str) -> str:
+    """
+    Encode image to base64 for GPT-4V input.
+    """
+    path = Path(image_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Image not found: {image_path}")
+
+    with open(path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode("utf-8")
+    
+    return encoded
+
+
+# -----------------------------
+# 3️⃣ Extract text from image using GPT-4V
+# -----------------------------
+def extract_text_gpt4v(api_key: str, base64_image: str, model: str = "gpt-4o") -> Dict:
+    """
+    Send image to GPT-4V and return extracted text.
+    """
+    client = OpenAI(api_key=api_key)
+
+    # Default to JPEG MIME
+    mime_type = "image/png"  # since we converted pages to PNG
+
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": """Extract ALL text from this image with maximum accuracy.
+Preserve structure, tables, line breaks, and French text exactly.
+Output markdown for tables."""
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}
+                    }
+                ]
+            }],
+            max_tokens=4096,
+            temperature=0
+        )
+        extracted = response.choices[0].message.content
+        return {"success": True, "text": extracted, "tokens_used": response.usage.total_tokens}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+# -----------------------------
+# 4️⃣ Process multi-page PDF
+# -----------------------------
+def extract_text_from_pdf(api_key: str, pdf_path: str) -> str:
+    """
+    Convert PDF to images, extract text for each page, and combine results.
+    """
+    images = pdf_to_images(pdf_path)
+    full_text = ""
+
+    for i, img_path in enumerate(images):
+        print(f"🔄 Processing page {i+1}/{len(images)}: {img_path}")
+        b64 = encode_image_to_base64(img_path)
+        result = extract_text_gpt4v(api_key, b64)
+
+        if result["success"]:
+            full_text += f"\n\n---\n\n## Page {i+1}\n\n"
+            full_text += result["text"]
+        else:
+            full_text += f"\n\n---\n\n## Page {i+1}\n\n❌ Extraction failed: {result['error']}\n"
+    
+    return full_text
+
+
+# -----------------------------
+# 5️⃣ Save extracted text
+# -----------------------------
+def save_text(text: str, output_path: str):
+    """
+    Save extracted text to a file.
+    """
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(text)
+    print(f"✓ Extracted text saved to {output_path}")
+
+
+# -----------------------------
+# 6️⃣ Main function
+# -----------------------------
+def main():
+    PDF_PATH = "/mnt/user-data/uploads/scanned_document.pdf"
+    OUTPUT_PATH = "/mnt/user-data/outputs/extracted_text_gpt4v.md"
+    OPENAI_API_KEY = input("Enter your OpenAI API key: ").strip()
+
+    print("🔹 Starting PDF text extraction using GPT-4V...")
+    extracted_text = extract_text_from_pdf(OPENAI_API_KEY, PDF_PATH)
+    save_text(extracted_text, OUTPUT_PATH)
+    print("✅ Extraction complete!")
+
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+#!/usr/bin/env python3
+"""
 Text extraction from images using Vision-Language Models (VLMs)
 Supports: OpenAI GPT-4V, Anthropic Claude, Google Gemini
 No OCR preprocessing required
