@@ -1,3 +1,104 @@
+import torch
+import fitz  # PyMuPDF
+from PIL import Image
+from transformers import DonutProcessor, VisionEncoderDecoderModel
+
+# -----------------------------
+# 1️⃣ Convert PDF to Images
+# -----------------------------
+def pdf_to_images(pdf_path, dpi=300):
+    doc = fitz.open(pdf_path)
+    images = []
+
+    for page in doc:
+        pix = page.get_pixmap(dpi=dpi)
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        images.append(img)
+
+    return images
+
+
+# -----------------------------
+# 2️⃣ Load Donut Model
+# -----------------------------
+model_name = "naver-clova-ix/donut-base"
+
+processor = DonutProcessor.from_pretrained(model_name)
+model = VisionEncoderDecoderModel.from_pretrained(model_name)
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model.to(device)
+
+
+# -----------------------------
+# 3️⃣ Run Donut on Image
+# -----------------------------
+def run_donut(image, task_prompt="<s_docvqa><s_question>Extract all information</s_question><s_answer>"):
+    
+    pixel_values = processor(image, return_tensors="pt").pixel_values.to(device)
+
+    decoder_input_ids = processor.tokenizer(
+        task_prompt,
+        add_special_tokens=False,
+        return_tensors="pt"
+    ).input_ids.to(device)
+
+    outputs = model.generate(
+        pixel_values,
+        decoder_input_ids=decoder_input_ids,
+        max_length=1024,
+        early_stopping=True,
+        pad_token_id=processor.tokenizer.pad_token_id,
+        eos_token_id=processor.tokenizer.eos_token_id,
+    )
+
+    result = processor.batch_decode(outputs, skip_special_tokens=True)[0]
+    return result
+
+
+# -----------------------------
+# 4️⃣ Process Full PDF
+# -----------------------------
+pdf_path = "your_scanned.pdf"
+
+images = pdf_to_images(pdf_path)
+
+all_results = []
+
+for i, img in enumerate(images):
+    print(f"Processing page {i+1}...")
+    result = run_donut(img)
+    all_results.append(result)
+
+# Combine all pages
+final_output = "\n\n".join(all_results)
+
+print("\n===== FINAL OUTPUT =====\n")
+print(final_output)
+
+
+
+
+
+
+
+pip install transformers torch torchvision pillow pymupdf sentencepiece
+
+
+
+task_prompt = """
+<s_docvqa>
+<s_question>
+Extract all structured information and return valid JSON.
+</s_question>
+<s_answer>
+"""
+
+
+
+
+
+
 pip install paddlepaddle paddleocr
 
 
