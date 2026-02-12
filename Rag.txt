@@ -1,3 +1,90 @@
+import fitz  # PyMuPDF
+from PIL import Image
+from transformers import DonutProcessor, VisionEncoderDecoderModel
+
+# -----------------------------
+# 🔥 CHANGE THIS
+# -----------------------------
+MODEL_PATH = "/path_to_your_local_donut_model"
+PDF_PATH = "your_scanned_file.pdf"
+
+# -----------------------------
+# 1️⃣ Convert PDF → Images
+# -----------------------------
+def pdf_to_images(pdf_path, dpi=200):
+    doc = fitz.open(pdf_path)
+    images = []
+
+    for page in doc:
+        pix = page.get_pixmap(dpi=dpi)
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        images.append(img)
+
+    return images
+
+# -----------------------------
+# 2️⃣ Load Model (CPU Only)
+# -----------------------------
+print("Loading local Donut model (CPU mode)...")
+
+processor = DonutProcessor.from_pretrained(MODEL_PATH, local_files_only=True)
+model = VisionEncoderDecoderModel.from_pretrained(MODEL_PATH, local_files_only=True)
+model.eval()
+
+print("Model loaded successfully ✅")
+
+# -----------------------------
+# 3️⃣ Donut Extraction Function
+# -----------------------------
+def run_donut(image):
+    # Resize for CPU stability
+    image = image.resize((1280, 1280))
+
+    prompt = (
+        "<s_docvqa>"
+        "<s_question>Extract all information from this document</s_question>"
+        "<s_answer>"
+    )
+
+    pixel_values = processor(image, return_tensors="pt").pixel_values
+    decoder_input_ids = processor.tokenizer(
+        prompt,
+        add_special_tokens=False,
+        return_tensors="pt"
+    ).input_ids
+
+    outputs = model.generate(
+        pixel_values,
+        decoder_input_ids=decoder_input_ids,
+        max_length=512,  # lower for CPU
+        early_stopping=True,
+        pad_token_id=processor.tokenizer.pad_token_id,
+        eos_token_id=processor.tokenizer.eos_token_id,
+    )
+
+    result = processor.batch_decode(outputs, skip_special_tokens=True)[0]
+    return result
+
+# -----------------------------
+# 4️⃣ Process PDF
+# -----------------------------
+pages = pdf_to_images(PDF_PATH)
+results = []
+
+for i, page in enumerate(pages):
+    print(f"Processing page {i+1}/{len(pages)}")
+    text = run_donut(page)
+    results.append(text)
+
+final_text = "\n\n".join(results)
+print("\n========== FINAL RESULT ==========\n")
+print(final_text)
+
+
+
+
+
+
 import torch
 import fitz  # PyMuPDF
 from PIL import Image
