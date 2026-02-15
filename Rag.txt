@@ -1,3 +1,23 @@
+Bonjour,
+
+Veuillez trouver en pièce jointe les résultats de Sentinella pour le trimestre arrêté à fin février 2026.
+
+Les données couvrent la période du 01/01/2024 au 28/02/2026 et présentent la répartition des communautés selon le nombre de clients ainsi que les montants par pays.
+
+En résumé :
+
+- 64 communautés au total
+- Montant global : 5 346 762 €
+
+La ventilation détaillée par rubrique et par pays est disponible dans le fichier joint.
+
+Pour toute question ou besoin de complément d'information, Nihad prendra en charge la suite.
+
+Cordialement,
+Omar
+
+
+
 #!/usr/bin/env python3
 """
 Extract text from multi-page scanned PDFs using OpenAI GPT-4V (Vision).
