@@ -1,3 +1,28 @@
+def pdf_to_images(pdf_path):
+    doc = fitz.open(pdf_path)
+    images = []
+    for i, page in enumerate(doc):
+        pix = page.get_pixmap(dpi=300)
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        images.append(img)
+
+        # Save the image to disk for inspection
+        img_path = Path(OUTPUT_IMG_DIR) / f"page_{i+1}.png"
+        img.save(img_path)
+        print(f"✓ Saved page {i+1} as image: {img_path}")
+
+    return images
+
+
+
+
+
+
+
+
+
+
+
 def extract_text(image):
     prompt = """
 Extract ALL visible text from this document page.
