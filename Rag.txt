@@ -1,3 +1,106 @@
+import torch
+import fitz
+from PIL import Image
+from transformers import AutoProcessor, AutoModelForVision2Seq
+import json
+
+# =====================
+# CONFIG
+# =====================
+MODEL_PATH = "/domino/edv/modelhub/.../Qwen2.5-VL-7B-Instruct/main"
+PDF_PATH = "/mnt/your_file.pdf"
+
+# =====================
+# Load Model (CPU ONLY)
+# =====================
+print("Loading model on CPU...")
+
+processor = AutoProcessor.from_pretrained(
+    MODEL_PATH,
+    trust_remote_code=True
+)
+
+model = AutoModelForVision2Seq.from_pretrained(
+    MODEL_PATH,
+    torch_dtype=torch.float32,   # CPU safe
+    trust_remote_code=True
+)
+
+model.eval()
+
+print("Model loaded.")
+
+# =====================
+# Convert PDF → Images
+# =====================
+def pdf_to_images(pdf_path):
+    doc = fitz.open(pdf_path)
+    images = []
+
+    for page in doc:
+        pix = page.get_pixmap(dpi=200)  # lower DPI for CPU
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        images.append(img)
+
+    return images
+
+# =====================
+# OCR Function
+# =====================
+def extract_text(image):
+    prompt = """
+Extract ALL visible text from this document page.
+Preserve structure and formatting.
+Return plain text only.
+"""
+
+    inputs = processor(
+        text=prompt,
+        images=image,
+        return_tensors="pt"
+    )
+
+    with torch.no_grad():
+        output = model.generate(
+            **inputs,
+            max_new_tokens=1024,   # smaller for CPU
+            temperature=0
+        )
+
+    result = processor.decode(output[0], skip_special_tokens=True)
+    return result
+
+# =====================
+# MAIN
+# =====================
+images = pdf_to_images(PDF_PATH)
+
+all_text = []
+
+for i, img in enumerate(images):
+    print(f"Processing page {i+1}/{len(images)} (CPU mode, may be slow)")
+    page_text = extract_text(img)
+
+    all_text.append({
+        "page": i + 1,
+        "text": page_text
+    })
+
+with open("extracted.json", "w", encoding="utf-8") as f:
+    json.dump(all_text, f, indent=4, ensure_ascii=False)
+
+print("Done. Saved to extracted.json")
+
+
+
+
+
+
+
+
+
+
+
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 model_name = "Qwen/Qwen2.5-3B-Instruct"
