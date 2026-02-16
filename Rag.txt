@@ -1,3 +1,15 @@
+OUTPUT_IMG_DIR = "/mnt/pdf_pages"
+
+# Make sure output folder exists
+if not os.path.exists(OUTPUT_IMG_DIR):
+    os.makedirs(OUTPUT_IMG_DIR)
+
+img_path = f"{OUTPUT_IMG_DIR}/page_{i+1}.png"
+
+
+
+
+
 OUTPUT_IMG_DIR = "/mnt/user-data/pdf_pages"  # folder to save images
 Path(OUTPUT_IMG_DIR).mkdir(parents=True, exist_ok=True)
 
