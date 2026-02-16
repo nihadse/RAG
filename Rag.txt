@@ -1,5 +1,95 @@
 import fitz  # PyMuPDF
 from PIL import Image
+import torch
+from transformers import AutoProcessor, AutoModelForVision2Seq
+import json
+
+# =====================
+# CONFIG
+# =====================
+MODEL_PATH = "/domino/edv/modelhub/ModelHub-model-huggingface-Qwen/Qwen2.5-VL-7B-Instruct/main"
+PDF_PATH = "/mnt/bareme-de-remboursement-cardif.pdf"
+DEVICE = "cpu"  # force CPU
+
+# =====================
+# Load Qwen Model
+# =====================
+print("Loading model...")
+processor = AutoProcessor.from_pretrained(MODEL_PATH, trust_remote_code=True)
+model = AutoModelForVision2Seq.from_pretrained(
+    MODEL_PATH,
+    torch_dtype=torch.float32,  # CPU safe
+    trust_remote_code=True
+).to(DEVICE)
+model.eval()
+print("Model loaded.")
+
+# =====================
+# PDF → Images
+# =====================
+def pdf_to_images(pdf_path):
+    doc = fitz.open(pdf_path)
+    images = []
+    for page in doc:
+        pix = page.get_pixmap(dpi=300)
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        images.append(img)
+    return images
+
+# =====================
+# Extract Text per Page
+# =====================
+def extract_text(image):
+    prompt = """
+Extract ALL visible text from this document page.
+Preserve structure and formatting.
+Return plain text only.
+"""
+    # Prepare inputs
+    inputs = processor(
+        text=prompt,
+        images=image,
+        return_tensors="pt"
+    ).to(DEVICE)
+
+    with torch.no_grad():
+        output = model.generate(
+            **inputs,
+            max_new_tokens=2048,
+            temperature=0
+        )
+
+    result = processor.decode(output[0], skip_special_tokens=True)
+    return result
+
+# =====================
+# Main
+# =====================
+images = pdf_to_images(PDF_PATH)
+all_text = []
+
+for i, img in enumerate(images):
+    print(f"Processing page {i+1}/{len(images)}")
+    page_text = extract_text(img)
+    all_text.append({
+        "page": i+1,
+        "text": page_text
+    })
+
+# Save JSON
+with open("extracted.json", "w", encoding="utf-8") as f:
+    json.dump(all_text, f, indent=4, ensure_ascii=False)
+
+print("✅ Done! Saved to extracted.json")
+
+
+
+
+
+
+
+import fitz  # PyMuPDF
+from PIL import Image
 import easyocr
 import json
 
