@@ -1,3 +1,23 @@
+from transformers import AutoProcessor, AutoModelForVision2Seq
+
+model = AutoModelForVision2Seq.from_pretrained(
+    "Qwen/Qwen-VL-Chat",
+    trust_remote_code=True
+)
+
+processor = AutoProcessor.from_pretrained(
+    "Qwen/Qwen-VL-Chat",
+    trust_remote_code=True
+)
+
+pip uninstall qwen -y
+pip uninstall zeta -y
+
+pip install transformers accelerate torch
+
+
+
+
 Bonjour,
 
 Veuillez trouver en pièce jointe les résultats de Sentinella pour le trimestre arrêté à fin février 2026.
