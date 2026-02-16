@@ -1,3 +1,155 @@
+import os
+import json
+import torch
+import fitz  # PyMuPDF
+from PIL import Image
+from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
+
+# Paths
+MODEL_PATH = "/domina/cdv/modelhub/Modelhub-model-huggingface-Qwen/Qwen2.5-VL-7B-Instruct/main"
+PDF_PATH = "/mnt/bareme-de-remboursement-cardif.pdf"
+
+# Load model and processor
+processor = AutoProcessor.from_pretrained(
+    MODEL_PATH, 
+    trust_remote_code=True
+)
+
+model = Qwen2VLForConditionalGeneration.from_pretrained(
+    MODEL_PATH,
+    torch_dtype=torch.float16,  # Use float16 instead of float32 for better performance
+    device_map="auto",  # Auto device mapping
+    trust_remote_code=True
+)
+
+def pdf_to_images(pdf_path, save_dir="/mnt/pdf_pages", dpi=300):
+    """Convert PDF pages to images"""
+    os.makedirs(save_dir, exist_ok=True)
+    
+    doc = fitz.open(pdf_path)
+    images = []
+    
+    for i, page in enumerate(doc):
+        # Render page to pixmap
+        pix = page.get_pixmap(dpi=dpi)
+        
+        # Convert to PIL Image
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        
+        # Save image
+        img_path = f"{save_dir}/page_{i+1}.png"
+        img.save(img_path)
+        print(f"Saved page {i+1}: {img_path} ({img.width}x{img.height})")
+        
+        images.append(img)
+    
+    doc.close()
+    return images
+
+def extract_text(image):
+    """Extract text from image using Qwen2.5-VL"""
+    
+    # Qwen2.5-VL specific prompt format
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "image": image,
+                },
+                {
+                    "type": "text", 
+                    "text": "Extract ALL visible text from this document page. Preserve the structure and formatting. Return plain text only."
+                }
+            ],
+        }
+    ]
+    
+    # Apply chat template
+    text = processor.apply_chat_template(
+        messages, 
+        tokenize=False, 
+        add_generation_prompt=True
+    )
+    
+    # Process inputs
+    inputs = processor(
+        text=[text],
+        images=[image],
+        padding=True,
+        return_tensors="pt"
+    )
+    
+    # Move inputs to same device as model
+    inputs = inputs.to(model.device)
+    
+    # Generate
+    with torch.no_grad():
+        output_ids = model.generate(
+            **inputs,
+            max_new_tokens=4096,
+            temperature=0.1,
+            do_sample=False
+        )
+    
+    # Decode output
+    generated_ids = [
+        output_ids[len(input_ids):]
+        for input_ids, output_ids in zip(inputs.input_ids, output_ids)
+    ]
+    
+    result = processor.batch_decode(
+        generated_ids, 
+        skip_special_tokens=True, 
+        clean_up_tokenization_spaces=False
+    )[0]
+    
+    return result
+
+# Main execution
+def main():
+    OUTPUT_IMG_DIR = "/mnt/pdf_pages"
+    
+    # Create output directory
+    if not os.path.exists(OUTPUT_IMG_DIR):
+        os.makedirs(OUTPUT_IMG_DIR)
+    
+    # Convert PDF to images
+    print(f"Converting PDF: {PDF_PATH}")
+    images = pdf_to_images(PDF_PATH, save_dir=OUTPUT_IMG_DIR, dpi=300)
+    
+    # Extract text from each page
+    all_text = []
+    for i, img in enumerate(images):
+        print(f"\nProcessing page {i+1}/{len(images)}")
+        try:
+            page_text = extract_text(img)
+            all_text.append({
+                "page": i+1,
+                "text": page_text
+            })
+            print(f"✓ Page {i+1} completed")
+        except Exception as e:
+            print(f"✗ Error on page {i+1}: {str(e)}")
+            all_text.append({
+                "page": i+1,
+                "text": f"ERROR: {str(e)}"
+            })
+    
+    # Save results
+    output_file = "extracted.json"
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(all_text, f, indent=4, ensure_ascii=False)
+    
+    print(f"\n✓ All text saved to {output_file}")
+
+if __name__ == "__main__":
+    main()
+
+
+
+
 import fitz  # PyMuPDF
 from PIL import Image
 import torch
