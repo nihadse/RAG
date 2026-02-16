@@ -1,3 +1,89 @@
+import fitz  # PyMuPDF
+from PIL import Image
+import torch
+from transformers import DonutProcessor, VisionEncoderDecoderModel
+import json
+import os
+
+# =====================
+# CONFIG
+# =====================
+MODEL_NAME = "naver-clova-ix/donut-base-finetuned-docvqa"  # Donut model
+PDF_PATH = "/mnt/bareme-de-remboursement-cardif.pdf"
+OUTPUT_DIR = "/mnt/pdf_images"  # where we save images to check readability
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# =====================
+# Load Donut Model
+# =====================
+processor = DonutProcessor.from_pretrained(MODEL_NAME)
+model = VisionEncoderDecoderModel.from_pretrained(MODEL_NAME)
+model.eval()
+
+# =====================
+# Convert PDF → Images
+# =====================
+def pdf_to_images(pdf_path, dpi=400):
+    doc = fitz.open(pdf_path)
+    images = []
+    for i, page in enumerate(doc):
+        pix = page.get_pixmap(dpi=dpi)
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        image_path = os.path.join(OUTPUT_DIR, f"page_{i+1}.png")
+        img.save(image_path)  # Save image so you can check
+        images.append(img)
+        print(f"Saved page {i+1} image at: {image_path}")
+    return images
+
+# =====================
+# Extract text from image
+# =====================
+def extract_text(image):
+    # Donut expects a "task prompt" to describe what you want to extract
+    prompt = "<s_docvqa> Please extract all text from this page. </s_docvqa>"
+    pixel_values = processor(image, return_tensors="pt").pixel_values
+
+    with torch.no_grad():
+        output_ids = model.generate(pixel_values, max_length=4096)
+    
+    result = processor.batch_decode(output_ids, skip_special_tokens=True)[0]
+    return result
+
+# =====================
+# MAIN
+# =====================
+images = pdf_to_images(PDF_PATH, dpi=400)
+
+all_text = []
+
+for i, img in enumerate(images):
+    print(f"Processing page {i+1}/{len(images)}...")
+    page_text = extract_text(img)
+    all_text.append({
+        "page": i+1,
+        "text": page_text
+    })
+
+# Save results
+with open("/mnt/extracted.json", "w", encoding="utf-8") as f:
+    json.dump(all_text, f, indent=4, ensure_ascii=False)
+
+print("Done! Text extracted to /mnt/extracted.json")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def pdf_to_model_images(pdf_path, size=1024):
     import os
     import fitz
