@@ -1,3 +1,27 @@
+def pdf_to_images_readable(pdf_path, save_dir="/mnt/pdf_pages", dpi=400):
+    os.makedirs(save_dir, exist_ok=True)
+    doc = fitz.open(pdf_path)
+    images = []
+
+    for i, page in enumerate(doc):
+        pix = page.get_pixmap(dpi=dpi)
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+
+        # Pad to square without resizing smaller
+        max_side = max(img.width, img.height)
+        img_square = Image.new("RGB", (max_side, max_side), "white")
+        img_square.paste(img, (0, 0))
+
+        img_path = f"{save_dir}/page_{i+1}.png"
+        img_square.save(img_path)
+        print(f"Saved readable page {i+1} image: {img_path} ({img_square.width}x{img_square.height})")
+        images.append(img_square)
+
+    return images
+
+
+
+
 def pdf_to_images(pdf_path, save_dir="/mnt/pdf_pages"):
     doc = fitz.open(pdf_path)
     images = []
