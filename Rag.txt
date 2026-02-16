@@ -1,3 +1,25 @@
+from pypdf import PdfReader, PdfWriter
+
+input_pdf = "input.pdf"        # your original PDF
+output_pdf = "first_page.pdf"  # new PDF with only page 1
+
+reader = PdfReader(input_pdf)
+writer = PdfWriter()
+
+# Add first page (index 0)
+writer.add_page(reader.pages[0])
+
+# Save as new PDF
+with open(output_pdf, "wb") as f:
+    writer.write(f)
+
+print("First page saved as PDF successfully!")
+
+
+
+
+
+
 print(type(image))
 print(image.size)
 image.save("/mnt/test_page.png")
