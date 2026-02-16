@@ -1,3 +1,32 @@
+def extract_text(image):
+    prompt = """
+Extract ALL visible text from this document page.
+Preserve structure and formatting.
+Return plain text only.
+
+<image>
+"""  # <-- crucial marker
+
+    inputs = processor(
+        text=prompt,
+        images=image,
+        return_tensors="pt"
+    )
+
+    with torch.no_grad():
+        output = model.generate(
+            **inputs,
+            max_new_tokens=2048,
+            temperature=0
+        )
+
+    result = processor.decode(output[0], skip_special_tokens=True)
+    return result
+
+
+
+
+
 import fitz  # PyMuPDF
 from PIL import Image
 from transformers import AutoProcessor, AutoModelForVision2Seq
