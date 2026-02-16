@@ -1,3 +1,28 @@
+def pdf_to_images(pdf_path, save_dir="/mnt/pdf_pages"):
+    doc = fitz.open(pdf_path)
+    images = []
+    for i, page in enumerate(doc):
+        pix = page.get_pixmap(dpi=300)
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+
+        # --- Resize and convert to RGB for Qwen ---
+        img = img.convert("RGB")
+        img = img.resize((512, 512))  # adjust size if needed
+
+        images.append(img)
+
+        # Save the image to check
+        img_path = f"{save_dir}/page_{i+1}.png"
+        img.save(img_path)
+        print(f"✓ Saved page {i+1} as image: {img_path}")
+
+    return images
+
+
+
+
+
+
 OUTPUT_IMG_DIR = "/mnt/pdf_pages"
 
 # Make sure output folder exists
