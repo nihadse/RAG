@@ -1,3 +1,53 @@
+print(type(image))
+print(image.size)
+image.save("/mnt/test_page.png")
+
+def extract_text(image):
+
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "image"},
+                {"type": "text", "text": "Extract all visible text from this French document page. Return plain text only."}
+            ],
+        }
+    ]
+
+    # Build proper multimodal prompt
+    prompt = processor.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True
+    )
+
+    inputs = processor(
+        text=[prompt],        # MUST be list
+        images=[image],       # MUST be list
+        padding=True,
+        return_tensors="pt"
+    )
+
+    with torch.no_grad():
+        output = model.generate(
+            **inputs,
+            max_new_tokens=2048
+        )
+
+    result = processor.batch_decode(
+        output, skip_special_tokens=True
+    )[0]
+
+    return result
+
+
+
+
+
+
+
+
+
 import os
 import json
 import torch
