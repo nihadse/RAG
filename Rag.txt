@@ -1,3 +1,163 @@
+OCR text → Structured JSON (via Qwen2.5) → Pandas Table → Excel export
+
+
+
+
+import torch
+import json
+import pandas as pd
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from pdf2image import convert_from_path
+import pytesseract
+
+# =========================================
+# 1️⃣ LOAD MODEL
+# =========================================
+
+model_name = "/domino/edv/modelhub/ModelHub-model-huggingface-Qwen/Qwen2.5-Coder-32B-Instruct/main"
+
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    torch_dtype=torch.float16,
+    device_map="auto"
+)
+
+# =========================================
+# 2️⃣ OCR FUNCTION
+# =========================================
+
+def extract_text_from_scanned_pdf(pdf_path, lang="eng"):
+    pages = convert_from_path(pdf_path)
+    full_text = ""
+
+    for page in pages:
+        text = pytesseract.image_to_string(page, lang=lang)
+        full_text += text + "\n"
+
+    return full_text
+
+
+# =========================================
+# 3️⃣ AUTO DOCUMENT TYPE DETECTION
+# =========================================
+
+def detect_document_type(ocr_text):
+
+    text_lower = ocr_text.lower()
+
+    if "ordre de virement" in text_lower:
+        return "bank"
+
+    elif "بطاقة التعريف الوطنية" in ocr_text:
+        return "id"
+
+    else:
+        return "unknown"
+
+
+# =========================================
+# 4️⃣ STRUCTURED EXTRACTION
+# =========================================
+
+def extract_structured_data(ocr_text):
+
+    document_type = detect_document_type(ocr_text)
+
+    if document_type == "bank":
+        schema = """
+{
+  "document_type": "foreign_transfer_order",
+  "date": "",
+  "amount": "",
+  "currency": "",
+  "beneficiary_name": "",
+  "account_number": "",
+  "swift_code": "",
+  "bank_name": "",
+  "agency": "",
+  "nature_of_payment": ""
+}
+"""
+
+    elif document_type == "id":
+        schema = """
+{
+  "document_type": "algerian_id_card",
+  "full_name": "",
+  "date_of_birth": "",
+  "place_of_birth": "",
+  "id_number": "",
+  "expiration_date": "",
+  "nationality": "",
+  "blood_group": ""
+}
+"""
+    else:
+        raise ValueError("❌ Unknown document type")
+
+    prompt = f"""
+You are an expert information extraction system.
+
+The OCR text may contain noise.
+Extract the correct structured data.
+
+Return ONLY valid JSON.
+Do not explain anything.
+
+If a field is missing, return null.
+
+Schema:
+{schema}
+
+OCR TEXT:
+{ocr_text}
+"""
+
+    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+
+    outputs = model.generate(
+        **inputs,
+        max_new_tokens=500,
+        temperature=0.1
+    )
+
+    result = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    json_start = result.find("{")
+    json_end = result.rfind("}") + 1
+    clean_json = result[json_start:json_end]
+
+    return json.loads(clean_json)
+
+
+# =========================================
+# 5️⃣ MAIN
+# =========================================
+
+pdf_path = "your_scanned_document.pdf"
+
+# OCR
+ocr_text = extract_text_from_scanned_pdf(pdf_path, lang="fra")  # change if needed
+
+# Auto extraction
+structured_data = extract_structured_data(ocr_text)
+
+# Convert to table
+df = pd.DataFrame([structured_data])
+
+print(df)
+
+df.to_excel("structured_output.xlsx", index=False)
+
+print("✅ Auto detection + extraction completed")
+
+
+
+
+
+
 from pypdf import PdfReader, PdfWriter
 
 input_pdf = "input.pdf"        # your original PDF
