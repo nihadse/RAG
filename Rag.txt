@@ -1,3 +1,166 @@
+import torch
+import json
+import pandas as pd
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
+# =========================================
+# 1️⃣ LOAD MODEL
+# =========================================
+
+model_name = "/domino/edv/modelhub/ModelHub-model-huggingface-Qwen/Qwen2.5-Coder-32B-Instruct/main"
+
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    torch_dtype=torch.float16,
+    device_map="auto"
+)
+
+# =========================================
+# 2️⃣ MERGE OCR PAGES
+# =========================================
+
+def merge_ocr_pages(ocr_output):
+    full_text = ""
+    for page in ocr_output:
+        full_text += page["text"] + "\n"
+    return full_text
+
+
+# =========================================
+# 3️⃣ DOCUMENT TYPE DETECTION
+# =========================================
+
+def detect_document_type(text):
+
+    text_lower = text.lower()
+
+    if "virement" in text_lower and "etranger" in text_lower:
+        return "bank"
+
+    elif "التعريف" in text and "الوطنية" in text:
+        return "id"
+
+    else:
+        return "unknown"
+
+
+# =========================================
+# 4️⃣ STRUCTURED EXTRACTION
+# =========================================
+
+def extract_structured_data(ocr_output):
+
+    full_text = merge_ocr_pages(ocr_output)
+
+    document_type = detect_document_type(full_text)
+
+    if document_type == "bank":
+        schema = """
+{
+  "document_type": "foreign_transfer_order",
+  "date": "",
+  "amount": "",
+  "currency": "",
+  "beneficiary_name": "",
+  "account_number": "",
+  "swift_code": "",
+  "bank_name": "",
+  "agency": "",
+  "nature_of_payment": ""
+}
+"""
+    elif document_type == "id":
+        schema = """
+{
+  "document_type": "algerian_id_card",
+  "full_name": "",
+  "date_of_birth": "",
+  "place_of_birth": "",
+  "id_number": "",
+  "expiration_date": "",
+  "nationality": "",
+  "blood_group": ""
+}
+"""
+    else:
+        raise ValueError("❌ Unknown document type")
+
+    prompt = f"""
+You are an expert document information extraction system.
+
+The OCR text may contain noise or formatting errors.
+Extract the correct structured data carefully.
+
+Return ONLY valid JSON.
+Do not explain anything.
+
+If a field is missing, return null.
+
+Schema:
+{schema}
+
+OCR TEXT:
+{full_text}
+"""
+
+    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+
+    outputs = model.generate(
+        **inputs,
+        max_new_tokens=500,
+        temperature=0.1
+    )
+
+    result = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    json_start = result.find("{")
+    json_end = result.rfind("}") + 1
+    clean_json = result[json_start:json_end]
+
+    return json.loads(clean_json)
+
+
+# =========================================
+# 5️⃣ EXECUTION
+# =========================================
+
+# Example OCR output
+ocr_output = [
+    {"page": 1, "text": "ORDRE DE VIREMENT A L'ETRANGER ..."},
+    {"page": 2, "text": "Beneficiaire ..."}
+]
+
+structured_data = extract_structured_data(ocr_output)
+
+df = pd.DataFrame([structured_data])
+
+print(df)
+
+df.to_excel("structured_output.xlsx", index=False)
+
+print("✅ Structured extraction completed")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 OCR text → Structured JSON (via Qwen2.5) → Pandas Table → Excel export
 
 
