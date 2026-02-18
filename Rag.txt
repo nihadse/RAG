@@ -4,6 +4,80 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from time import time
 
+# ── Use 0.5B model (4x faster than 1.5B) ─────────────────────────────────────
+MODEL_NAME = "/domino/edv/modelhub/ModelHub-model-huggingface-Qwen/Qwen2.5-Coder-0.5B-Instruct/main"
+INPUT_JSON = "extracted.json"
+OUTPUT_JSON = "structured.json"
+
+print("Loading 0.5B model (fast)...")
+t0 = time()
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME,
+    torch_dtype=torch.float16,
+    device_map="auto",
+    trust_remote_code=True,
+)
+model.eval()
+print(f"✓ Loaded in {time()-t0:.1f}s\n")
+
+def detect_document_type(text: str) -> str:
+    return "id_card" if any(k in text for k in ["بطاقة", "CNI", "Carte"]) else "bank"
+
+SCHEMAS = {
+    "bank": {"Montant": None, "Nom": None, "Compte": None},
+    "id_card": {"اللقب": None, "الاسم": None, "رقم الوطني": None, "Nom": None, "Prénom": None}
+}
+
+def parse_json(text: str) -> dict:
+    match = re.search(r'\{[^{}]*\}', text)
+    return json.loads(match.group(0)) if match else {}
+
+def extract_structured_data(ocr_pages: list) -> dict:
+    text = "\n".join(p["text"] for p in ocr_pages if p.get("text"))[:600]
+    doc_type = detect_document_type(text)
+    schema = SCHEMAS[doc_type]
+
+    prompt = f"""Extract to JSON:
+{json.dumps(schema, ensure_ascii=False)}
+
+{text}
+
+{{"""
+
+    t0 = time()
+    inputs = tokenizer(prompt, return_tensors="pt", max_length=800, truncation=True).to(model.device)
+    
+    with torch.no_grad():
+        outputs = model.generate(**inputs, max_new_tokens=150, do_sample=False, use_cache=True)
+    
+    result = "{" + tokenizer.decode(outputs[0, inputs["input_ids"].shape[1]:], skip_special_tokens=True)
+    print(f"⏱ {time()-t0:.2f}s | {result[:100]}...")
+    
+    return parse_json(result)
+
+if __name__ == "__main__":
+    with open(INPUT_JSON, "r") as f:
+        ocr_pages = json.load(f)
+
+    structured = extract_structured_data(ocr_pages)
+    
+    with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
+        json.dump(structured, f, indent=4, ensure_ascii=False)
+
+    print(f"\n✓ Done!\n{json.dumps(structured, indent=2, ensure_ascii=False)}")
+
+
+
+
+
+
+import json
+import re
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from time import time
+
 # ── Config ────────────────────────────────────────────────────────────────────
 MODEL_NAME = "/domino/edv/modelhub/ModelHub-model-huggingface-Qwen/Qwen2.5-Coder-1.5B-Instruct/main"
 INPUT_JSON = "extracted.json"
