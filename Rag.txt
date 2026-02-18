@@ -2,6 +2,172 @@ import json
 import re
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
+from time import time
+
+# ── Config ────────────────────────────────────────────────────────────────────
+MODEL_NAME = "/domino/edv/modelhub/ModelHub-model-huggingface-Qwen/Qwen2.5-Coder-1.5B-Instruct/main"
+INPUT_JSON = "extracted.json"
+OUTPUT_JSON = "structured.json"
+
+# ── Load model ────────────────────────────────────────────────────────────────
+print("Loading tokenizer and model...")
+t0 = time()
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
+
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME,
+    torch_dtype=torch.float16,
+    low_cpu_mem_usage=True,
+    device_map="auto",
+    trust_remote_code=True,
+)
+model.eval()
+print(f"Model loaded in {time()-t0:.1f}s\n")
+
+# ── Detect document type ──────────────────────────────────────────────────────
+def detect_document_type(text: str) -> str:
+    text_lower = text.lower()
+    if any(kw in text_lower for kw in ["virement", "swift", "montant", "agence", "ordre"]):
+        return "bank"
+    if any(kw in text for kw in ["بطاقة", "التعريف", "الوطنية", "carte nationale", "cni", "identité"]):
+        return "id_card"
+    return "unknown"
+
+# ── Schema per document type ──────────────────────────────────────────────────
+def get_schema(document_type: str) -> dict:
+    if document_type == "bank":
+        return {
+            "document_type": "ORDRE DE VIREMENT A L'ETRANGER",
+            "Monnaie": None,
+            "Montant en chiffres": None,
+            "Montant en lettres": None,
+            "Agence": None,
+            "Nom/Prénom": None,
+            "Nature du paiement": None,
+            "Adresse complète": None,
+            "Numéro de compte": None,
+            "Date de valeur": None,
+            "Siège": None,
+            "Racine": None,
+            "Ordinal": None,
+            "Devise": None,
+            "Clé": None,
+            "Adresse SWIFT": None,
+            "Autre (Transfert en EURO)": None,
+        }
+    elif document_type == "id_card":
+        return {
+            "document_type": "بطاقة التعريف الوطنية",
+            "اللقب": None,
+            "الاسم": None,
+            "تاريخ الميلاد": None,
+            "الجنس": None,
+            "رقم الوطني": None,
+            "تاريخ الإصدار": None,
+            "تاريخ الانتهاء": None,
+            "سلطة الإصدار": None,
+            "Nom": None,
+            "Prénom": None,
+        }
+    else:
+        raise ValueError(f"Unknown document type: {document_type}")
+
+# ── Clean and parse JSON from model output ────────────────────────────────────
+def parse_json_from_output(text: str) -> dict:
+    if "<|im_start|>assistant" in text:
+        text = text.split("<|im_start|>assistant")[-1]
+
+    json_match = re.search(r"```json\s*(\{.*?\})\s*```", text, re.DOTALL)
+    if json_match:
+        return json.loads(json_match.group(1))
+
+    start = text.find("{")
+    end   = text.rfind("}") + 1
+    if start != -1 and end > start:
+        return json.loads(text[start:end])
+
+    raise ValueError(f"No valid JSON found in model output:\n{text[:500]}")
+
+# ── Main extraction function ──────────────────────────────────────────────────
+def extract_structured_data(ocr_pages: list) -> dict:
+    full_text = "\n".join(p["text"] for p in ocr_pages if p.get("text"))
+    document_type = detect_document_type(full_text)
+    schema = get_schema(document_type)
+
+    # Shorter, more direct prompt
+    prompt = f"""<|im_start|>system
+Extract document fields into JSON. Return only valid JSON, no explanation.
+<|im_end|>
+<|im_start|>user
+Schema:
+{json.dumps(schema, ensure_ascii=False, indent=2)}
+
+Text:
+{full_text[:2000]}
+<|im_end|>
+<|im_start|>assistant
+"""
+
+    print(f"Document type: {document_type}")
+    print(f"Prompt length: {len(prompt)} chars\n")
+    
+    t0 = time()
+    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+    prep_time = time() - t0
+    print(f"⏱ Tokenization: {prep_time:.2f}s")
+
+    t0 = time()
+    with torch.no_grad():
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=400,        # ↓ from 600
+            do_sample=False,
+            num_beams=1,               # explicit greedy decode
+            use_cache=True,
+            pad_token_id=tokenizer.eos_token_id,
+        )
+    gen_time = time() - t0
+    print(f"⏱ Generation: {gen_time:.2f}s")
+
+    generated_ids = outputs[:, inputs["input_ids"].shape[1]:]
+    result = tokenizer.decode(generated_ids[0], skip_special_tokens=True)
+
+    print(f"⏱ Total: {prep_time + gen_time:.2f}s\n")
+    print(f"── Raw output ──\n{result[:300]}...\n────────────────\n")
+
+    return parse_json_from_output(result)
+
+# ── Run ───────────────────────────────────────────────────────────────────────
+if __name__ == "__main__":
+    t_start = time()
+    
+    with open(INPUT_JSON, "r", encoding="utf-8") as f:
+        ocr_pages = json.load(f)
+
+    print(f"Loaded {len(ocr_pages)} pages from {INPUT_JSON}\n")
+
+    structured = extract_structured_data(ocr_pages)
+
+    with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
+        json.dump(structured, f, indent=4, ensure_ascii=False)
+
+    t_total = time() - t_start
+    print(f"✓ Done in {t_total:.1f}s! Structured data saved to {OUTPUT_JSON}\n")
+    print(json.dumps(structured, indent=4, ensure_ascii=False))
+
+
+
+
+
+
+
+
+
+
+import json
+import re
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 # ── Config ────────────────────────────────────────────────────────────────────
 MODEL_NAME = "/domino/edv/modelhub/ModelHub-model-huggingface-Qwen/Qwen2.5-Coder-1.5B-Instruct/main"
