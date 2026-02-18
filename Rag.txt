@@ -1,3 +1,14 @@
+structured = {}
+
+for i, field in enumerate(fields):
+    if i < len(values):
+        structured[field] = values[i]
+    else:
+        structured[field] = None
+
+
+
+
 import json
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
