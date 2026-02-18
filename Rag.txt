@@ -1,5 +1,20 @@
 structured = {}
 
+for i in range(len(fields)):
+    if i < len(values):
+        val = values[i].strip()
+        structured[fields[i]] = None if val.lower() == "null" else val
+    else:
+        structured[fields[i]] = None
+
+
+
+
+
+
+
+structured = {}
+
 for i, field in enumerate(fields):
     if i < len(values):
         structured[field] = values[i]
