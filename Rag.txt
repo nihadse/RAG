@@ -1,3 +1,23 @@
+import zipfile
+import os
+
+folder_path = "dossier"
+zip_path = "excel_files.zip"
+
+with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+    for file in os.listdir(folder_path):
+        if file.endswith(".xlsx"):
+            zipf.write(os.path.join(folder_path, file),
+                       arcname=file)
+
+print("ZIP file created successfully!")
+
+
+
+
+
+
+
 structured = {}
 
 for i in range(len(fields)):
