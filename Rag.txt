@@ -1,3 +1,29 @@
+# Split the string into lines
+lines = structured.split("\n")
+
+# Create dictionary
+data_dict = {}
+for line in lines:
+    if ":" in line:
+        key, value = line.split(":", 1)  # split at first colon
+        data_dict[key.strip()] = value.strip()
+
+print(data_dict)
+import pandas as pd
+
+# If you have multiple pages, you can wrap them in a list
+df = pd.DataFrame([data_dict])  # wrap in list for single row
+
+# Save to Excel
+df.to_excel("payment.xlsx", index=False, encoding="utf-8")
+
+
+
+
+
+
+
+
 import json
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
