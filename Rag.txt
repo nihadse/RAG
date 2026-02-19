@@ -1,3 +1,48 @@
+import os
+from PIL import Image, ImageDraw, ImageFont
+import fitz  # PyMuPDF
+
+def pdf_to_images(pdf_path, save_dir="/mnt/pdf_pages", dpi=200):
+    os.makedirs(save_dir, exist_ok=True)
+    
+    doc = fitz.open(pdf_path)
+    images = []
+    
+    # Get the PDF filename without extension
+    file_name = os.path.splitext(os.path.basename(pdf_path))[0]
+    
+    for i, page in enumerate(doc):
+        pix = page.get_pixmap(dpi=dpi)
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        
+        # Pad to square without resizing smaller
+        max_side = max(img.width, img.height)
+        img_square = Image.new("RGB", (max_side, max_side), "white")
+        img_square.paste(img, (0, 0))
+        
+        # Draw filename on the image
+        draw = ImageDraw.Draw(img_square)
+        try:
+            font = ImageFont.truetype("arial.ttf", 20)  # Change font/size as needed
+        except:
+            font = ImageFont.load_default()
+        text = f"{file_name} - Page {i+1}"
+        draw.text((10, 10), text, fill="black", font=font)
+        
+        # Save image
+        img_path = os.path.join(save_dir, f"{file_name}_page_{i+1}.png")
+        img_square.save(img_path)
+        images.append(img_square)
+    
+    return images
+
+
+
+
+
+
+
+
 import json
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
