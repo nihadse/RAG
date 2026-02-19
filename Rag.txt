@@ -1,3 +1,41 @@
+import os
+import glob
+import json
+
+JSON_FOLDER = "/mnt/Dossier_agence/json/"
+OUTPUT_FOLDER = "/mnt/Dossier_agence/json_first_page/"
+
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
+json_files = glob.glob(f"{JSON_FOLDER}/*.json")
+
+print(f"Found {len(json_files)} JSON files.")
+
+for json_path in json_files:
+    with open(json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    # Keep only first page
+    if isinstance(data, list) and len(data) > 0:
+        first_page = [data[0]]
+    else:
+        first_page = []
+
+    # Create new file name
+    file_name = os.path.basename(json_path)
+    new_path = os.path.join(OUTPUT_FOLDER, file_name.replace(".json", "_page1.json"))
+
+    with open(new_path, "w", encoding="utf-8") as f:
+        json.dump(first_page, f, indent=4, ensure_ascii=False)
+
+    print(f"Created: {os.path.basename(new_path)}")
+
+print("Done ✅")
+
+
+
+
+
 import json
 from datetime import datetime
 
