@@ -1,3 +1,104 @@
+import os
+import glob
+import json
+from datetime import datetime
+from PIL import Image, ImageDraw, ImageFont
+import fitz  # PyMuPDF
+
+# ---------- CONFIG ----------
+PDF_FOLDER = "/mnt/Dossier_agence/"
+IMAGE_SAVE_DIR = "/mnt/Dossier_agence/pages/"
+JSON_SAVE_DIR = "/mnt/Dossier_agence/json/"
+DPI = 100
+
+os.makedirs(IMAGE_SAVE_DIR, exist_ok=True)
+os.makedirs(JSON_SAVE_DIR, exist_ok=True)
+
+# ---------- YOUR OCR FUNCTION ----------
+def extract_text(img):
+    from pytesseract import image_to_string
+    return image_to_string(img, lang="fra")  # change if needed
+
+
+# ---------- PDF TO IMAGES ----------
+def pdf_to_images(pdf_path, save_dir=IMAGE_SAVE_DIR, dpi=DPI):
+    doc = fitz.open(pdf_path)
+    images = []
+
+    file_name = os.path.splitext(os.path.basename(pdf_path))[0]
+
+    for i, page in enumerate(doc):
+        pix = page.get_pixmap(dpi=dpi)
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+
+        # Pad to square
+        max_side = max(img.width, img.height)
+        img_square = Image.new("RGB", (max_side, max_side), "white")
+        img_square.paste(img, (0, 0))
+
+        # Draw filename on image
+        draw = ImageDraw.Draw(img_square)
+        try:
+            font = ImageFont.truetype("arial.ttf", 20)
+        except:
+            font = ImageFont.load_default()
+
+        text = f"{file_name} - Page {i+1}"
+        draw.text((10, 10), text, fill="black", font=font)
+
+        img_path = os.path.join(save_dir, f"{file_name}_page_{i+1}.png")
+        img_square.save(img_path)
+
+        images.append(img_square)
+
+    return images
+
+
+# ---------- MAIN PIPELINE ----------
+pdf_files = glob.glob(f"{PDF_FOLDER}/*.pdf")
+
+print(f"Found {len(pdf_files)} PDFs.")
+print("Start:", datetime.now())
+
+for pdf_path in pdf_files:
+    file_name = os.path.splitext(os.path.basename(pdf_path))[0]
+    print(f"\nProcessing PDF: {file_name}")
+
+    images = pdf_to_images(pdf_path)
+
+    pdf_text = []
+
+    for i, img in enumerate(images):
+        print(f"  Extracting page {i+1}/{len(images)}...")
+        page_text = extract_text(img)
+
+        pdf_text.append({
+            "page": i+1,
+            "text": page_text
+        })
+
+    # Save ONE JSON for THIS PDF
+    json_path = os.path.join(JSON_SAVE_DIR, f"{file_name}.json")
+
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(pdf_text, f, indent=4, ensure_ascii=False)
+
+    print(f"  JSON saved: {json_path}")
+
+print("\nFinished:", datetime.now())
+
+
+
+
+
+
+
+
+
+
+
+
+
 from datetime import datetime
 import json
 
