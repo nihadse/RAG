@@ -1,3 +1,169 @@
+import json
+import glob
+import os
+import torch
+from datetime import datetime
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
+# --------------------------
+# Config
+# --------------------------
+MODEL_NAME = "/domino/edv/modelhub/ModelHub-model-huggingface-Qwen/Qwen3-4B-Instruct-2507/main"
+DEVICE = "cpu"
+torch.set_num_threads(8)
+
+INPUT_FOLDER = "/mnt/Dossier_agence/json_first_page/"
+OUTPUT_STRUCTURED = "/mnt/Dossier_agence/structured_json/"
+
+# Bank fields
+BANK_FIELDS = [
+    "Monnaie", "Montant en chiffres", "Montant en lettres", "Agence",
+    "Nom/Prénom", "Adresse complète", "Numéro de compte", "Date de valeur",
+    "bank code", "Siège", "Racine", "Ordinal", "Devise", "Clé",
+    "Adresse SWIFT", "Autre (Transfert en EURO)",
+]
+
+# --------------------------
+# Load model once
+# --------------------------
+print("Loading model...")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME,
+    torch_dtype=torch.float32,
+    device_map=None,
+    trust_remote_code=True,
+)
+model.eval()
+print("✓ Model loaded.\n")
+
+# --------------------------
+# Prompt builder
+# --------------------------
+def build_prompt(text: str) -> str:
+    """Build extraction prompt for FIRST PAGE ONLY"""
+    order = " | ".join(BANK_FIELDS)
+    
+    prompt = f"""You are an expert document information extraction system.
+Extract the following fields in EXACT order separated by "|":
+
+{order}
+
+Important rules for bank documents:
+- bank code: 3 numbers
+- Siège: 5 numbers
+- Racine: 6 numbers
+- Ordinal: 3 numbers
+- Devise: letters
+- Clé: 2 numbers
+
+Return ONLY values separated by "|".
+If a value is missing, return null.
+No explanations, no field names.
+
+OCR:
+{text[:800]}
+"""
+    return prompt.strip()
+
+# --------------------------
+# Extract from SINGLE PAGE (first page only)
+# --------------------------
+def extract_structured_data(ocr_pages: list) -> dict:
+    """Extract from first page OCR JSON"""
+    
+    # Merge all text from OCR pages (usually just 1 page in your case)
+    full_text = "\n".join(p.get("text", "") for p in ocr_pages if p.get("text"))
+    
+    if not full_text.strip():
+        raise ValueError("No text found in OCR pages")
+    
+    # Build prompt
+    prompt = build_prompt(full_text)
+    
+    # Tokenize & generate
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=1200).to(DEVICE)
+    
+    with torch.no_grad():
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=180,
+            do_sample=False,
+            use_cache=True,
+            num_beams=1,
+            pad_token_id=tokenizer.eos_token_id,
+        )
+    
+    # Decode output
+    result = tokenizer.decode(
+        outputs[0, inputs["input_ids"].shape[1]:],
+        skip_special_tokens=True
+    ).strip()
+    
+    # Parse pipe-separated values
+    values = [v.strip() for v in result.split("|")]
+    
+    # Build dict
+    structured = {}
+    for i, field in enumerate(BANK_FIELDS):
+        if i < len(values):
+            val = values[i]
+            structured[field] = None if val.lower() == "null" or val == "" else val
+        else:
+            structured[field] = None
+    
+    return structured
+
+# --------------------------
+# Batch process folder
+# --------------------------
+os.makedirs(OUTPUT_STRUCTURED, exist_ok=True)
+
+json_files = glob.glob(f"{INPUT_FOLDER}/*.json")
+print(f"Found {len(json_files)} first-page JSON files.")
+print(f"Start: {datetime.now()}\n")
+
+success_count = 0
+error_count = 0
+
+for json_path in json_files:
+    file_name = os.path.basename(json_path).replace("_page1.json", "").replace(".json", "")
+    
+    try:
+        # Load OCR JSON
+        with open(json_path, "r", encoding="utf-8") as f:
+            ocr_pages = json.load(f)
+        
+        # Extract
+        structured_dict = extract_structured_data(ocr_pages)
+        
+        # Save
+        output_path = os.path.join(OUTPUT_STRUCTURED, f"{file_name}_structured.json")
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(structured_dict, f, indent=4, ensure_ascii=False)
+        
+        print(f"✓ Processed: {file_name}")
+        success_count += 1
+        
+    except Exception as e:
+        print(f"✗ Error processing {file_name}: {e}")
+        error_count += 1
+
+print(f"\nFinished: {datetime.now()}")
+print(f"Success: {success_count} | Errors: {error_count}")
+
+
+
+
+
+
+
+
+
+
+
+
+
 import os
 import glob
 import json
