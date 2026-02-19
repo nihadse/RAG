@@ -1,6 +1,175 @@
 import os
 import glob
 import json
+from datetime import datetime
+import torch
+import pandas as pd
+
+# --- LLM / Tokenizer ---
+# Assume you have your model & tokenizer already loaded:
+# tokenizer = ...
+# model = ...
+
+# --- Folders ---
+INPUT_FOLDER = "/mnt/Dossier_agence/json_first_page/"
+STRUCTURED_FOLDER = "/mnt/Dossier_agence/structured_json/"
+os.makedirs(STRUCTURED_FOLDER, exist_ok=True)
+
+OUTPUT_EXCEL = "/mnt/Dossier_agence/final_output.xlsx"
+
+# --- Bank Fields ---
+BANK_FIELDS = [
+    "Montant en chiffres",
+    "Montant en lettres",
+    "Nom/Prénom",
+    "Adresse complète",
+    "Numéro de compte",
+    "Siège",
+    "Racine",
+    "Ordinal",
+    "Devise",
+    "Clé",
+    "Adresse SWIFT",
+    "Autre (Transfert en EURO)",
+    "Nom",
+    "Références du paiement et observations du donneur d'ordre"
+]
+
+# --- Build Prompt ---
+def build_prompt(text: str) -> str:
+    order = " | ".join(BANK_FIELDS)
+    prompt = f"""
+You are an expert document information extraction system.
+
+Extract the following fields in EXACT order separated by "|":
+
+{order}
+
+Rules:
+- Siège = 5 digits
+- Racine = 6 digits
+- Ordinal = 3 digits
+- Clé = 2 digits
+- Devise = currency letters (DZD, EUR, etc.)
+
+Return ONLY values separated by "|".
+If a value is missing, return null.
+No explanations.
+No field names.
+
+OCR:
+{text}
+"""
+    return prompt.strip()
+
+
+# --- Extract Structured Data ---
+def extract_structured_data(ocr_pages: list, file_name: str) -> dict:
+
+    # Merge OCR text
+    full_text = "\n".join(p.get("text", "") for p in ocr_pages if p.get("text"))
+    
+    if not full_text.strip():
+        print(f"⚠️ Empty OCR text for {file_name}")
+        return None
+
+    # Build prompt
+    prompt = build_prompt(full_text)
+
+    # Tokenize
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=1200)
+
+    # Generate
+    with torch.no_grad():
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=300,
+            do_sample=False,
+            num_beams=1,
+            use_cache=True
+        )
+
+    # Decode output
+    structured_output = tokenizer.decode(
+        outputs[0, inputs["input_ids"].shape[1]:],
+        skip_special_tokens=True
+    ).strip()
+
+    # Debugging: print first 100 chars if output is empty or weird
+    if not structured_output or structured_output.replace("|", "").strip() == "":
+        print(f"⚠️ Empty or invalid output for {file_name}")
+        print("RAW OUTPUT:", structured_output[:200])
+
+    # Split into fields
+    values = [v.strip() for v in structured_output.split("|")]
+
+    if len(values) != len(BANK_FIELDS):
+        print(f"⚠️ Field mismatch for {file_name} ({len(values)} fields)")
+        print("RAW OUTPUT:", structured_output[:200])
+        # Fill missing with null
+        while len(values) < len(BANK_FIELDS):
+            values.append("null")
+        values = values[:len(BANK_FIELDS)]
+
+    structured_dict = dict(zip(BANK_FIELDS, values))
+    return structured_dict
+
+
+# --- Process All JSON Files ---
+json_files = glob.glob(os.path.join(INPUT_FOLDER, "*.json"))
+print(f"Found {len(json_files)} JSON files")
+print("Start:", datetime.now())
+
+all_rows = []
+
+for json_path in json_files:
+    file_name = os.path.basename(json_path).replace(".json", "")
+    with open(json_path, "r", encoding="utf-8") as f:
+        ocr_pages = json.load(f)
+
+    try:
+        structured_dict = extract_structured_data(ocr_pages, file_name)
+        if structured_dict is None:
+            continue
+
+        # Save structured JSON per PDF
+        output_path = os.path.join(STRUCTURED_FOLDER, f"{file_name}_structured.json")
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(structured_dict, f, indent=4, ensure_ascii=False)
+
+        # Keep for Excel
+        row = structured_dict.copy()
+        row["PDF_Name"] = file_name
+        all_rows.append(row)
+
+        print(f"Processed: {file_name}")
+
+    except Exception as e:
+        print(f"❌ Error processing {file_name}: {e}")
+
+print("Finished processing JSONs:", datetime.now())
+
+# --- Merge All Structured JSON into Excel ---
+if all_rows:
+    df = pd.DataFrame(all_rows)
+    df.to_excel(OUTPUT_EXCEL, index=False)
+    print(f"✅ Excel created: {OUTPUT_EXCEL}")
+else:
+    print("⚠️ No data extracted for Excel")
+
+
+
+
+
+
+
+
+
+
+
+import os
+import glob
+import json
 import pandas as pd
 from datetime import datetime
 
