@@ -1,3 +1,42 @@
+import os
+import glob
+import json
+import pandas as pd
+from datetime import datetime
+
+STRUCTURED_FOLDER = "/mnt/Dossier_agence/structured_json/"
+OUTPUT_EXCEL = "/mnt/Dossier_agence/final_output.xlsx"
+
+print("Start:", datetime.now())
+
+json_files = glob.glob(f"{STRUCTURED_FOLDER}/*.json")
+
+print(f"Found {len(json_files)} structured JSON files.")
+
+all_rows = []
+
+for json_path in json_files:
+    with open(json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    # Add filename column
+    file_name = os.path.basename(json_path).replace("_structured.json", "")
+    data["PDF_Name"] = file_name
+
+    all_rows.append(data)
+
+# Convert to DataFrame
+df = pd.DataFrame(all_rows)
+
+# Save to Excel
+df.to_excel(OUTPUT_EXCEL, index=False)
+
+print(f"Excel file created at: {OUTPUT_EXCEL}")
+print("Finished:", datetime.now())
+
+
+
+
 
 def build_prompt(text: str) -> str:
 
