@@ -1,3 +1,331 @@
+import json
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
+# --------------------------
+# Config
+# --------------------------
+MODEL_NAME = "/domino/edv/modelhub/ModelHub-model-huggingface-Qwen/Qwen3-4B-Instruct-2507/main"
+DEVICE = "cpu"
+torch.set_num_threads(8)
+
+print("Loading model...")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME,
+    torch_dtype=torch.float32,
+    device_map=None,
+    trust_remote_code=True,
+)
+model.eval()
+print("✓ Model loaded.\n")
+
+# --------------------------
+# Page-specific field schemas
+# --------------------------
+PAGE_SCHEMAS = {
+    "ordre_de_virement": [
+        "Monnaie",
+        "Montant en chiffres",
+        "Montant en lettres",
+        "Agence",
+        "Nom/Prénom",
+        "Adresse complète",
+        "Numéro de compte",
+        "Date de valeur",
+        "bank code",
+        "Siège",
+        "Racine",
+        "Ordinal",
+        "Devise",
+        "Clé",
+        "Adresse SWIFT",
+        "Autre (Transfert en EURO)",
+    ],
+    "annexe_1": [
+        "Nom",
+        "Date de signature",
+    ],
+    "annexe_2": [
+        "Mois",
+        "Part transférable",
+        "Nom et prénom",
+    ],
+    "domiciliation_import": [
+        "Nom",
+        # Add other fields you need from this page
+    ],
+    "bulletin_de_paie": [
+        "Nom",
+        # Add other fields you need from this page
+    ],
+    "gestion_de_blocages": [
+        # No extraction needed
+    ],
+}
+
+ID_FIELDS = [
+    "اللقب", "الاسم", "تاريخ الميلاد", "الجنس",
+    "رقم الوطني", "تاريخ الإصدار", "تاريخ الانتهاء",
+    "سلطة الإصدار", "Nom", "Prénom"
+]
+
+# --------------------------
+# Detect page type by content
+# --------------------------
+def detect_page_type(text: str) -> str:
+    """Detect what type of page this is based on text content"""
+    text_lower = text.lower()
+    
+    # Check for specific page identifiers
+    if "ordre de virement" in text_lower or "virement a l'etranger" in text_lower:
+        return "ordre_de_virement"
+    elif "annexe 1" in text_lower or "annexe i" in text_lower:
+        return "annexe_1"
+    elif "annexe 2" in text_lower or "annexe ii" in text_lower:
+        return "annexe_2"
+    elif "domiciliation" in text_lower and "import" in text_lower:
+        return "domiciliation_import"
+    elif "bulletin de paie" in text_lower or "bulletin de salaire" in text_lower:
+        return "bulletin_de_paie"
+    elif "gestion de blocages" in text_lower or "blocage" in text_lower:
+        return "gestion_de_blocages"
+    
+    return "unknown"
+
+# --------------------------
+# Detect document type (bank vs ID)
+# --------------------------
+def detect_document_type(ocr_pages: list) -> str:
+    """Detect if this is a bank document or ID card"""
+    # Check first page
+    first_page_text = ocr_pages[0].get("text", "").lower() if ocr_pages else ""
+    
+    if any(k in first_page_text for k in ["بطاقة", "cni", "carte", "identité"]):
+        return "id_card"
+    elif any(k in first_page_text for k in ["ordre de virement", "virement", "banque", "swift"]):
+        return "bank"
+    
+    return "unknown"
+
+# --------------------------
+# Extract from a single page
+# --------------------------
+def extract_page(page_text: str, page_type: str) -> dict:
+    """Extract fields from a single page"""
+    if page_type == "gestion_de_blocages" or page_type == "unknown":
+        return {}
+    
+    fields = PAGE_SCHEMAS.get(page_type, [])
+    if not fields:
+        return {}
+    
+    # Build prompt
+    messages = [
+        {
+            "role": "system",
+            "content": "Extract document fields. Output ONLY pipe-separated values, no field names."
+        },
+        {
+            "role": "user",
+            "content": f"""Extract these fields in order:
+{' | '.join(fields)}
+
+Rules:
+- Return ONLY values like: value1 | value2 | value3 | ...
+- Use "null" for missing fields
+- No explanations, no field names
+
+Document:
+{page_text[:800]}"""
+        }
+    ]
+    
+    prompt = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True
+    )
+    
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=1200).to(DEVICE)
+    
+    with torch.no_grad():
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=180,
+            do_sample=False,
+            use_cache=True,
+            num_beams=1,
+            pad_token_id=tokenizer.eos_token_id,
+        )
+    
+    result = tokenizer.decode(
+        outputs[0, inputs["input_ids"].shape[1]:],
+        skip_special_tokens=True
+    ).strip()
+    
+    print(f"  Page type: {page_type}")
+    print(f"  Raw output: {result[:100]}...")
+    
+    # Parse pipe-separated values
+    values = [v.strip() for v in result.split("|")]
+    
+    # Build dict
+    page_data = {}
+    for i, field in enumerate(fields):
+        if i < len(values):
+            val = values[i]
+            page_data[field] = None if val.lower() == "null" or val == "" else val
+        else:
+            page_data[field] = None
+    
+    return page_data
+
+# --------------------------
+# Extract ID card
+# --------------------------
+def extract_id_card(ocr_pages: list) -> dict:
+    """Extract ID card (single page or multi-page)"""
+    full_text = "\n".join(p.get("text", "") for p in ocr_pages if p.get("text"))
+    
+    messages = [
+        {
+            "role": "system",
+            "content": "Extract document fields. Output ONLY pipe-separated values, no field names."
+        },
+        {
+            "role": "user",
+            "content": f"""Extract these fields in order:
+{' | '.join(ID_FIELDS)}
+
+Rules:
+- Return ONLY values like: value1 | value2 | value3 | ...
+- Use "null" for missing fields
+- No explanations, no field names
+
+Document:
+{full_text[:800]}"""
+        }
+    ]
+    
+    prompt = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True
+    )
+    
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=1200).to(DEVICE)
+    
+    with torch.no_grad():
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=180,
+            do_sample=False,
+            use_cache=True,
+            num_beams=1,
+            pad_token_id=tokenizer.eos_token_id,
+        )
+    
+    result = tokenizer.decode(
+        outputs[0, inputs["input_ids"].shape[1]:],
+        skip_special_tokens=True
+    ).strip()
+    
+    values = [v.strip() for v in result.split("|")]
+    
+    structured = {"document_type": "بطاقة التعريف الوطنية"}
+    for i, field in enumerate(ID_FIELDS):
+        if i < len(values):
+            val = values[i]
+            structured[field] = None if val.lower() == "null" or val == "" else val
+        else:
+            structured[field] = None
+    
+    return structured
+
+# --------------------------
+# Extract multi-page bank document
+# --------------------------
+def extract_bank_document(ocr_pages: list) -> dict:
+    """Extract bank document with page-specific fields"""
+    all_data = {"document_type": "ORDRE DE VIREMENT A L'ETRANGER"}
+    
+    print(f"Processing {len(ocr_pages)} pages...\n")
+    
+    for i, page in enumerate(ocr_pages):
+        page_text = page.get("text", "")
+        if not page_text:
+            continue
+        
+        print(f"Page {i+1}:")
+        page_type = detect_page_type(page_text)
+        
+        if page_type == "unknown":
+            print(f"  ⚠ Could not detect page type, skipping\n")
+            continue
+        
+        page_data = extract_page(page_text, page_type)
+        
+        # Merge into main dict (avoid overwriting)
+        for key, value in page_data.items():
+            if key not in all_data or all_data[key] is None:
+                all_data[key] = value
+        
+        print(f"  ✓ Extracted {len(page_data)} fields\n")
+    
+    return all_data
+
+# --------------------------
+# Main extraction function
+# --------------------------
+def extract_structured_data(ocr_pages: list) -> dict:
+    """Main entry point: detect document type and extract accordingly"""
+    doc_type = detect_document_type(ocr_pages)
+    
+    if doc_type == "id_card":
+        print("Document type: ID Card\n")
+        return extract_id_card(ocr_pages)
+    elif doc_type == "bank":
+        print("Document type: Bank Transfer (Multi-page)\n")
+        return extract_bank_document(ocr_pages)
+    else:
+        raise ValueError("Unknown document type")
+
+# --------------------------
+# Run
+# --------------------------
+if __name__ == "__main__":
+    # Load OCR output
+    with open("extracted.json", "r", encoding="utf-8") as f:
+        ocr_pages = json.load(f)
+    
+    # Extract
+    structured = extract_structured_data(ocr_pages)
+    
+    # Save JSON
+    with open("structured.json", "w", encoding="utf-8") as f:
+        json.dump(structured, f, indent=4, ensure_ascii=False)
+    
+    print("\n✓ Extraction complete!\n")
+    print(json.dumps(structured, indent=2, ensure_ascii=False))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 from concurrent.futures import ProcessPoolExecutor
 import os
 import json
