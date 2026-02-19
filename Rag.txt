@@ -1,3 +1,50 @@
+from concurrent.futures import ProcessPoolExecutor
+import os
+import json
+
+INPUT_FOLDER = "/mnt/ocr_outputs"
+
+def process_file(file_path):
+    with open(file_path, "r", encoding="utf-8") as f:
+        ocr_pages = json.load(f)
+
+    structured = extract_structured_data(ocr_pages)
+    return {
+        "file": os.path.basename(file_path),
+        "extracted": structured
+    }
+
+if __name__ == "__main__":
+
+    json_files = [
+        os.path.join(INPUT_FOLDER, f)
+        for f in os.listdir(INPUT_FOLDER)
+        if f.endswith(".json")
+    ]
+
+    with ProcessPoolExecutor() as executor:
+        results = list(executor.map(process_file, json_files))
+
+    print(json.dumps(results, indent=2, ensure_ascii=False))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Split the string into lines
 lines = structured.split("\n")
 
