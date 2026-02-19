@@ -1,3 +1,30 @@
+import glob
+from datetime import datetime
+
+pdf_folder = "/mnt/Dossier_agence/"
+save_dir = "/mnt/Dossier_agence/"
+
+# Get all PDF files in the folder
+pdf_files = glob.glob(f"{pdf_folder}/*.pdf")
+
+print(f"Found {len(pdf_files)} PDFs.")
+
+start_time = datetime.now()
+print("Start:", start_time)
+
+for pdf_path in pdf_files:
+    images = pdf_to_images(pdf_path, save_dir, dpi=100)
+
+end_time = datetime.now()
+print("End:", end_time)
+
+
+
+
+
+
+
+
 import os
 from PIL import Image, ImageDraw, ImageFont
 import fitz  # PyMuPDF
