@@ -1,3 +1,13 @@
+file
+        structured_file_path = os.path.join(
+            OUTPUT_STRUCTURED_FOLDER, f"{os.path.splitext(filename)[0]}_structured.json"
+        )
+        with open(structured_file_path, "w", encoding="utf-8") as sf:
+            json.dump(extracted_values, sf, ensure_ascii=False, indent=4)
+
+
+
+
 {
   "Monnaie": "DZD",
   "Montant en chiffres": "318,060.13",
