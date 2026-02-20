@@ -1,3 +1,19 @@
+extracted_values = extract_structured_data(ocr_pages)
+
+# Clean split and strip
+if isinstance(extracted_values, str):
+    values = [v.strip() for v in extracted_values.split("|")]
+else:
+    values = [v.strip() for v in extracted_values]
+
+# Safety: fix length mismatch
+if len(values) != len(BANK_FIELDS):
+    values += ["null"] * (len(BANK_FIELDS) - len(values))
+
+
+
+
+
 def build_prompt(text: str) -> str:
     order = " | ".join(BANK_FIELDS)
 
