@@ -1,5 +1,70 @@
 import os
 import json
+import re
+import pandas as pd
+
+json_folder = "structured_json_folder"
+output_file = "structured_data.xlsx"
+
+# Desired columns and order
+columns_order = [
+    "Monnaie",
+    "Montant en chiffres",
+    "Montant en lettres",
+    "Nom/Prénom",
+    "Adresse complète",
+    "Numéro de compte",
+    "Adresse SWIFT"
+]
+
+all_data = []
+
+def extract_json(text):
+    """
+    Extract valid JSON object from messy text.
+    """
+    match = re.search(r'\{.*\}', text, re.DOTALL)
+    if match:
+        json_text = match.group()
+        # Fix broken quotes
+        json_text = json_text.replace('\\"', '"').replace('""', '"')
+        try:
+            return json.loads(json_text)
+        except:
+            return None
+    return None
+
+for filename in os.listdir(json_folder):
+    if filename.startswith("structure_") and filename.endswith(".json"):
+        path = os.path.join(json_folder, filename)
+        with open(path, "r", encoding="utf-8") as f:
+            raw = f.read()
+
+        data = extract_json(raw)
+        if data:
+            # Keep only desired columns
+            row = {col: data.get(col, "") for col in columns_order}
+            all_data.append(row)
+
+# Convert to DataFrame
+df = pd.DataFrame(all_data, columns=columns_order)
+
+# Save to Excel
+df.to_excel(output_file, index=False, engine="openpyxl")
+
+print("✅ Excel file created successfully!")
+
+
+
+
+
+
+
+
+
+
+import os
+import json
 import pandas as pd
 from openpyxl import Workbook
 
