@@ -1,3 +1,80 @@
+INPUT_FOLDER = "/mnt/json_folder"
+OUTPUT_EXCEL = "/mnt/final_output.xlsx"
+
+all_rows = []
+
+for filename in os.listdir(INPUT_FOLDER):
+
+    if filename.endswith(".json"):
+
+        file_path = os.path.join(INPUT_FOLDER, filename)
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            ocr_pages = json.load(f)
+
+        print(f"Processing: {filename}")
+
+        extracted_values = extract_structured_data(ocr_pages)
+
+        # Create row dictionary
+        row_dict = dict(zip(BANK_FIELDS, extracted_values))
+
+        # Optional: keep file name
+        row_dict["source_file"] = filename
+
+        all_rows.append(row_dict)
+
+# Convert to DataFrame
+df = pd.DataFrame(all_rows)
+
+# Save Excel
+df.to_excel(OUTPUT_EXCEL, index=False)
+
+print("✅ All files processed successfully.")
+print(f"Excel saved at: {OUTPUT_EXCEL}")
+
+
+
+
+
+INPUT_FOLDER = "/mnt/json_folder"
+OUTPUT_EXCEL = "/mnt/final_output.xlsx"
+
+all_rows = []
+
+for filename in os.listdir(INPUT_FOLDER):
+
+    if filename.endswith(".json"):
+
+        file_path = os.path.join(INPUT_FOLDER, filename)
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            ocr_pages = json.load(f)
+
+        print(f"Processing: {filename}")
+
+        extracted_values = extract_structured_data(ocr_pages)
+
+        # Create row dictionary
+        row_dict = dict(zip(BANK_FIELDS, extracted_values))
+
+        # Optional: keep file name
+        row_dict["source_file"] = filename
+
+        all_rows.append(row_dict)
+
+# Convert to DataFrame
+df = pd.DataFrame(all_rows)
+
+# Save Excel
+df.to_excel(OUTPUT_EXCEL, index=False)
+
+print("✅ All files processed successfully.")
+print(f"Excel saved at: {OUTPUT_EXCEL}")
+
+
+
+
 import zipfile
 import os
 
