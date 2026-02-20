@@ -1,3 +1,67 @@
+import os
+import json
+import re
+
+INPUT_FOLDER = "/mnt/Dossier_agence/json_first_page"
+OUTPUT_STRUCTURED_FOLDER = "/mnt/Dossier_agence/structured_json"
+os.makedirs(OUTPUT_STRUCTURED_FOLDER, exist_ok=True)
+
+def parse_extracted_text(text):
+    """
+    Convert messy extracted text into a structured dictionary.
+    """
+    structured_dict = {}
+
+    # Fix common JSON-like parts
+    text = text.replace('\n', ' ').replace('"', '')
+    
+    # Extract key-value pairs like 'Key: Value'
+    pattern = r'(\b[A-Za-zéèçàÉÈÇÀ ]+)\s*[:]\s*([^:]+?)(?=\s+[A-Za-zéèçàÉÈÇÀ ]+[:]|$)'
+    matches = re.findall(pattern, text)
+    
+    for key, value in matches:
+        structured_dict[key.strip()] = value.strip()
+
+    return structured_dict
+
+for filename in os.listdir(INPUT_FOLDER):
+    if filename.endswith(".json"):
+        file_path = os.path.join(INPUT_FOLDER, filename)
+        with open(file_path, "r", encoding="utf-8") as f:
+            ocr_pages = json.load(f)
+
+        print(f"Processing: {filename}")
+
+        # Extracted text from your tokenizer function
+        extracted_text = extract_structured_data(ocr_pages)
+
+        if not extracted_text:
+            print(f"No data extracted from {filename}")
+            continue
+
+        # Parse messy text to structured dictionary
+        structured_dict = parse_extracted_text(extracted_text)
+
+        # Save as JSON
+        structured_file_path = os.path.join(
+            OUTPUT_STRUCTURED_FOLDER, f"{os.path.splitext(filename)[0]}_structured.json"
+        )
+        with open(structured_file_path, "w", encoding="utf-8") as sf:
+            json.dump(structured_dict, sf, ensure_ascii=False, indent=4)
+
+print("All structured JSON files saved!")
+
+
+
+
+
+
+
+
+
+
+
+
 structured_dict = {}
         # This regex splits lines like 'Key: Value'
         for line in extracted_text.split("\n"):
