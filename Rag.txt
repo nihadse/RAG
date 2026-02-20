@@ -1,3 +1,20 @@
+structured_dict = {}
+        # This regex splits lines like 'Key: Value'
+        for line in extracted_text.split("\n"):
+            if ":" in line:
+                key, value = line.split(":", 1)
+                structured_dict[key.strip()] = value.strip()
+
+        # Save as JSON
+        structured_file_path = os.path.join(
+            OUTPUT_STRUCTURED_FOLDER, f"{os.path.splitext(filename)[0]}_structured.json"
+        )
+        with open(structured_file_path, "w", encoding="utf-8") as sf:
+            json.dump(structured_dict, sf, ensure_ascii=False, indent=4)
+
+
+
+
 file
         structured_file_path = os.path.join(
             OUTPUT_STRUCTURED_FOLDER, f"{os.path.splitext(filename)[0]}_structured.json"
