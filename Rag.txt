@@ -1,3 +1,24 @@
+import zipfile
+import os
+
+# Path to your zip file
+zip_path = "your_folder.zip"
+
+# Where you want to extract the files
+extract_path = "extracted_files"
+
+# Create extraction folder if it doesn't exist
+os.makedirs(extract_path, exist_ok=True)
+
+# Unzip
+with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+    zip_ref.extractall(extract_path)
+
+print("Extraction completed.")
+
+
+
+
 import json
 import glob
 import os
