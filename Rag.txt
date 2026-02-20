@@ -1,3 +1,37 @@
+def build_prompt(text: str) -> str:
+    order = " | ".join(BANK_FIELDS)
+
+    prompt = f"""
+You are an expert document information extraction system.
+
+Extract the following fields in EXACT order separated by "|":
+
+{order}
+
+Rules for bank documents:
+- bank code = 3 numbers
+- Siège = 5 numbers
+- Racine = 6 numbers
+- Ordinal = 3 numbers
+- Devise = letters
+- Clé = 2 numbers
+
+Return ONLY values separated by "|".
+If a value is missing, return null.
+No explanations, no headers.
+
+OCR:
+{text}
+"""
+    return prompt.strip()
+
+
+
+
+
+
+
+
 INPUT_FOLDER = "/mnt/json_folder"
 OUTPUT_STRUCTURED_FOLDER = "/mnt/structured_output"
 OUTPUT_EXCEL = "/mnt/final_output.xlsx"
