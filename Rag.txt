@@ -1,4 +1,46 @@
-def parse_json_from_output(text: str) -> dict:
+import glob
+import os
+import json
+import pandas as pd
+from datetime import datetime
+
+print("Start:", datetime.now())
+
+json_files = glob.glob(os.path.join(STRUCTURED_FOLDER, "*.json"))
+print(f"Found {len(json_files)} structured JSON files.")
+
+all_rows = []
+
+for json_path in json_files:
+
+    with open(json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    file_name = os.path.basename(json_path).replace("structured_", "").replace(".json", "")
+
+    # ✅ If JSON is a dictionary
+    if isinstance(data, dict):
+        data["File Name"] = file_name
+        all_rows.append(data)
+
+    # ✅ If JSON is a list of dictionaries
+    elif isinstance(data, list):
+        for item in data:
+            if isinstance(item, dict):
+                item["File Name"] = file_name
+                all_rows.append(item)
+
+df = pd.DataFrame(all_rows)
+
+df.to_excel(OUTPUT_EXCEL, index=False)
+
+print(f"Excel file created at: {OUTPUT_EXCEL}")
+print("Finished:", datetime.now())
+
+
+
+
+.def parse_json_from_output(text: str) -> dict:
     data = {}
 
     lines = text.splitlines()
