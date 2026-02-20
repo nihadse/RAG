@@ -1,3 +1,26 @@
+{
+  "Monnaie": "DZD",
+  "Montant en chiffres": "318,060.13",
+  "Montant en lettres": "trois cent dix-huit mille soixante virgule treize Dinars",
+  "Agence": "MOSTAGANEM",
+  "Nom/Prénom": "ALI SAYED HASMAT",
+  "Adresse complète": "ARATI, PATSAWRA, PASCHIM BARDHAMAN, DURGAPUR, WEST BENGAL PIN - 713363",
+  "Numéro de compte": "50100692108329",
+  "Date de valeur": "05/02/2026",
+  "bank code": "073",
+  "Siège": "027",
+  "Racine": "007",
+  "Ordinal": "310",
+  "Devise": "DZD",
+  "Clé": "110526",
+  "Adresse SWIFT": "HDFC INBB",
+  "Autre (Transfert en EURO)": null
+}
+
+
+
+
+
 import json
 import os
 from datetime import datetime
