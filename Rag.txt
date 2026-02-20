@@ -1,3 +1,33 @@
+structured_list = []
+
+for item in extracted_values:
+    parts = item.split("\n")
+    data_dict = {}
+    i = 0
+    while i < len(parts):
+        key = parts[i].strip()
+        if key in fields:
+            # The next line is the value
+            if i + 1 < len(parts):
+                value = parts[i + 1].strip()
+                data_dict[key] = value
+                i += 2
+            else:
+                i += 1
+        else:
+            i += 1
+    structured_list.append(data_dict)
+
+# Save as JSON file
+with open("structured_output.json", "w", encoding="utf-8") as f:
+    json.dump(structured_list, f, indent=2, ensure_ascii=False)
+
+print("JSON file saved successfully!")
+
+
+
+
+
 def map_values_to_fields(raw_text: str):
     values = [v.strip() if v.strip() != "" else None for v in raw_text.split("I")]
     structured_dict = {field: values[i] if i < len(values) else None for i, field in enumerate(BANK_FIELDS)}
