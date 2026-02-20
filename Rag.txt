@@ -1,3 +1,36 @@
+import os
+import json
+import pandas as pd
+from openpyxl import Workbook
+
+# Path to your JSON folder
+json_folder = "json_folder"
+
+# List to store all JSON data
+all_data = []
+
+# Loop through files
+for filename in os.listdir(json_folder):
+    if filename.startswith("structure_") and filename.endswith(".json"):
+        file_path = os.path.join(json_folder, filename)
+        
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            all_data.append(data)
+
+# Convert to DataFrame
+df = pd.DataFrame(all_data)
+
+# Save to Excel using openpyxl
+output_file = "output.xlsx"
+df.to_excel(output_file, index=False, engine="openpyxl")
+
+print("Excel file created successfully!")
+
+
+
+
+
 import glob
 import os
 import json
