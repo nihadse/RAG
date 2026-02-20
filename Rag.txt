@@ -1,3 +1,16 @@
+def map_values_to_fields(raw_text: str):
+    values = [v.strip() if v.strip() != "" else None for v in raw_text.split("I")]
+    structured_dict = {field: values[i] if i < len(values) else None for i, field in enumerate(BANK_FIELDS)}
+    return structured_dict
+
+
+
+
+
+
+
+
+
 import os
 import json
 import re
