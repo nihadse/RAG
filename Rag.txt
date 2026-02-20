@@ -1,3 +1,34 @@
+import json
+import re
+
+def parse_json_from_output(text: str) -> dict:
+
+    # Remove assistant prefix if exists
+    if "<|im_start|>assistant" in text:
+        text = text.split("<|im_start|>assistant")[-1]
+
+    text = text.strip()
+
+    # Try to extract JSON block
+    json_match = re.search(r"\{.*\}", text, re.DOTALL)
+    if json_match:
+        return json.loads(json_match.group(0))
+
+    # 🔥 If no braces but looks like JSON fields → wrap it
+    if ":" in text and "{" not in text:
+        cleaned = "{" + text.strip().rstrip(",") + "}"
+        return json.loads(cleaned)
+
+    raise ValueError(f"No valid JSON found in model output:\n{text[:500]}")
+
+
+
+
+
+
+
+
+
 import os
 import json
 
