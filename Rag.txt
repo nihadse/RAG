@@ -3,6 +3,37 @@ import re
 
 def parse_json_from_output(text: str) -> dict:
 
+    text = text.strip()
+
+    # Wrap with braces if missing
+    if not text.startswith("{"):
+        text = "{" + text
+
+    if not text.endswith("}"):
+        text = text.rstrip(",") + "}"
+
+    # Remove trailing commas before }
+    text = re.sub(r",\s*}", "}", text)
+
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as e:
+        print("==== BROKEN JSON ====")
+        print(text)
+        print("=====================")
+        raise e
+
+
+
+
+
+
+
+import json
+import re
+
+def parse_json_from_output(text: str) -> dict:
+
     # Remove assistant prefix if exists
     if "<|im_start|>assistant" in text:
         text = text.split("<|im_start|>assistant")[-1]
