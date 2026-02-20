@@ -1,3 +1,83 @@
+def extract_structured_data(ocr_pages: list) -> list:
+    full_text = "\n".join(p.get("text", "") for p in ocr_pages if p.get("text"))
+
+    prompt = build_prompt(full_text)
+
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=800)
+
+    with torch.no_grad():
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=180,
+            do_sample=False,
+            use_cache=True,
+            num_beams=1,
+        )
+
+    structured = tokenizer.decode(
+        outputs[0, inputs["input_ids"].shape[1]:],
+        skip_special_tokens=True
+    ).strip()
+
+    # Convert to list
+    values = structured.split("|")
+
+    # Ensure correct length
+    if len(values) != len(BANK_FIELDS):
+        values = values + ["null"] * (len(BANK_FIELDS) - len(values))
+
+    return values
+
+
+
+
+
+INPUT_FOLDER = "/mnt/json_folder"
+OUTPUT_EXCEL = "/mnt/final_output.xlsx"
+
+all_rows = []
+
+for filename in os.listdir(INPUT_FOLDER):
+
+    if filename.endswith(".json"):
+
+        file_path = os.path.join(INPUT_FOLDER, filename)
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            ocr_pages = json.load(f)
+
+        print(f"Processing: {filename}")
+
+        extracted_values = extract_structured_data(ocr_pages)
+
+        # Create row dictionary
+        row_dict = dict(zip(BANK_FIELDS, extracted_values))
+
+        # Optional: keep file name
+        row_dict["source_file"] = filename
+
+        all_rows.append(row_dict)
+
+# Convert to DataFrame
+df = pd.DataFrame(all_rows)
+
+# Save Excel
+df.to_excel(OUTPUT_EXCEL, index=False)
+
+print("✅ All files processed successfully.")
+print(f"Excel saved at: {OUTPUT_EXCEL}")
+
+
+
+
+
+
+
+
+
+
+
+
 INPUT_FOLDER = "/mnt/json_folder"
 OUTPUT_EXCEL = "/mnt/final_output.xlsx"
 
