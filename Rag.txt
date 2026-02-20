@@ -1,3 +1,57 @@
+INPUT_FOLDER = "/mnt/json_folder"
+OUTPUT_STRUCTURED_FOLDER = "/mnt/structured_output"
+OUTPUT_EXCEL = "/mnt/final_output.xlsx"
+
+os.makedirs(OUTPUT_STRUCTURED_FOLDER, exist_ok=True)
+
+all_rows = []
+
+for filename in os.listdir(INPUT_FOLDER):
+
+    if filename.endswith(".json"):
+
+        file_path = os.path.join(INPUT_FOLDER, filename)
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            ocr_pages = json.load(f)
+
+        print(f"Processing: {filename}")
+
+        extracted_values = extract_structured_data(ocr_pages)
+
+        row_dict = dict(zip(BANK_FIELDS, extracted_values))
+        row_dict["source_file"] = filename
+
+        # ✅ Save individual structured JSON
+        output_json_path = os.path.join(
+            OUTPUT_STRUCTURED_FOLDER,
+            filename.replace(".json", "_structured.json")
+        )
+
+        with open(output_json_path, "w", encoding="utf-8") as f:
+            json.dump(row_dict, f, indent=2, ensure_ascii=False)
+
+        all_rows.append(row_dict)
+
+# ✅ Save global Excel
+df = pd.DataFrame(all_rows)
+df.to_excel(OUTPUT_EXCEL, index=False)
+
+print("✅ All files processed.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def extract_structured_data(ocr_pages: list) -> list:
     full_text = "\n".join(p.get("text", "") for p in ocr_pages if p.get("text"))
 
