@@ -1,4 +1,40 @@
 import os
+from PyPDF2 import PdfReader, PdfWriter
+
+# Input folder containing PDFs
+input_folder = "input_pdfs"
+
+# Output folder for first pages
+output_folder = "first_pages"
+os.makedirs(output_folder, exist_ok=True)
+
+# Loop through all files in folder
+for filename in os.listdir(input_folder):
+    if filename.lower().endswith(".pdf"):
+        input_path = os.path.join(input_folder, filename)
+        
+        # Read PDF
+        reader = PdfReader(input_path)
+        
+        # Skip empty PDFs
+        if len(reader.pages) == 0:
+            continue
+        
+        # Create writer and add only first page
+        writer = PdfWriter()
+        writer.add_page(reader.pages[0])
+        
+        # Save new PDF
+        output_path = os.path.join(output_folder, f"first_{filename}")
+        with open(output_path, "wb") as output_pdf:
+            writer.write(output_pdf)
+
+print("Done! First pages extracted.")
+
+
+
+
+import os
 import pandas as pd
 
 # Folder containing your "JSON" files
