@@ -1,3 +1,33 @@
+import os
+import json
+
+for filename in os.listdir(INPUT_FOLDER):
+
+    file_path = os.path.join(INPUT_FOLDER, filename)
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        ocr_pages = json.load(f)
+
+    print(f"Processing: {filename}")
+
+    extracted_values = extract_structured_data(ocr_pages)
+
+    if not extracted_values:
+        print("⚠️ Empty extraction for:", filename)
+        continue
+
+    output_file_path = os.path.join(
+        OUTPUT_STRUCTURED_FOLDER,
+        f"structured_{filename}"
+    )
+
+    with open(output_file_path, "w", encoding="utf-8") as f:
+        json.dump(extracted_values, f, indent=4, ensure_ascii=False)
+
+    print("✅ Done! Saved to:", output_file_path)
+
+
+
 import os; print(len([f for f in os.listdir("your/folder/path") if f.lower().endswith(".pdf")]))
 
 
