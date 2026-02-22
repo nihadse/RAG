@@ -1,3 +1,7 @@
+attn_implementation="flash_attention_2"
+
+
+
 Bonjour,
 
 Comme convenu avec vous, je vous informe des heures supplémentaires effectuées :
