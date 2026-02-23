@@ -1,3 +1,16 @@
+Bonjour [Nom du manager],
+
+Veuillez trouver ci-joint l’output final du modèle OCR concernant le Lot 2 – Décembre.
+
+Vous trouverez également ci-dessous le lien vers le fichier de sortie complet :
+[Lien vers l’output]
+
+N’hésitez pas à me faire part de vos retours ou de toute remarque éventuelle.
+
+Cordialement,
+Nihad
+
+
 import os
 import json
 import torch
