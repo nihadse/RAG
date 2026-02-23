@@ -1,4 +1,157 @@
 import os
+import glob
+import json
+import torch
+from PIL import Image
+from pdf2image import convert_from_path
+from transformers import AutoProcessor, AutoModelForVision2Seq
+
+# ── Config ────────────────────────────────────────────────────────────────────
+MODEL_PATH       = "/domino/edv/modelhub/ModelHub-model-huggingface-Qwen/Qwen2.5-VL-7B-Instruct/main"
+pdf_folder       = "./pdfs"
+save_dir         = "./images"
+JSON_SAVE_DIR    = "./json_output"
+MAX_NEW_TOKENS   = 1024
+BATCH_SIZE       = 4   # ← images are heavier than text, start at 4, try 6 if no OOM
+
+os.makedirs(save_dir, exist_ok=True)
+os.makedirs(JSON_SAVE_DIR, exist_ok=True)
+
+# ── Load model & processor ────────────────────────────────────────────────────
+processor = AutoProcessor.from_pretrained(
+    MODEL_PATH,
+    trust_remote_code=True,
+)
+
+model_image = AutoModelForVision2Seq.from_pretrained(
+    MODEL_PATH,
+    torch_dtype=torch.float16,
+    attn_implementation="flash_attention_2",
+    trust_remote_code=True,
+    low_cpu_mem_usage=True,
+)
+model_image.eval()
+print("Model loaded ✓")
+
+# ── PDF to images (your exact function) ──────────────────────────────────────
+def pdf_to_images(pdf_path: str, save_dir: str, dpi: int = 100):
+    images = convert_from_path(pdf_path, dpi=dpi)
+    saved = []
+    for i, img in enumerate(images):
+        img_path = os.path.join(save_dir, f"{os.path.splitext(os.path.basename(pdf_path))[0]}_page{i+1}.png")
+        img.save(img_path)
+        saved.append(img)
+    return saved
+
+
+# ── Build prompt for one image (your exact prompt) ───────────────────────────
+def build_image_prompt(image: Image.Image) -> dict:
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "image"},
+                {
+                    "type": "text",
+                    "text": "Extract all visible text from this French document page. Return plain text only.",
+                },
+            ],
+        }
+    ]
+    prompt = processor.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True,
+    )
+    return prompt
+
+
+# ── Batch extraction (replaces your single extract_text) ─────────────────────
+def extract_text_batch(images: list) -> list:
+    """
+    images = list of PIL images
+    returns list of extracted text strings
+    All images processed in ONE GPU call instead of one-by-one.
+    """
+    prompts = [build_image_prompt(img) for img in images]
+
+    # Tokenize all images + prompts together
+    inputs = processor(
+        text=prompts,
+        images=images,
+        padding=True,
+        return_tensors="pt",
+    )
+
+    # Move all tensors to GPU
+    inputs = inputs.to("cuda")
+
+    with torch.no_grad():
+        outputs = model_image.generate(
+            **inputs,
+            max_new_tokens=MAX_NEW_TOKENS,
+            do_sample=False,
+            temperature=None,
+            top_p=None,
+            use_cache=True,
+        )
+
+    # Decode only newly generated tokens — your exact logic
+    generated_ids = outputs[:, inputs["input_ids"].shape[1]:]
+    results = processor.batch_decode(
+        generated_ids,
+        skip_special_tokens=True,
+    )
+
+    return [r.strip() for r in results]
+
+
+# ── Process all PDFs ──────────────────────────────────────────────────────────
+pdf_files = glob.glob(f"{pdf_folder}/*.pdf")
+print(f"Found {len(pdf_files)} PDF files")
+
+for pdf_path in pdf_files:
+    file_name = os.path.splitext(os.path.basename(pdf_path))[0]
+    print(f"\nProcessing PDF: {file_name}")
+
+    # Convert PDF to images — your exact logic
+    images = pdf_to_images(pdf_path, save_dir, dpi=100)
+    print(f"  {len(images)} pages found — processing in batches of {BATCH_SIZE}")
+
+    pdf_text = []
+
+    # Process pages in batches instead of one by one
+    n_batches = (len(images) + BATCH_SIZE - 1) // BATCH_SIZE
+
+    for i in range(n_batches):
+        batch_images = images[i * BATCH_SIZE : (i + 1) * BATCH_SIZE]
+        batch_start_page = i * BATCH_SIZE
+
+        print(f"  [Batch {i+1}/{n_batches}] pages {batch_start_page+1}–{batch_start_page+len(batch_images)}")
+
+        # Extract text from all images in batch — ONE GPU call
+        batch_texts = extract_text_batch(batch_images)
+
+        for j, page_text in enumerate(batch_texts):
+            page_num = batch_start_page + j + 1
+            pdf_text.append({
+                "page": page_num,
+                "text": page_text,
+            })
+
+    # Save ONE JSON for THIS PDF — your exact logic
+    json_path = os.path.join(JSON_SAVE_DIR, f"{file_name}.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(pdf_text, f, indent=4, ensure_ascii=False)
+
+    print(f"  JSON saved: {json_path}")
+
+print("\n✅ All PDFs processed!")
+
+
+
+
+import os
 import json
 import torch
 from datetime import datetime
