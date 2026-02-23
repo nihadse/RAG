@@ -1,3 +1,201 @@
+import os
+import json
+import torch
+from datetime import datetime
+import pandas as pd
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
+# ── Config ────────────────────────────────────────────────────────────────────
+model_name = "/domino/edv/modelhub/ModelHub-model-huggingface-Qwen/Qwen3-4B-Instruct-2507/main"
+INPUT_FOLDER = "./input_jsons"
+OUTPUT_STRUCTURED_FOLDER = "./output_structured"
+BATCH_SIZE = 8  # ← lower to 4 if OOM, raise to 12 if GPU has room
+
+os.makedirs(OUTPUT_STRUCTURED_FOLDER, exist_ok=True)
+
+# ── Load model & tokenizer ────────────────────────────────────────────────────
+tokenizer = AutoTokenizer.from_pretrained(
+    model_name,
+    trust_remote_code=True,
+    padding_side="left",  # REQUIRED for batching
+)
+if tokenizer.pad_token is None:
+    tokenizer.pad_token = tokenizer.eos_token
+
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    torch_dtype=torch.float16,
+    trust_remote_code=True,
+    low_cpu_mem_usage=True,
+)
+model.eval()
+
+# ── Schema ────────────────────────────────────────────────────────────────────
+def get_schema(document_type: str) -> dict:
+    if document_type == "bank":
+        return {
+            "Monnaie": None,
+            "Montant en chiffres": None,
+            "Montant en lettres": None,
+            "Agence": None,
+            "Nom/Prénom": None,
+            "Nature du paiement": None,
+            "Adresse complète": None,
+            "Numéro de compte": None,
+            "Date de valeur": None,
+            "Siège": None,
+            "Racine": None,
+            "Ordinal": None,
+            "Devise": None,
+            "CL": None,
+            "Adresse SWIFT": None,
+            "Autre (Transfert en FUBO)": None,
+        }
+    else:
+        raise ValueError(f"Unknown document type: {document_type}")
+
+
+# ── Parse JSON from model output ──────────────────────────────────────────────
+def parse_json_from_output(text: str) -> dict:
+    data = {}
+    lines = text.splitlines()
+    for line in lines:
+        line = line.strip()
+        if ":" in line:
+            try:
+                key, value = line.split(":", 1)
+                key = key.strip().strip('"')
+                value = value.strip().strip('"').strip(",")
+                if key:
+                    data[key] = value
+            except:
+                continue
+    return data
+
+
+# ── Build prompt (your exact prompt) ─────────────────────────────────────────
+def build_prompt(ocr_pages: list) -> str:
+    full_text = "\n".join(p["text"] for p in ocr_pages if p.get("text"))
+    schema = get_schema(document_type="bank")
+
+    return f"""<|im_start|>system
+/no_think
+You are an expert document information extraction system.
+The document language may be French, Arabic, or both.
+Return ONLY valid JSON matching the schema exactly.
+just to let you know in the ordre de virement the Siège contain 5 number and the Racine contain 6 and the ordinal 3 numbers and the devise letters and the cle 2 numbers,
+and Adresse SWIFT contain just letters
+Do not explain anything. If a field is missing, use null.
+<|im_end|>
+<|im_start|>user
+Schema:
+{json.dumps(schema, ensure_ascii=False, indent=2)}
+
+OCR TEXT:
+{full_text}
+<|im_end|>
+<|im_start|>assistant
+"""
+
+
+# ── Batch extraction (replaces your single extract_structured_data) ───────────
+def extract_structured_data_batch(batch: list) -> list:
+    """
+    batch = list of (filename, ocr_pages)
+    returns list of (filename, extracted_dict)
+    All files in the batch are processed in ONE GPU call instead of one-by-one.
+    """
+    filenames = [item[0] for item in batch]
+    prompts   = [build_prompt(item[1]) for item in batch]
+
+    # Tokenize all prompts together with padding
+    inputs = tokenizer(
+        prompts,
+        return_tensors="pt",
+        padding=True,
+        truncation=True,
+        max_length=3072,
+    ).to(model.device)
+
+    with torch.no_grad():
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=220,
+            num_beams=1,
+            use_cache=True,
+            do_sample=False,
+            temperature=None,
+            top_p=None,
+            pad_token_id=tokenizer.pad_token_id,
+        )
+
+    # Decode only newly generated tokens — your exact logic
+    input_len = inputs["input_ids"].shape[1]
+    results = []
+    for i, filename in enumerate(filenames):
+        generated_ids = outputs[i][input_len:]
+        result = tokenizer.decode(generated_ids, skip_special_tokens=True)
+        print(f"\n--- Raw model output [{filename}] ---\n{result}\n---\n")
+        extracted = parse_json_from_output(result)
+        results.append((filename, extracted))
+
+    return results
+
+
+# ── Load all JSON files ───────────────────────────────────────────────────────
+all_files = [f for f in os.listdir(INPUT_FOLDER) if f.endswith(".json")]
+print(f"Found {len(all_files)} JSON files — processing in batches of {BATCH_SIZE}")
+
+loaded = []
+for filename in all_files:
+    file_path = os.path.join(INPUT_FOLDER, filename)
+    with open(file_path, "r", encoding="utf-8") as f:
+        ocr_pages = json.load(f)
+    loaded.append((filename, ocr_pages))
+
+# ── Process in batches ────────────────────────────────────────────────────────
+all_rows = []
+n_batches = (len(loaded) + BATCH_SIZE - 1) // BATCH_SIZE
+
+for i in range(n_batches):
+    batch = loaded[i * BATCH_SIZE : (i + 1) * BATCH_SIZE]
+    print(f"\n[Batch {i + 1}/{n_batches}] Processing: {[b[0] for b in batch]}")
+
+    batch_results = extract_structured_data_batch(batch)
+
+    for filename, extracted_values in batch_results:
+        print(json.dumps(extracted_values, indent=2, ensure_ascii=False))
+
+        # Create output file path — your exact logic
+        output_file_path = os.path.join(
+            OUTPUT_STRUCTURED_FOLDER,
+            f"structured_{filename}"
+        )
+
+        # Save JSON inside folder — your exact logic
+        with open(output_file_path, "w", encoding="utf-8") as f:
+            json.dump(extracted_values, f, indent=4, ensure_ascii=False)
+
+        print(datetime.now())
+        print(f"\n Done! Structured data saved to {output_file_path}")
+
+        # Collect for Excel
+        row = {"filename": filename}
+        row.update(extracted_values)
+        all_rows.append(row)
+
+# ── Export to Excel ───────────────────────────────────────────────────────────
+df = pd.DataFrame(all_rows)
+excel_path = os.path.join(OUTPUT_STRUCTURED_FOLDER, "I25.xlsx")
+df.to_excel(excel_path, index=False)
+print(f"\n✅ All done! Excel saved to: {excel_path}")
+
+
+
+
+
+
+
 Bonjour [Nom du manager],
 
 Veuillez trouver ci-joint l’output final du modèle OCR concernant le Lot 2 – Décembre.
