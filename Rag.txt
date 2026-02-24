@@ -1,3 +1,9 @@
+import subprocess
+subprocess.run(["apt-get", "install", "-y", "poppler-utils"])
+Or directly:
+
+
+
 !conda install -c conda-forge poppler -y
 
 
