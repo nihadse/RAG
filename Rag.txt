@@ -1,3 +1,9 @@
+full_text = "\n".join(
+    p["text"] for p in ocr_pages if isinstance(p, dict) and p.get("text")
+)
+
+
+
 import time
 
 start = time.time()
