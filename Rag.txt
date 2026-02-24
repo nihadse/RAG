@@ -1,3 +1,48 @@
+import os
+import glob
+import json
+
+pdf_files = glob.glob(f"{pdf_folder}/*.pdf")
+print(f"Found {len(pdf_files)} PDF files")
+
+for pdf_path in pdf_files:
+    file_name = os.path.splitext(os.path.basename(pdf_path))[0]
+    print(f"\nProcessing PDF: {file_name}")
+
+    images = pdf_to_images(pdf_path, save_dir, dpi=100)
+    print(f"{len(images)} pages found. Processing in batches of {BATCH_SIZE}")
+
+    pdf_text = []
+
+    n_batches = (len(images) + BATCH_SIZE - 1) // BATCH_SIZE
+
+    for i in range(n_batches):
+        batch_images = images[i * BATCH_SIZE:(i + 1) * BATCH_SIZE]
+        batch_start_page = i * BATCH_SIZE
+
+        print(f"[Batch {i+1}/{n_batches}] Pages {batch_start_page+1} to {batch_start_page+len(batch_images)}")
+
+        batch_texts = extract_text_batch(batch_images)
+
+        for j, page_text in enumerate(batch_texts):
+            page_num = batch_start_page + j + 1
+
+            pdf_text.append({
+                "page": page_num,
+                "text": page_text
+            })
+
+    json_path = os.path.join(JSON_SAVE_DIR, f"{file_name}.json")
+
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(pdf_text, f, indent=4, ensure_ascii=False)
+
+    print(f"JSON saved: {json_path}")
+
+
+
+
+
 import subprocess
 subprocess.run(["apt-get", "install", "-y", "poppler-utils"])
 Or directly:
