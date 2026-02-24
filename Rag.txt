@@ -1,3 +1,21 @@
+import time
+
+start = time.time()
+prompts = [build_prompt(item[1]) for item in batch]
+print("Prompt build:", time.time() - start)
+
+start = time.time()
+inputs = tokenizer(prompts, return_tensors="pt", padding=True, truncation=True, max_length=3072).to(model.device)
+print("Tokenization:", time.time() - start)
+
+start = time.time()
+with torch.no_grad():
+    outputs = model.generate(**inputs, max_new_tokens=300)
+print("Generation:", time.time() - start)
+
+
+
+
 import torch
 torch.cuda.empty_cache()
 torch.cuda.reset_peak_memory_stats()
