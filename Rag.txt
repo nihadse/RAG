@@ -1,3 +1,228 @@
+import os
+import json
+import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
+
+# ── Config ────────────────────────────────────────────────────────────────
+STRUCTURED_FOLDER = "/mnt/Dossier_agence/structured_V2_JANVIER_2026/"
+OUTPUT_EXCEL      = "/mnt/Dossier_agence/extraction_results.xlsx"
+
+PAGE_TYPES = [
+    "ordre_de_virement",
+    "annexe_1",
+    "annexe_2",
+    "bulletin_de_paie",
+    "gestion_des_blocages",
+]
+
+PAGE_LABELS = {
+    "ordre_de_virement":    "Ordre de Virement",
+    "annexe_1":             "Annexe 1",
+    "annexe_2":             "Annexe 2",
+    "bulletin_de_paie":     "Bulletin de Paie",
+    "gestion_des_blocages": "Gestion des Blocages",
+}
+
+# ── Update these fields to match your exact schema field names ────────────
+PAGE_FIELDS = {
+    "ordre_de_virement": [
+        "Monnaie", "Montant en chiffres", "Montant en lettres",
+        "Nom/Prénom", "Adresse complète", "Numéro de compte",
+        "Siège", "Racine", "Ordinal", "Devise", "Clé", "Adresse SWIFT",
+    ],
+    "annexe_1": [
+        "Nom/Prénom", "Date de naissance", "Matricule",
+        "Grade", "Fonction", "Structure",
+    ],
+    "annexe_2": [
+        "Nom/Prénom", "RIB", "Banque", "Montant", "Motif",
+    ],
+    "bulletin_de_paie": [
+        "Nom/Prénom", "Mois", "Salaire de base",
+        "Net à payer", "Indemnités", "Retenues", "Matricule",
+    ],
+    "gestion_des_blocages": [
+        "Nom/Prénom", "Type de blocage", "Montant bloqué",
+        "Date début", "Date fin", "Motif",
+        "Siège", "Racine", "Ordinal", "Devise",
+    ],
+}
+
+# ── Step 1: Load all structured JSONs ─────────────────────────────────────
+all_rows = []
+
+for filename in sorted(os.listdir(STRUCTURED_FOLDER)):
+    if not filename.endswith(".json"):
+        continue
+
+    path = os.path.join(STRUCTURED_FOLDER, filename)
+    with open(path, "r", encoding="utf-8") as f:
+        doc = json.load(f)
+
+    # Normalize root: handle list or dict
+    if isinstance(doc, list):
+        doc = doc[0] if doc else {}
+    if not isinstance(doc, dict):
+        print(f"⚠ Skipping {filename}: unexpected root type {type(doc)}")
+        continue
+
+    row = {"Fichier": doc.get("filename", filename)}
+
+    # Safely get pages dict
+    pages = doc.get("pages", {})
+    if not isinstance(pages, dict):
+        pages = {}
+
+    for page_type in PAGE_TYPES:
+        label  = PAGE_LABELS[page_type]
+        fields = PAGE_FIELDS[page_type]
+
+        page_data = pages.get(page_type)  # None if key missing entirely
+
+        # Determine presence and extract data dict
+        if page_data is None or not isinstance(page_data, dict):
+            is_present = False
+            data = {}
+        else:
+            is_present = not page_data.get("missing", True)
+            raw_data   = page_data.get("data", {})
+            data       = raw_data if isinstance(raw_data, dict) else {}
+
+        # Presence column
+        row[f"{label} (présent)"] = "Oui" if is_present else "Non"
+
+        # Field columns
+        for field in fields:
+            value = data.get(field, None)
+            # Normalize null strings to Python None
+            if isinstance(value, str) and value.strip().lower() in ("null", "none", ""):
+                value = None
+            row[f"{label} | {field}"] = value
+
+    all_rows.append(row)
+
+print(f"✓ Loaded {len(all_rows)} files")
+
+# ── Step 2: Build DataFrame and write base Excel ──────────────────────────
+df = pd.DataFrame(all_rows)
+df.to_excel(OUTPUT_EXCEL, index=False, engine="openpyxl")
+
+# ── Step 3: Apply formatting ──────────────────────────────────────────────
+wb = load_workbook(OUTPUT_EXCEL)
+ws = wb.active
+ws.title = "Extraction"
+
+# Color scheme: (dark header color, light data color)
+PAGE_COLORS = {
+    "Ordre de Virement":    ("1A5276", "D6E4F0"),
+    "Annexe 1":             ("1E8449", "D5F5E3"),
+    "Annexe 2":             ("B7950B", "FEF9E7"),
+    "Bulletin de Paie":     ("922B21", "FDEDEC"),
+    "Gestion des Blocages": ("6C3483", "F5EEF8"),
+}
+
+PRESENCE_GREEN = "C6EFCE"
+PRESENCE_RED   = "FFC7CE"
+
+thin   = Side(style="thin", color="CCCCCC")
+border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+def get_label(col_name):
+    for label in PAGE_COLORS:
+        if col_name.startswith(label):
+            return label
+    return None
+
+# Header row formatting
+ws.row_dimensions[1].height = 38
+for col_idx, col_name in enumerate(df.columns, start=1):
+    cell  = ws.cell(row=1, column=col_idx)
+    label = get_label(col_name)
+    dark  = PAGE_COLORS[label][0] if label else "2C3E50"
+    cell.fill      = PatternFill("solid", start_color=dark, end_color=dark)
+    cell.font      = Font(bold=True, color="FFFFFF", name="Arial", size=10)
+    cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    cell.border    = border
+
+# Data rows formatting
+for row_idx in range(2, len(df) + 2):
+    for col_idx, col_name in enumerate(df.columns, start=1):
+        cell  = ws.cell(row=row_idx, column=col_idx)
+        label = get_label(col_name)
+        cell.font      = Font(name="Arial", size=9)
+        cell.alignment = Alignment(horizontal="left", vertical="center")
+        cell.border    = border
+
+        if "(présent)" in col_name:
+            if cell.value == "Oui":
+                cell.fill = PatternFill("solid", start_color=PRESENCE_GREEN, end_color=PRESENCE_GREEN)
+                cell.font = Font(name="Arial", size=9, bold=True, color="276221")
+            else:
+                cell.fill = PatternFill("solid", start_color=PRESENCE_RED, end_color=PRESENCE_RED)
+                cell.font = Font(name="Arial", size=9, bold=True, color="9C0006")
+        elif label:
+            light = PAGE_COLORS[label][1]
+            cell.fill = PatternFill("solid", start_color=light, end_color=light)
+
+        # Replace None with empty string for display
+        if cell.value is None:
+            cell.value = ""
+
+# Column widths
+for col_idx, col_name in enumerate(df.columns, start=1):
+    col_letter = get_column_letter(col_idx)
+    if col_idx == 1:
+        ws.column_dimensions[col_letter].width = 35
+    elif "(présent)" in col_name:
+        ws.column_dimensions[col_letter].width = 18
+    else:
+        ws.column_dimensions[col_letter].width = 28
+
+# Freeze header row and filename column
+ws.freeze_panes = "B2"
+
+# ── Step 4: Summary sheet ─────────────────────────────────────────────────
+ws2 = wb.create_sheet("Résumé")
+headers = ["Page", "Total fichiers", "Présent", "Manquant", "% Présent"]
+
+for ci, h in enumerate(headers, 1):
+    c = ws2.cell(row=1, column=ci, value=h)
+    c.fill      = PatternFill("solid", start_color="2C3E50", end_color="2C3E50")
+    c.font      = Font(bold=True, color="FFFFFF", name="Arial", size=10)
+    c.alignment = Alignment(horizontal="center")
+    c.border    = border
+
+total = len(df)
+for ri, (page_type, label) in enumerate(PAGE_LABELS.items(), start=2):
+    presence_col = f"{label} (présent)"
+    present = int((df[presence_col] == "Oui").sum()) if presence_col in df.columns else 0
+    missing = total - present
+    pct     = f"{round(present / total * 100, 1)}%" if total > 0 else "0%"
+
+    for ci, val in enumerate([label, total, present, missing, pct], 1):
+        c = ws2.cell(row=ri, column=ci, value=val)
+        c.font      = Font(name="Arial", size=10)
+        c.alignment = Alignment(horizontal="center")
+        c.border    = border
+        if ci == 3:
+            c.fill = PatternFill("solid", start_color=PRESENCE_GREEN, end_color=PRESENCE_GREEN)
+        elif ci == 4:
+            c.fill = PatternFill("solid", start_color=PRESENCE_RED, end_color=PRESENCE_RED)
+
+for col in ["A", "B", "C", "D", "E"]:
+    ws2.column_dimensions[col].width = 22
+
+ws2.freeze_panes = "A2"
+
+wb.save(OUTPUT_EXCEL)
+print(f"✅ Excel saved → {OUTPUT_EXCEL}")
+print(f"   {len(df)} rows | {len(df.columns)} columns")
+
+
+
+
 page_data = pages.get(page_type, None) if isinstance(pages, dict) else None
 
 for field in get_schema(page_type).keys():
