@@ -1,3 +1,165 @@
+import os
+import json
+import torch
+import fitz
+import glob
+from PIL import Image
+from datetime import datetime
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from transformers import AutoProcessor, AutoModelForVision2Seq
+
+# ── Config ──────────────────────────────────────────────────────────────
+MODEL_PATH     = "/domino/edv/modelhub/ModelHub-model-huggingface-Qwen/Qwen2.5-VL-7B-Instruct/main"
+PDF_FOLDER     = "/mnt/pdfs"
+JSON_SAVE_DIR  = "/mnt/json_output"
+MAX_NEW_TOKENS = 1024
+BATCH_SIZE     = 16        # tune based on your VRAM
+DPI            = 150       # 150 is fine for text, 200 wastes time
+NUM_CPU_WORKERS = 8        # for parallel PDF→image conversion
+
+os.makedirs(JSON_SAVE_DIR, exist_ok=True)
+
+# ── Load model ONCE ─────────────────────────────────────────────────────
+print("Loading model...")
+processor = AutoProcessor.from_pretrained(MODEL_PATH, trust_remote_code=True)
+model_image = AutoModelForVision2Seq.from_pretrained(
+    MODEL_PATH,
+    torch_dtype=torch.float16,
+    trust_remote_code=True,
+    low_cpu_mem_usage=True,
+).eval().to("cuda")
+print("Model ready.")
+
+
+# ── PDF → images (in memory, no disk write) ──────────────────────────────
+def pdf_to_images_memory(pdf_path, dpi=DPI):
+    """Convert PDF pages to PIL images in RAM — no disk I/O."""
+    doc = fitz.open(pdf_path)
+    images = []
+    for page in doc:
+        pix = page.get_pixmap(dpi=dpi)
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        # Pad to square
+        max_side = max(img.width, img.height)
+        canvas = Image.new("RGB", (max_side, max_side), "white")
+        canvas.paste(img, (0, 0))
+        images.append(canvas)
+    doc.close()
+    return images
+
+
+def convert_one_pdf(pdf_path):
+    """Worker function for multiprocessing."""
+    filename = os.path.splitext(os.path.basename(pdf_path))[0]
+    images   = pdf_to_images_memory(pdf_path)
+    return filename, images
+
+
+# ── Prompt builder ───────────────────────────────────────────────────────
+def build_image_prompt(image: Image.Image) -> str:
+    messages = [{
+        "role": "user",
+        "content": [
+            {"type": "image"},
+            {"type": "text",
+             "text": "Extract all visible text from this French document page. Return plain text only."},
+        ],
+    }]
+    return processor.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=True
+    )
+
+
+# ── Batch GPU inference ──────────────────────────────────────────────────
+def extract_text_batch(images: list) -> list:
+    """Run a batch of PIL images through the VLM in one GPU call."""
+    prompts = [build_image_prompt(img) for img in images]
+
+    inputs = processor(
+        text=prompts,
+        images=images,
+        padding=True,
+        return_tensors="pt",
+    ).to("cuda")
+
+    with torch.inference_mode():          # faster than no_grad
+        outputs = model_image.generate(
+            **inputs,
+            max_new_tokens=MAX_NEW_TOKENS,
+            do_sample=False,
+            temperature=None,
+            top_p=None,
+            use_cache=True,
+        )
+
+    # Decode only newly generated tokens
+    new_ids = outputs[:, inputs["input_ids"].shape[1]:]
+    results = processor.batch_decode(new_ids, skip_special_tokens=True)
+    return [r.strip() for r in results]
+
+
+# ── Main pipeline ────────────────────────────────────────────────────────
+def process_all_pdfs(pdf_folder, batch_size=BATCH_SIZE):
+    pdf_files = glob.glob(os.path.join(pdf_folder, "*.pdf"))
+    print(f"Found {len(pdf_files)} PDFs")
+
+    # ── Step 1: Convert ALL PDFs to images in parallel (CPU workers) ──
+    print(f"\n[{datetime.now()}] Converting PDFs to images using {NUM_CPU_WORKERS} workers...")
+    pdf_image_map = {}   # filename → [PIL images]
+
+    with ProcessPoolExecutor(max_workers=NUM_CPU_WORKERS) as executor:
+        futures = {executor.submit(convert_one_pdf, p): p for p in pdf_files}
+        for future in as_completed(futures):
+            filename, images = future.result()
+            pdf_image_map[filename] = images
+            print(f"  ✓ {filename}: {len(images)} page(s)")
+
+    print(f"[{datetime.now()}] All PDFs converted.\n")
+
+    # ── Step 2: Flatten into one big list, track which page → which PDF ──
+    all_tasks = []   # list of (filename, page_index, PIL_image)
+    for filename, images in pdf_image_map.items():
+        for idx, img in enumerate(images):
+            all_tasks.append((filename, idx, img))
+
+    print(f"Total pages to process: {len(all_tasks)}")
+
+    # ── Step 3: GPU batching over ALL pages ──────────────────────────────
+    results_map = {}   # filename → {page_idx: text}
+
+    n_batches = (len(all_tasks) + batch_size - 1) // batch_size
+    for i in range(n_batches):
+        batch = all_tasks[i * batch_size:(i + 1) * batch_size]
+        images_batch = [t[2] for t in batch]
+
+        print(f"[Batch {i+1}/{n_batches}] {len(batch)} pages | {datetime.now()}")
+        texts = extract_text_batch(images_batch)
+
+        for (filename, page_idx, _), text in zip(batch, texts):
+            results_map.setdefault(filename, {})[page_idx] = text
+
+    # ── Step 4: Save JSON per PDF ─────────────────────────────────────────
+    for filename, pages in results_map.items():
+        full_text = "\n".join(pages[idx] for idx in sorted(pages))
+        final_output = [{
+            "file_name": filename,
+            "page": "1",
+            "text": full_text,
+        }]
+        json_path = os.path.join(JSON_SAVE_DIR, f"{filename}.json")
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(final_output, f, indent=4, ensure_ascii=False)
+        print(f"  saved → {json_path}")
+
+    print(f"\n✅ Done! [{datetime.
+
+
+
+
+
+
+
+
 full_text = "\n".join(
     p["text"] for p in ocr_pages if isinstance(p, dict) and p.get("text")
 )
