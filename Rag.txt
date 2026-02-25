@@ -1,3 +1,7 @@
+filename = os.path.splitext(os.path.basename(pdf_path))[0] if os.path.basename(pdf_path).startswith("First_") and pdf_path.lower().endswith(".pdf") else None
+
+
+
 import os
 import json
 import torch
