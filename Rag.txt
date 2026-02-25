@@ -1,3 +1,9 @@
+page_data = pages.get(page_type, None) if isinstance(pages, dict) else None
+
+for field in get_schema(page_type).keys():
+    row[f"{label} | {field}"] = data.get(field, None) if data else None
+
+
 pages = doc[0].get("pages", {}) if isinstance(doc, list) else doc.get("pages", {})
 
 
