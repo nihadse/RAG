@@ -1,3 +1,304 @@
+# ── Schemas per page type ────────────────────────────────────────────────
+
+def get_schema(document_type: str) -> dict:
+    schemas = {
+        "ordre_de_virement": {
+            "Monnaie": None,
+            "Montant en chiffres": None,
+            "Montant en lettres": None,
+            "Nom/Prénom": None,
+            "Adresse complète": None,
+            "Numéro de compte": None,
+            "Siège": None,        # 5 digits
+            "Racine": None,       # 8 digits
+            "Ordinal": None,      # 3 digits
+            "Devise": None,       # letters
+            "Clé": None,          # 2 digits
+            "Adresse SWIFT": None,# letters only
+        },
+        "annexe_1": {
+            "Nom/Prénom": None,
+            "Date de naissance": None,
+            "Matricule": None,
+            "Grade": None,
+            "Fonction": None,
+            "Structure": None,
+        },
+        "annexe_2": {
+            "Nom/Prénom": None,
+            "RIB": None,
+            "Banque": None,
+            "Montant": None,
+            "Motif": None,
+        },
+        "bulletin_de_paie": {
+            "Nom/Prénom": None,
+            "Mois": None,
+            "Salaire de base": None,
+            "Net à payer": None,
+            "Indemnités": None,
+            "Retenues": None,
+            "Matricule": None,
+        },
+        "gestion_des_blocages": {
+            "Nom/Prénom": None,
+            "Type de blocage": None,
+            "Montant bloqué": None,
+            "Date début": None,
+            "Date fin": None,
+            "Motif": None,
+        },
+    }
+    if document_type not in schemas:
+        raise ValueError(f"Unknown document type: {document_type}")
+    return schemas[document_type]
+
+
+# Page index → document type mapping
+PAGE_TYPES = {
+    0: "ordre_de_virement",
+    1: "annexe_1",
+    2: "annexe_2",
+    3: "bulletin_de_paie",
+    4: "gestion_des_blocages",
+}
+
+# ── Prompt builder (per page) ────────────────────────────────────────────
+
+def build_prompt_for_page(page_text: str, document_type: str) -> str:
+    schema = get_schema(document_type)
+
+    hints = ""
+    if document_type == "ordre_de_virement":
+        hints = """Field format hints:
+- Siège: exactly 5 digits
+- Racine: exactly 8 digits
+- Ordinal: exactly 3 digits
+- Devise: letters only
+- Clé: exactly 2 digits
+- Adresse SWIFT: letters only"""
+
+    return f"""<|im_start|>system
+/no think
+You are an expert document information extraction system.
+The document language may be French, Arabic, or both.
+Document type: {document_type.replace('_', ' ').upper()}
+Return ONLY valid JSON matching the schema exactly.
+{hints}
+Do not explain anything. If a field is missing, use null.
+<|im_end|>
+<|im_start|>user
+Schema:
+{json.dumps(schema, ensure_ascii=False, indent=2)}
+
+OCR TEXT:
+{page_text}
+<|im_end|>
+<|im_start|>assistant
+"""
+
+# ── JSON parser (robust) ─────────────────────────────────────────────────
+
+def parse_json_from_output(text: str) -> dict:
+    # Try proper JSON first
+    try:
+        start = text.index("{")
+        end   = text.rindex("}") + 1
+        return json.loads(text[start:end])
+    except Exception:
+        pass
+
+    # Fallback: line-by-line key:value
+    data = {}
+    for line in text.splitlines():
+        line = line.strip().strip(",")
+        if ":" in line:
+            try:
+                key, value = line.split(":", 1)
+                key   = key.strip().strip('"')
+                value = value.strip().strip('"')
+                if key:
+                    data[key] = value if value.lower() != "null" else None
+            except Exception:
+                continue
+    return data
+
+# ── Load JSON files ──────────────────────────────────────────────────────
+
+INPUT_FOLDER            = "/mnt/Dossier_agence/json_V2_JANVIER_2026/"
+OUTPUT_STRUCTURED_FOLDER = "/mnt/Dossier_agence/structured_V2_JANVIER_2026/"
+BATCH_SIZE              = 12
+MAX_NEW_TOKENS          = 512   # per page extraction needs less tokens
+
+os.makedirs(OUTPUT_STRUCTURED_FOLDER, exist_ok=True)
+
+all_files = [f for f in os.listdir(INPUT_FOLDER) if f.endswith(".json")]
+print(f"Found {len(all_files)} JSON files")
+
+# Load all files: filename → list of page texts
+loaded = []
+for filename in all_files:
+    file_path = os.path.join(INPUT_FOLDER, filename)
+    with open(file_path, "r", encoding="utf-8") as f:
+        ocr_pages = json.load(f)
+    loaded.append((filename, ocr_pages))
+
+# ── Core batch extraction ────────────────────────────────────────────────
+
+def extract_batch_raw(prompts: list, filenames_meta: list) -> list:
+    """
+    prompts       : list of prompt strings
+    filenames_meta: list of (filename, page_index, document_type)
+    returns       : list of (filename, page_index, document_type, extracted_dict)
+    """
+    inputs = tokenizer(
+        prompts,
+        return_tensors="pt",
+        padding=True,
+        truncation=True,
+        max_length=3072,
+    ).to(model.device)
+
+    with torch.no_grad():
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=MAX_NEW_TOKENS,
+            num_beams=1,
+            use_cache=True,
+            do_sample=False,
+            temperature=None,
+            top_p=None,
+            pad_token_id=tokenizer.pad_token_id,
+        )
+
+    input_len = inputs["input_ids"].shape[1]
+    results = []
+    for i, (filename, page_idx, doc_type) in enumerate(filenames_meta):
+        generated_ids = outputs[i][input_len:]
+        raw = tokenizer.decode(generated_ids, skip_special_tokens=True)
+        print(f"\n── [{filename}] page {page_idx+1} ({doc_type}) ──\n{raw}\n")
+        extracted = parse_json_from_output(raw)
+        results.append((filename, page_idx, doc_type, extracted))
+    return results
+
+# ── Main pipeline ────────────────────────────────────────────────────────
+
+all_rows = []
+
+# Build a flat list of all (filename, page_idx, doc_type, page_text) tasks
+all_tasks = []
+for filename, ocr_pages in loaded:
+    # ocr_pages is a list of dicts with "text" key
+    # Normalize: could be list of dicts or a single dict
+    if isinstance(ocr_pages, dict):
+        ocr_pages = [ocr_pages]
+
+    num_pages = len(ocr_pages)
+
+    for page_idx, doc_type in PAGE_TYPES.items():
+        if page_idx < num_pages:
+            # Page exists
+            page = ocr_pages[page_idx]
+            page_text = page.get("text", "") if isinstance(page, dict) else str(page)
+            all_tasks.append((filename, page_idx, doc_type, page_text, False))
+        else:
+            # Page is MISSING
+            all_tasks.append((filename, page_idx, doc_type, None, True))
+
+print(f"Total page slots: {len(all_tasks)}")
+missing = sum(1 for t in all_tasks if t[4])
+print(f"Missing pages:    {missing}")
+print(f"Pages to process: {len(all_tasks) - missing}")
+
+# Separate missing (no GPU needed) from real tasks
+real_tasks    = [t for t in all_tasks if not t[4]]
+missing_tasks = [t for t in all_tasks if t[4]]
+
+# Process real tasks in batches
+n_batches = (len(real_tasks) + BATCH_SIZE - 1) // BATCH_SIZE
+extraction_results = {}  # (filename, page_idx) → extracted_dict
+
+for i in range(n_batches):
+    batch = real_tasks[i * BATCH_SIZE:(i + 1) * BATCH_SIZE]
+    prompts       = [build_prompt_for_page(t[3], t[2]) for t in batch]
+    filenames_meta = [(t[0], t[1], t[2]) for t in batch]
+
+    print(f"\n[Batch {i+1}/{n_batches}] {len(batch)} pages | {datetime.now()}")
+    batch_results = extract_batch_raw(prompts, filenames_meta)
+
+    for filename, page_idx, doc_type, extracted in batch_results:
+        extraction_results[(filename, page_idx)] = (doc_type, extracted)
+
+# Add missing pages with null values
+for filename, page_idx, doc_type, _, _ in missing_tasks:
+    null_schema = {k: None for k in get_schema(doc_type)}
+    extraction_results[(filename, page_idx)] = (doc_type, null_schema)
+
+# ── Assemble and save one JSON per PDF ───────────────────────────────────
+
+# Group by filename
+from collections import defaultdict
+per_file = defaultdict(dict)
+for (filename, page_idx), (doc_type, extracted) in extraction_results.items():
+    per_file[filename][page_idx] = {
+        "page_type": doc_type,
+        "page_number": page_idx + 1,
+        "missing": extracted == {k: None for k in get_schema(doc_type)},
+        "data": extracted,
+    }
+
+for filename, pages in per_file.items():
+    final_output = {
+        "filename": filename,
+        "total_pages_found": sum(1 for p in pages.values() if not p["missing"]),
+        "pages": {PAGE_TYPES[idx]: pages[idx] for idx in sorted(pages)},
+    }
+
+    output_path = os.path.join(OUTPUT_STRUCTURED_FOLDER, f"structured_{filename}")
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(final_output, f, indent=4, ensure_ascii=False)
+    print(f"✓ Saved → {output_path}")
+
+    # Collect flat row for Excel
+    row = {"filename": filename}
+    for idx, page_data in pages.items():
+        prefix = PAGE_TYPES[idx]
+        for k, v in page_data["data"].items():
+            row[f"{prefix}__{k}"] = v
+        if page_data["missing"]:
+            row[f"{prefix}__MISSING"] = True
+    all_rows.append(row)
+
+print(f"\n✅ Done! [{datetime.now()}]")
+Output structure per PDF
+{
+  "filename": "dossier_001.json",
+  "total_pages_found": 3,
+  "pages": {
+    "ordre_de_virement": {
+      "page_type": "ordre_de_virement",
+      "page_number": 1,
+      "missing": false,
+      "data": { "Monnaie": "DZD", "Montant en chiffres": "50000", ... }
+    },
+    "annexe_1": { "missing": false, "data": { ... } },
+    "annexe_2": { "missing": false, "data": { ... } },
+    "bulletin_de_paie": {
+      "missing": true,
+      "data": { "Nom/Prénom": null, "Mois": null, ... }
+    },
+    "gestion_des_blocages": {
+      "missing": true,
+      "data": { "Nom/Prénom": null, ... }
+    }
+  }
+}
+
+
+
+
+
+
 filename = os.path.splitext(os.path.basename(pdf_path))[0] if os.path.basename(pdf_path).startswith("First_") and pdf_path.lower().endswith(".pdf") else None
 
 
