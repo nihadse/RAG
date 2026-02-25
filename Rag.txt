@@ -1,3 +1,200 @@
+import os
+import json
+import re
+import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
+
+# ── Config ───────────────────────────────────────────────────────────────
+STRUCTURED_FOLDER = "/mnt/Dossier_agence/structured_V2_JANVIER_2026/"
+OUTPUT_EXCEL      = "/mnt/Dossier_agence/extraction_results.xlsx"
+
+# Page types in order
+PAGE_TYPES = [
+    "ordre_de_virement",
+    "annexe_1",
+    "annexe_2",
+    "bulletin_de_paie",
+    "gestion_des_blocages",
+]
+
+PAGE_LABELS = {
+    "ordre_de_virement":  "Ordre de Virement",
+    "annexe_1":           "Annexe 1",
+    "annexe_2":           "Annexe 2",
+    "bulletin_de_paie":   "Bulletin de Paie",
+    "gestion_des_blocages": "Gestion des Blocages",
+}
+
+# ── Load all structured JSONs ─────────────────────────────────────────────
+all_rows = []
+
+for filename in sorted(os.listdir(STRUCTURED_FOLDER)):
+    if not filename.endswith(".json"):
+        continue
+
+    path = os.path.join(STRUCTURED_FOLDER, filename)
+    with open(path, "r", encoding="utf-8") as f:
+        doc = json.load(f)
+
+    pages = doc.get("pages", {})
+    row = {"Fichier": doc.get("filename", filename)}
+
+    for page_type in PAGE_TYPES:
+        label = PAGE_LABELS[page_type]
+        page_data = pages.get(page_type, None)
+
+        # Presence column: Yes / No
+        if page_data is None or page_data.get("missing", True):
+            row[f"{label} (présent)"] = "Non"
+            # All fields null
+            for field in get_schema(page_type).keys():
+                row[f"{label} | {field}"] = None
+        else:
+            row[f"{label} (présent)"] = "Oui"
+            data = page_data.get("data", {})
+            for field in get_schema(page_type).keys():
+                row[f"{label} | {field}"] = data.get(field, None)
+
+    all_rows.append(row)
+
+# ── Build DataFrame ───────────────────────────────────────────────────────
+df = pd.DataFrame(all_rows)
+
+# ── Write to Excel with formatting ───────────────────────────────────────
+df.to_excel(OUTPUT_EXCEL, index=False, engine="openpyxl")
+
+wb = load_workbook(OUTPUT_EXCEL)
+ws = wb.active
+ws.title = "Extraction"
+
+# Color palette per page type
+PAGE_COLORS = {
+    "Ordre de Virement":    "D6E4F0",   # blue
+    "Annexe 1":             "D5F5E3",   # green
+    "Annexe 2":             "FEF9E7",   # yellow
+    "Bulletin de Paie":     "FDEDEC",   # red
+    "Gestion des Blocages": "F5EEF8",   # purple
+}
+
+PRESENCE_GREEN = "C6EFCE"
+PRESENCE_RED   = "FFC7CE"
+
+# Style helpers
+def header_fill(hex_color):
+    return PatternFill("solid", start_color=hex_color, end_color=hex_color)
+
+def cell_fill(hex_color):
+    return PatternFill("solid", start_color=hex_color, end_color=hex_color)
+
+thin = Side(style="thin", color="AAAAAA")
+border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+# ── Format header row ─────────────────────────────────────────────────────
+for col_idx, col_name in enumerate(df.columns, start=1):
+    cell = ws.cell(row=1, column=col_idx)
+    cell.font      = Font(bold=True, color="FFFFFF", name="Arial", size=10)
+    cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    cell.border    = border
+
+    # Determine which page this column belongs to
+    matched_color = "2C3E50"   # dark default (for "Fichier" column)
+    for label, color in PAGE_COLORS.items():
+        if col_name.startswith(label):
+            # Darken the header vs data rows
+            matched_color = "1A5276" if "bleu" not in label else "1D8348"
+            # Use a darker shade for header
+            dark_colors = {
+                "Ordre de Virement":    "1A5276",
+                "Annexe 1":             "1E8449",
+                "Annexe 2":             "B7950B",
+                "Bulletin de Paie":     "922B21",
+                "Gestion des Blocages": "6C3483",
+            }
+            matched_color = dark_colors.get(label, "2C3E50")
+            break
+
+    cell.fill = PatternFill("solid", start_color=matched_color, end_color=matched_color)
+
+# ── Format data rows ──────────────────────────────────────────────────────
+for row_idx in range(2, len(df) + 2):
+    for col_idx, col_name in enumerate(df.columns, start=1):
+        cell = ws.cell(row=row_idx, column=col_idx)
+        cell.font      = Font(name="Arial", size=9)
+        cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=False)
+        cell.border    = border
+
+        # Color presence columns
+        if "(présent)" in col_name:
+            val = cell.value
+            if val == "Oui":
+                cell.fill = cell_fill(PRESENCE_GREEN)
+                cell.font = Font(name="Arial", size=9, bold=True, color="276221")
+            elif val == "Non":
+                cell.fill = cell_fill(PRESENCE_RED)
+                cell.font = Font(name="Arial", size=9, bold=True, color="9C0006")
+        else:
+            # Light background per page section
+            for label, color in PAGE_COLORS.items():
+                if col_name.startswith(label):
+                    cell.fill = cell_fill(color)
+                    break
+
+        # Null → empty string display
+        if cell.value is None:
+            cell.value = ""
+
+# ── Column widths ─────────────────────────────────────────────────────────
+ws.column_dimensions["A"].width = 35   # Fichier
+
+for col_idx, col_name in enumerate(df.columns, start=1):
+    col_letter = get_column_letter(col_idx)
+    if "(présent)" in col_name:
+        ws.column_dimensions[col_letter].width = 18
+    elif col_idx == 1:
+        pass  # already set
+    else:
+        ws.column_dimensions[col_letter].width = 28
+
+# ── Freeze first row + first column ──────────────────────────────────────
+ws.freeze_panes = "B2"
+
+# ── Add a summary sheet ───────────────────────────────────────────────────
+ws_summary = wb.create_sheet("Résumé")
+ws_summary["A1"] = "Page"
+ws_summary["B1"] = "Présent"
+ws_summary["C1"] = "Manquant"
+ws_summary["D1"] = "% Présent"
+
+for cell in ws_summary[1]:
+    cell.font = Font(bold=True, name="Arial", size=10)
+    cell.fill = PatternFill("solid", start_color="2C3E50", end_color="2C3E50")
+    cell.font = Font(bold=True, color="FFFFFF", name="Arial", size=10)
+
+total_files = len(df)
+for i, (page_type, label) in enumerate(PAGE_LABELS.items(), start=2):
+    presence_col = f"{label} (présent)"
+    if presence_col in df.columns:
+        present_count = (df[presence_col] == "Oui").sum()
+        missing_count = total_files - present_count
+        ws_summary.cell(row=i, column=1).value = label
+        ws_summary.cell(row=i, column=2).value = present_count
+        ws_summary.cell(row=i, column=3).value = missing_count
+        ws_summary.cell(row=i, column=4).value = f"={get_column_letter(2)}{i}/{total_files}"
+
+for col in ["A", "B", "C", "D"]:
+    ws_summary.column_dimensions[col].width = 25
+
+wb.save(OUTPUT_EXCEL)
+print(f"✅ Excel saved → {OUTPUT_EXCEL}")
+print(f"   Rows: {len(df)} | Columns: {len(df.columns)}")
+
+
+
+
+
+
 # ── Schemas per page type ────────────────────────────────────────────────
 
 def get_schema(document_type: str) -> dict:
