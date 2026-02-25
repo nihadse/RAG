@@ -1,3 +1,9 @@
+final_output = [
+    {"file_name": file_name, "page": str(i + 1), "text": page_text}
+    for i, page_text in enumerate(all_text)
+]
+
+
 import os
 import json
 import pandas as pd
