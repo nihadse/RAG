@@ -1,3 +1,6 @@
+pages = doc[0].get("pages", {}) if isinstance(doc, list) else doc.get("pages", {})
+
+
 import os
 import json
 import re
