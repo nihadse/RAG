@@ -1,3 +1,7 @@
+"Nombre de pages trouvées": doc.get("total_pages_found", 0)
+}
+
+
 row = {
     "filename": filename,
     "total_pages_found": sum(1 for p in pages.values() if not p["missing"])
