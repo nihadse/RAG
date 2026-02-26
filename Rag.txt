@@ -1,3 +1,19 @@
+# Clear pip cache
+pip cache purge
+
+# Clear HuggingFace cache if models are duplicated
+du -sh ~/.cache/huggingface/
+# Only delete if you have copies elsewhere
+rm -rf ~/.cache/huggingface/hub/tmp*
+
+# Clear temp files
+rm -rf /tmp/*
+
+# Clear torch cache
+rm -rf ~/.cache/torch/
+
+
+
 import shutil
 
 folder_path = "/path/to/your/folder"
