@@ -1,3 +1,21 @@
+row = {
+    "filename": filename,
+    "total_pages_found": sum(1 for p in pages.values() if not p["missing"])
+}
+
+
+for filename, pages in per_file.items():
+    actual_pages = sum(1 for p in pages.values() if not p["missing"])
+    final_output = {
+        "filename": filename,
+        "total_pages_found": actual_pages,
+        ...
+    }
+
+
+
+
+
 # Step 4: Save JSON per PDF
 for filename, pages in results_map.items():
     final_output = [
