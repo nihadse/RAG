@@ -1,3 +1,13 @@
+import shutil
+
+folder_path = "/path/to/your/folder"
+
+shutil.rmtree(folder_path)
+print("Folder deleted successfully")
+
+
+
+
 "Nombre de pages trouvées": doc.get("total_pages_found", 0)
 }
 
