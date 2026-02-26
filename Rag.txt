@@ -1,3 +1,7 @@
+Nous avons eu un problème GPU et de connexion pour l’upload, ce qui a retardé l’envoi.
+Nous vous envoyons l’output dans l’heure.
+
+
 # Clear pip cache
 pip cache purge
 
