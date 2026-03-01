@@ -1,3 +1,748 @@
+"""
+RAG Chatbot – Bank Documentation
+═══════════════════════════════════════════════════════════════
+Stack:
+  • Embedding  : Qwen3-Embedding  on A40 3G MIG slice  (CUDA:0 in its own process)
+  • LLM        : Qwen2.5-72B-Instruct via vLLM         (12× H100 48GB, tensor_parallel=12)
+  • Vector DB  : ChromaDB  (persistent, cosine)
+  • Reranker   : BM25Okapi (rank_bm25)
+  • Frontend   : Streamlit
+═══════════════════════════════════════════════════════════════
+Edit the CONFIG block below, then run:
+    streamlit run rag_bank_chatbot.py
+"""
+
+# ──────────────────────────────────────────────────────────────
+# IMPORTS
+# ──────────────────────────────────────────────────────────────
+import os
+import re
+import json
+import uuid
+import string
+import datetime
+import warnings
+warnings.filterwarnings("ignore")
+
+import fitz                          # PyMuPDF
+import pandas as pd
+import streamlit as st
+from PIL import Image
+
+import chromadb
+from rank_bm25 import BM25Okapi
+from sentence_transformers import SentenceTransformer
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.docstore.document import Document
+import docx as docx_lib
+
+from vllm import LLM, SamplingParams
+
+# ──────────────────────────────────────────────────────────────
+# CONFIG  ← edit paths here
+# ──────────────────────────────────────────────────────────────
+CFG = {
+    # ── Model paths ──────────────────────────────────────────
+    "LLM_PATH":       "/models/Qwen2.5-72B-Instruct",
+    "EMBED_PATH":     "/models/Qwen3-Embedding",
+
+    # ── Hardware ─────────────────────────────────────────────
+    # 12× H100 for LLM tensor parallelism
+    "TENSOR_PARALLEL":  12,
+    # A40 MIG slice for embeddings (set CUDA_VISIBLE_DEVICES externally
+    # or hardcode device here; SentenceTransformer picks it up)
+    "EMBED_DEVICE":     "cuda:0",   # the MIG slice appears as cuda:0 in its own env
+
+    # ── Retrieval ─────────────────────────────────────────────
+    "DENSE_K":          1500,       # docs fetched from ChromaDB
+    "RERANK_K":         50,         # docs kept after BM25
+
+    # ── ChromaDB ──────────────────────────────────────────────
+    "CHROMA_PATH":      "/mnt/chroma_db",
+    "COLLECTION_NAME":  "bank_docs",
+
+    # ── Persistence ───────────────────────────────────────────
+    "CHAT_STORAGE":     "/mnt/chat_sessions.json",
+    "FEEDBACK_CSV":     "/mnt/chat_feedback.csv",
+    "LOGO_PATH":        "/mnt/bnp_logo.png",
+
+    # ── Generation ────────────────────────────────────────────
+    "MAX_NEW_TOKENS":   2048,
+    "TEMPERATURE":      0.5,
+    "TOP_P":            0.9,
+
+    # ── Embedding instruction (Qwen3 asymmetric) ──────────────
+    "QUERY_INSTRUCTION": (
+        "Instruct: Retrieve the most relevant banking document passage "
+        "for the following query\nQuery: "
+    ),
+
+    # ── Chunking ──────────────────────────────────────────────
+    "CHUNK_SIZE":       5000,
+    "CHUNK_OVERLAP":    500,
+}
+
+# ──────────────────────────────────────────────────────────────
+# RESOURCE LOADING  (cached – loaded once per Streamlit session)
+# ──────────────────────────────────────────────────────────────
+@st.cache_resource(show_spinner="Loading embedding model on A40 MIG…")
+def load_embedding_model():
+    """
+    Qwen3-Embedding on the A40 3G MIG slice.
+    Run this process with CUDA_VISIBLE_DEVICES pointing to the MIG slice,
+    or set EMBED_DEVICE to the correct cuda index.
+    """
+    model = SentenceTransformer(
+        CFG["EMBED_PATH"],
+        device=CFG["EMBED_DEVICE"],
+        trust_remote_code=True,
+    )
+    return model
+
+
+@st.cache_resource(show_spinner="Loading Qwen2.5-72B on 12× H100 via vLLM…")
+def load_llm():
+    """
+    vLLM with tensor parallelism across 12 H100s.
+    Qwen2.5-72B in float16 uses ~144 GB VRAM → fits comfortably in 576 GB.
+    """
+    llm = LLM(
+        model=CFG["LLM_PATH"],
+        tensor_parallel_size=CFG["TENSOR_PARALLEL"],
+        dtype="float16",
+        max_model_len=8192,
+        gpu_memory_utilization=0.90,
+        trust_remote_code=True,
+        enforce_eager=False,          # use CUDA graphs for speed
+    )
+    return llm
+
+
+@st.cache_resource(show_spinner="Connecting to ChromaDB…")
+def load_collection():
+    client = chromadb.PersistentClient(path=CFG["CHROMA_PATH"])
+    collection = client.get_or_create_collection(
+        name=CFG["COLLECTION_NAME"],
+        metadata={"hnsw:space": "cosine"},
+    )
+    return collection
+
+
+# ──────────────────────────────────────────────────────────────
+# BM25 RERANKER
+# ──────────────────────────────────────────────────────────────
+class BM25Reranker:
+    def __init__(self, k: int = CFG["RERANK_K"]):
+        self.k             = k
+        self.bm25          = None
+        self.doc_map       = {}
+        self._strip_punct  = str.maketrans("", "", string.punctuation)
+
+    def _tokenize(self, text: str) -> list[str]:
+        if not isinstance(text, str):
+            return []
+        cleaned = text.translate(self._strip_punct).lower()
+        return [t for t in cleaned.split() if t.strip()]
+
+    def fit(self, documents: list[dict]):
+        if not documents:
+            raise ValueError("BM25Reranker.fit() received an empty document list.")
+        tokenized_corpus, valid_docs = [], []
+        for i, doc in enumerate(documents):
+            text   = doc.get("text") or doc.get("page_content") or doc.get("content", "")
+            tokens = self._tokenize(text)
+            if tokens:
+                tokenized_corpus.append(tokens)
+                valid_docs.append((i, doc))
+        if not tokenized_corpus:
+            raise ValueError("All documents were empty – cannot fit BM25.")
+        self.doc_map = {i: doc for i, doc in valid_docs}
+        self.bm25    = BM25Okapi(tokenized_corpus)
+
+    def rerank(self, query: str, documents: list[dict]) -> list[dict]:
+        if not documents:
+            return []
+        self.fit(documents)
+        tokens = self._tokenize(query)
+        if not tokens:
+            return documents[: self.k]
+        scores = self.bm25.get_scores(tokens)
+        ranked = sorted(
+            zip(scores, self.doc_map.values()),
+            key=lambda x: x[0],
+            reverse=True,
+        )
+        return [doc for _, doc in ranked[: self.k]]
+
+
+# ──────────────────────────────────────────────────────────────
+# RETRIEVER  (ChromaDB dense + BM25 rerank)
+# ──────────────────────────────────────────────────────────────
+class BankRetriever:
+    def __init__(
+        self,
+        collection,
+        embed_model,
+        chat_history: list[str] | None = None,
+        k: int       = CFG["DENSE_K"],
+        rerank_k: int = CFG["RERANK_K"],
+    ):
+        self.collection   = collection
+        self.embed_model  = embed_model
+        self.chat_history = chat_history or []
+        self.k            = k
+        self.reranker     = BM25Reranker(k=rerank_k)
+
+    def _embed_query(self, text: str) -> list[float]:
+        """Qwen3 asymmetric: query gets instruction prefix."""
+        vec = self.embed_model.encode(
+            [CFG["QUERY_INSTRUCTION"] + text],
+            normalize_embeddings=True,
+            batch_size=1,
+        )
+        return vec[0].tolist()
+
+    def get_relevant_documents(self, query: str) -> list[dict]:
+        # Include recent history for context-aware retrieval
+        full_query = (
+            " ".join(self.chat_history[-6:]) + " " + query
+            if self.chat_history
+            else query
+        )
+
+        query_vec = self._embed_query(full_query)
+
+        results = self.collection.query(
+            query_embeddings=[query_vec],
+            n_results=min(self.k, self.collection.count()),
+            include=["documents", "metadatas"],
+        )
+
+        dense_docs = [
+            {"text": doc, "metadata": meta}
+            for doc, meta in zip(
+                results["documents"][0],
+                results["metadatas"][0],
+            )
+        ]
+
+        return self.reranker.rerank(full_query, dense_docs)
+
+
+# ──────────────────────────────────────────────────────────────
+# DOCUMENT PROCESSING
+# ──────────────────────────────────────────────────────────────
+def extract_text_from_file(uploaded_file) -> Document | None:
+    name = uploaded_file.name.lower()
+    try:
+        if name.endswith(".pdf"):
+            pdf  = fitz.open(stream=uploaded_file.read(), filetype="pdf")
+            pages = []
+            for page_num, page in enumerate(pdf, start=1):
+                text = page.get_text()
+                # Attempt table extraction if text is sparse
+                if len(text.strip()) < 100:
+                    tabs = page.find_tables()
+                    if tabs.tables:
+                        text = "\n".join(
+                            tab.to_pandas().to_string(index=False)
+                            for tab in tabs.tables
+                        )
+                pages.append(f"[Page {page_num}]\n{text}")
+            content = "\n\n".join(pages)
+        elif name.endswith(".txt"):
+            content = uploaded_file.read().decode("utf-8")
+        elif name.endswith(".docx"):
+            doc     = docx_lib.Document(uploaded_file)
+            content = "\n".join(p.text for p in doc.paragraphs)
+        elif name.endswith(".csv"):
+            df      = pd.read_csv(uploaded_file)
+            content = df.to_string(index=False)
+        elif name.endswith(".xlsx"):
+            # Read all sheets
+            xl      = pd.ExcelFile(uploaded_file)
+            parts   = []
+            for sheet in xl.sheet_names:
+                df = xl.parse(sheet)
+                parts.append(f"[Sheet: {sheet}]\n{df.to_string(index=False)}")
+            content = "\n\n".join(parts)
+        else:
+            return None
+    except Exception as e:
+        st.sidebar.error(f"Error reading {uploaded_file.name}: {e}")
+        return None
+
+    return Document(
+        page_content=content,
+        metadata={
+            "source":      uploaded_file.name,
+            "source_type": name.rsplit(".", 1)[-1],
+        },
+    )
+
+
+def clean_text(text: str) -> str:
+    text = re.sub(r"\.{2,}", ".", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    text = re.sub(r"[ \t]+", " ", text)
+    text = "\n".join(line.strip() for line in text.splitlines())
+    text = "\n".join(line for line in text.splitlines() if line.strip())
+    return text
+
+
+def clean_documents(docs: list[Document]) -> list[Document]:
+    return [
+        Document(page_content=clean_text(d.page_content), metadata=d.metadata)
+        for d in docs
+    ]
+
+
+def split_documents(docs: list[Document]) -> list[Document]:
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=CFG["CHUNK_SIZE"],
+        chunk_overlap=CFG["CHUNK_OVERLAP"],
+        length_function=len,
+        separators=["\n\n", "\n", ".", " ", ""],
+        add_start_index=True,
+    )
+    return splitter.split_documents(docs)
+
+
+def embed_and_index(chunks: list[Document], collection, embed_model):
+    """Encode documents WITHOUT instruction prefix (Qwen3 asymmetric)."""
+    texts  = [c.page_content for c in chunks]
+    metas  = [c.metadata     for c in chunks]
+    ids    = [str(uuid.uuid4()) for _ in chunks]
+
+    # Batch encode for speed
+    vecs = embed_model.encode(
+        texts,
+        normalize_embeddings=True,
+        batch_size=64,
+        show_progress_bar=True,
+    ).tolist()
+
+    # ChromaDB supports batch upsert up to 41666 items
+    batch_size = 5000
+    for i in range(0, len(texts), batch_size):
+        collection.add(
+            documents=texts[i: i + batch_size],
+            embeddings=vecs[i:  i + batch_size],
+            metadatas=metas[i:  i + batch_size],
+            ids=ids[i:          i + batch_size],
+        )
+
+
+def get_indexed_sources(collection) -> set[str]:
+    try:
+        n = min(collection.count(), 50000)
+        if n == 0:
+            return set()
+        result = collection.get(limit=n, include=["metadatas"])
+        return {m.get("source", "") for m in result["metadatas"] if m.get("source")}
+    except Exception:
+        return set()
+
+
+def extract_sources(docs: list[dict]) -> list[str]:
+    seen, out = set(), []
+    for doc in docs:
+        src = doc.get("metadata", {}).get("source", "")
+        if src and src not in seen:
+            seen.add(src)
+            out.append(src)
+    return out
+
+
+# ──────────────────────────────────────────────────────────────
+# PROMPT BUILDER
+# ──────────────────────────────────────────────────────────────
+SYSTEM_PROMPT = """Vous êtes un assistant RAG expert en systèmes bancaires, architecture de données et produits financiers.
+Vous répondez EXCLUSIVEMENT à partir des documents fournis dans le contexte.
+Vous citez toujours vos sources au format : [Source: <fichier>, Page <n>].
+Si l'information est absente des documents, dites-le clairement."""
+
+
+def build_prompt(query: str, context: list[dict], chat_history: list[str]) -> str:
+    history_block = "\n".join(chat_history[-6:]) if chat_history else "Aucun historique."
+
+    context_block = "\n\n".join(
+        "──────────────────────────────────────\n"
+        f"[Source: {c['metadata'].get('source', 'inconnu')}, "
+        f"Page {c['metadata'].get('page', c['metadata'].get('start_index', '?'))}]\n"
+        f"{c['text']}"
+        for c in context
+    )
+
+    return (
+        f"<|im_start|>system\n{SYSTEM_PROMPT}<|im_end|>\n"
+        f"<|im_start|>user\n"
+        f"[HISTORIQUE DE CONVERSATION]\n{history_block}\n\n"
+        f"[CONTEXTE DOCUMENTAIRE]\n{context_block}\n\n"
+        f"[QUESTION]\n{query}\n\n"
+        f"[INSTRUCTIONS DE RÉPONSE]\n"
+        f"1. Répondez uniquement à partir du contexte fourni.\n"
+        f"2. Structure : a) Réponse détaillée  b) Synthèse  c) Sources utilisées\n"
+        f"3. Citez chaque fait avec [Source: <fichier>, Page <n>].\n"
+        f"4. Pour les tableaux ou données techniques, expliquez leur signification.\n"
+        f"5. Si l'information manque, indiquez-le clairement.\n"
+        f"<|im_end|>\n"
+        f"<|im_start|>assistant\n"
+    )
+
+
+# ──────────────────────────────────────────────────────────────
+# GENERATION  (local vLLM)
+# ──────────────────────────────────────────────────────────────
+def generate_response(
+    query: str,
+    context: list[dict],
+    chat_history: list[str],
+    llm: LLM,
+) -> str:
+    prompt  = build_prompt(query, context, chat_history)
+    params  = SamplingParams(
+        temperature=CFG["TEMPERATURE"],
+        top_p=CFG["TOP_P"],
+        max_tokens=CFG["MAX_NEW_TOKENS"],
+        stop=["<|im_end|>", "<|endoftext|>"],
+    )
+    outputs = llm.generate([prompt], params)
+    return outputs[0].outputs[0].text.strip()
+
+
+# ──────────────────────────────────────────────────────────────
+# EVALUATION
+# ──────────────────────────────────────────────────────────────
+def evaluate_response(
+    query: str,
+    answer: str,
+    docs: list[dict],
+) -> dict:
+    q_tokens = set(query.lower().split())
+    a_tokens = set(answer.lower().split())
+
+    # Document relevance
+    relevant = sum(
+        1 for doc in docs
+        if (
+            len(q_tokens & set(
+                (doc.get("text") or "").lower().split()
+            )) / len(q_tokens)
+        ) > 0.2
+        if q_tokens
+    )
+    doc_relevance    = round((relevant / len(docs)) * 10, 2) if docs else 0
+
+    # Source diversity
+    sources          = {doc.get("metadata", {}).get("source", "") for doc in docs}
+    source_diversity = round(min(len(sources) / 3, 1.0) * 10, 2)
+
+    # Answer–query alignment
+    alignment = round(
+        (len(q_tokens & a_tokens) / len(q_tokens) * 10) if q_tokens else 0, 2
+    )
+
+    # Hallucination risk proxy
+    cites_source = any(
+        kw in answer.lower()
+        for kw in ["source:", "page", "provient", "extrait", "selon le document"]
+    )
+
+    weights = {"doc_relevance": 0.4, "source_diversity": 0.1, "alignment": 0.3}
+    scores  = {
+        "doc_relevance":    doc_relevance,
+        "source_diversity": source_diversity,
+        "alignment":        alignment,
+    }
+    overall = round(sum(scores[k] * weights[k] for k in weights), 2)
+
+    return {
+        "document_relevance":    doc_relevance,
+        "source_diversity":      source_diversity,
+        "answer_query_alignment": alignment,
+        "hallucination_risk":    "Faible" if cites_source else "Moyen",
+        "overall_score":         overall,
+    }
+
+
+# ──────────────────────────────────────────────────────────────
+# FEEDBACK
+# ──────────────────────────────────────────────────────────────
+def save_feedback(chat_id: str, msg_index: int, feedback: str):
+    row = pd.DataFrame([{
+        "chat_id":       chat_id,
+        "message_index": msg_index,
+        "feedback":      feedback,
+        "timestamp":     str(datetime.datetime.now()),
+    }])
+    mode   = "a" if os.path.exists(CFG["FEEDBACK_CSV"]) else "w"
+    header = mode == "w"
+    row.to_csv(CFG["FEEDBACK_CSV"], mode=mode, header=header, index=False)
+
+
+# ──────────────────────────────────────────────────────────────
+# CHAT SESSION PERSISTENCE
+# ──────────────────────────────────────────────────────────────
+def load_sessions() -> dict:
+    if os.path.exists(CFG["CHAT_STORAGE"]):
+        with open(CFG["CHAT_STORAGE"], "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def save_sessions(sessions: dict):
+    with open(CFG["CHAT_STORAGE"], "w", encoding="utf-8") as f:
+        json.dump(sessions, f, indent=2, ensure_ascii=False)
+
+
+def get_history_strings(messages: list[dict], max_turns: int = 6) -> list[str]:
+    return [
+        f"{m['role'].capitalize()}: {m['content']}"
+        for m in messages[-max_turns:]
+    ]
+
+
+# ──────────────────────────────────────────────────────────────
+# MAIN RAG PIPELINE
+# ──────────────────────────────────────────────────────────────
+def rag_pipeline(
+    query: str,
+    collection,
+    embed_model,
+    llm: LLM,
+    chat_history: list[str],
+    temp_chunks: list[str] | None = None,
+) -> dict:
+    retriever = BankRetriever(
+        collection=collection,
+        embed_model=embed_model,
+        chat_history=chat_history,
+        k=CFG["DENSE_K"],
+        rerank_k=CFG["RERANK_K"],
+    )
+    context = retriever.get_relevant_documents(query)
+
+    # Inject temporarily uploaded chunks at top of context
+    if temp_chunks:
+        temp_docs = [
+            {"text": chunk, "metadata": {"source": "DOCUMENT_TEMPORAIRE", "page": "?"}}
+            for chunk in temp_chunks
+        ]
+        context = temp_docs + context
+
+    answer     = generate_response(query, context, chat_history, llm)
+    evaluation = evaluate_response(query, answer, context)
+    sources    = extract_sources(context)
+
+    return {
+        "answer":     answer,
+        "context":    context,
+        "evaluation": evaluation,
+        "sources":    sources,
+        "timestamp":  datetime.datetime.now(),
+    }
+
+
+# ──────────────────────────────────────────────────────────────
+# STREAMLIT UI
+# ──────────────────────────────────────────────────────────────
+def main():
+    st.set_page_config(
+        page_title="Chatbot BNP – Documentation Bancaire",
+        page_icon="🏦",
+        layout="wide",
+    )
+
+    # ── Load resources ────────────────────────────────────────
+    embed_model = load_embedding_model()
+    llm         = load_llm()
+    collection  = load_collection()
+
+    # ── Header ────────────────────────────────────────────────
+    col_logo, col_title = st.columns([1, 6])
+    with col_logo:
+        if os.path.exists(CFG["LOGO_PATH"]):
+            st.image(Image.open(CFG["LOGO_PATH"]), width=120)
+    with col_title:
+        st.title("🏦 Chatbot BNP – Documentation Bancaire")
+        st.caption(
+            f"Modèle : Qwen2.5-72B-Instruct · "
+            f"Embedding : Qwen3-Embedding · "
+            f"Documents indexés : {collection.count():,}"
+        )
+
+    # ── Session state ─────────────────────────────────────────
+    if "sessions" not in st.session_state:
+        st.session_state.sessions = load_sessions()
+    if "current_id" not in st.session_state:
+        cid = str(uuid.uuid4())
+        st.session_state.current_id = cid
+        st.session_state.sessions[cid] = {"title": "Nouvelle conversation", "messages": []}
+
+    # ── Sidebar ───────────────────────────────────────────────
+    with st.sidebar:
+        st.markdown("## 💬 Conversations")
+        if st.button("➕ Nouvelle conversation", use_container_width=True):
+            cid = str(uuid.uuid4())
+            st.session_state.current_id = cid
+            st.session_state.sessions[cid] = {
+                "title": "Nouvelle conversation", "messages": []
+            }
+            save_sessions(st.session_state.sessions)
+
+        st.markdown("---")
+        ids = list(st.session_state.sessions.keys())
+        if ids:
+            selected = st.radio(
+                "Historique",
+                ids,
+                format_func=lambda k: st.session_state.sessions[k]["title"][:40],
+                index=(
+                    ids.index(st.session_state.current_id)
+                    if st.session_state.current_id in ids
+                    else 0
+                ),
+                label_visibility="collapsed",
+            )
+            st.session_state.current_id = selected
+
+        st.markdown("---")
+        st.markdown("## 📎 Ajouter un document")
+        uploaded = st.file_uploader(
+            "PDF, DOCX, TXT, CSV, XLSX",
+            type=["pdf", "txt", "docx", "csv", "xlsx"],
+            label_visibility="collapsed",
+        )
+
+        # ChromaDB stats
+        st.markdown("---")
+        st.markdown("### 📊 Base de connaissances")
+        st.metric("Chunks indexés", f"{collection.count():,}")
+
+    # ── Handle uploaded file ──────────────────────────────────
+    temp_chunks = None
+    if uploaded:
+        existing = get_indexed_sources(collection)
+        if uploaded.name in existing:
+            st.sidebar.warning(f"⚠️ **{uploaded.name}** est déjà indexé.")
+        else:
+            with st.sidebar:
+                with st.spinner(f"Indexation de {uploaded.name}…"):
+                    raw     = extract_text_from_file(uploaded)
+                    if raw is None:
+                        st.error("❌ Format non supporté.")
+                    else:
+                        cleaned = clean_documents([raw])
+                        chunks  = split_documents(cleaned)
+                        embed_and_index(chunks, collection, embed_model)
+                        temp_chunks = [c.page_content for c in chunks]
+                        st.success(f"✅ {len(chunks)} chunks indexés depuis **{uploaded.name}**")
+
+    # ── Chat area ─────────────────────────────────────────────
+    session  = st.session_state.sessions[st.session_state.current_id]
+    messages = session["messages"]
+
+    for i, msg in enumerate(messages):
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"], unsafe_allow_html=True)
+
+            if msg["role"] == "assistant":
+                # Feedback buttons
+                f_col1, f_col2, f_col3 = st.columns([1, 1, 10])
+                with f_col1:
+                    if st.button("👍", key=f"up_{i}", help="Bonne réponse"):
+                        save_feedback(st.session_state.current_id, i, "positive")
+                        st.toast("Merci pour votre retour !", icon="✅")
+                with f_col2:
+                    if st.button("👎", key=f"dn_{i}", help="Mauvaise réponse"):
+                        save_feedback(st.session_state.current_id, i, "negative")
+                        st.toast("Retour enregistré.", icon="📝")
+
+                # Metrics expander
+                if "evaluation" in msg:
+                    with st.expander("📊 Métriques RAG"):
+                        ev = msg["evaluation"]
+                        m1, m2, m3, m4 = st.columns(4)
+                        m1.metric("Pertinence docs",  f"{ev['document_relevance']}/10")
+                        m2.metric("Diversité sources", f"{ev['source_diversity']}/10")
+                        m3.metric("Alignement",        f"{ev['answer_query_alignment']}/10")
+                        m4.metric("Score global",      f"{ev['overall_score']}/10")
+                        st.markdown(
+                            f"**Risque hallucination :** {ev['hallucination_risk']}"
+                        )
+
+                if "sources" in msg and msg["sources"]:
+                    with st.expander("📂 Sources utilisées"):
+                        for src in msg["sources"]:
+                            st.markdown(f"- `{src}`")
+
+    # ── Input ─────────────────────────────────────────────────
+    user_input = st.chat_input("Posez votre question sur la documentation bancaire…")
+
+    if user_input:
+        ts = datetime.datetime.now().isoformat()
+
+        # Auto-title the conversation
+        if session["title"] == "Nouvelle conversation":
+            session["title"] = user_input[:45] + ("…" if len(user_input) > 45 else "")
+
+        # Save & display user message
+        messages.append({"role": "user", "content": user_input, "timestamp": ts})
+        save_sessions(st.session_state.sessions)
+
+        with st.chat_message("user"):
+            st.markdown(user_input)
+
+        # Generate & display assistant response
+        with st.chat_message("assistant"):
+            with st.spinner("Recherche et génération en cours…"):
+                history  = get_history_strings(messages)
+                response = rag_pipeline(
+                    query=user_input,
+                    collection=collection,
+                    embed_model=embed_model,
+                    llm=llm,
+                    chat_history=history,
+                    temp_chunks=temp_chunks,
+                )
+
+            answer = response["answer"]
+            st.markdown(answer, unsafe_allow_html=True)
+
+            # Inline metrics
+            ev = response["evaluation"]
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("Pertinence docs",   f"{ev['document_relevance']}/10")
+            m2.metric("Diversité sources", f"{ev['source_diversity']}/10")
+            m3.metric("Alignement",        f"{ev['answer_query_alignment']}/10")
+            m4.metric("Score global",      f"{ev['overall_score']}/10")
+
+            if response["sources"]:
+                with st.expander("📂 Sources utilisées"):
+                    for src in response["sources"]:
+                        st.markdown(f"- `{src}`")
+
+        # Persist assistant message with metadata
+        messages.append({
+            "role":       "assistant",
+            "content":    answer,
+            "timestamp":  ts,
+            "evaluation": response["evaluation"],
+            "sources":    response["sources"],
+        })
+        save_sessions(st.session_state.sessions)
+
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+
+
+
 Bonjour [Nom du manager],
 
 Comme convenu, voici le détail des heures supplémentaires que j’ai effectuées afin d’optimiser le modèle.
