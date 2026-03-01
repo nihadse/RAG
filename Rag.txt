@@ -1,3 +1,19 @@
+Bonjour [Nom du manager],
+
+Comme convenu, voici le détail des heures supplémentaires que j’ai effectuées afin d’optimiser le modèle.
+
+J’ai également procédé à l’envoi des fichiers tard dans la soirée afin de respecter les délais et d’assurer la continuité du travail.
+
+Vous pouvez les comptabiliser le mois prochain selon ce qui vous convient.
+
+N’hésitez pas à me faire savoir si vous avez besoin d’informations complémentaires.
+
+Cordialement,
+Nihad
+
+
+
+
 Nous avons eu un problème GPU et de connexion pour l’upload, ce qui a retardé l’envoi.
 Nous vous envoyons l’output dans l’heure.
 
