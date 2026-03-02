@@ -1,3 +1,8 @@
+from chromadb import EmbeddingFunction
+from typing import List
+
+
+
 # ── Already loaded at top of notebook ───────────────────────
 # tokenizer, embed_model = load_embedding_model()  ← already done
 
