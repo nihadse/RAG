@@ -1,3 +1,17 @@
+# Run in terminal not notebook
+nvidia-smi
+
+import torch
+print(torch.cuda.get_device_name(0))
+print(f"Total memory : {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
+print(f"Free memory  : {torch.cuda.memory_reserved(0) / 1e9:.1f} GB reserved")
+
+
+
+
+
+
+
 import torch
 print("CUDA available:", torch.cuda.is_available())
 print("GPU count:", torch.cuda.device_count())
