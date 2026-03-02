@@ -1,3 +1,79 @@
+class BankRetriever:
+    def __init__(
+        self,
+        collection,
+        tokenizer,              # ← added
+        embed_model,
+        chat_history = None,
+        k: int       = CFG["DENSE_K"],
+        rerank_k: int = CFG["RERANK_K"],
+    ):
+        self.collection   = collection
+        self.tokenizer    = tokenizer   # ← added
+        self.embed_model  = embed_model
+        self.chat_history = chat_history or []
+        self.k            = k
+        self.reranker     = BM25Reranker(k=rerank_k)
+
+    def _embed_query(self, text: str) -> list[float]:
+        """Qwen3 asymmetric: query gets instruction prefix."""
+        instruction = CFG["QUERY_INSTRUCTION"] + text
+
+        encoded = self.tokenizer(
+            [instruction],
+            padding=True,
+            truncation=True,
+            max_length=8192,
+            return_tensors="pt",
+        ).to(self.embed_model.device)
+
+        with torch.no_grad():
+            out = self.embed_model(**encoded)
+
+        # Last token pooling
+        last_idx  = encoded["attention_mask"].sum(dim=1) - 1
+        embedding = out.last_hidden_state[0, last_idx, :]
+        embedding = torch.nn.functional.normalize(embedding, p=2, dim=-1)
+
+        return embedding.cpu().float().tolist()[0]
+
+    def get_relevant_documents(self, query: str) -> list[dict]:
+        # Include recent history for context-aware retrieval
+        full_query = (
+            " ".join(self.chat_history[-6:]) + " " + query
+            if self.chat_history
+            else query
+        )
+
+        query_vec = self._embed_query(full_query)
+
+        results = self.collection.query(
+            query_embeddings=[query_vec],
+            n_results=min(self.k, self.collection.count()),
+            include=["documents", "metadatas"],
+        )
+
+        dense_docs = [
+            {"text": doc, "metadata": meta}
+            for doc, meta in zip(
+                results["documents"][0],
+                results["metadatas"][0],
+            )
+        ]
+
+        return self.reranker.rerank(full_query, dense_docs)
+
+
+
+
+
+
+
+
+
+
+
+
 """
 RAG Chat — test without Streamlit
 Run this directly in Jupyter cell by cell
