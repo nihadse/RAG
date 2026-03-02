@@ -1,3 +1,97 @@
+"""
+RAG Chat — test without Streamlit
+Run this directly in Jupyter cell by cell
+"""
+
+import os
+import json
+import uuid
+import datetime
+import chromadb
+
+# ── Step 1: Load models once ────────────────────────────────
+# These are already defined at top of your file
+# model, processor, embed_model are already loaded
+# Just connect to ChromaDB
+
+collection = load_collection()
+print(f"ChromaDB connected: {collection.count():,} chunks")
+
+# ── Step 2: Chat history (replaces st.session_state) ────────
+chat_history = []   # stores all messages
+sessions     = {}   # stores all sessions
+current_id   = str(uuid.uuid4())
+sessions[current_id] = {"title": "Test session", "messages": []}
+
+# ── Step 3: Simple chat function ────────────────────────────
+def chat(user_input: str):
+    ts       = datetime.datetime.now().isoformat()
+    messages = sessions[current_id]["messages"]
+
+    # Auto title
+    if sessions[current_id]["title"] == "Test session":
+        sessions[current_id]["title"] = user_input[:45]
+
+    # Save user message
+    messages.append({"role": "user", "content": user_input, "timestamp": ts})
+    print(f"\nYou: {user_input}")
+
+    # Get history strings
+    history = [
+        f"{m['role'].capitalize()}: {m['content']}"
+        for m in messages[-6:]
+    ]
+
+    # Run RAG pipeline
+    response = rag_pipeline(
+        query=user_input,
+        collection=collection,
+        embed_model=embed_model,
+        llm=model,
+        chat_history=history,
+        temp_chunks=None,
+    )
+
+    answer = response["answer"]
+    ev     = response["evaluation"]
+
+    # Print answer
+    print(f"\nAssistant: {answer}")
+
+    # Print metrics
+    print(f"\n── Métriques ───────────────────────────")
+    print(f"Pertinence docs    : {ev['document_relevance']}/10")
+    print(f"Diversité sources  : {ev['source_diversity']}/10")
+    print(f"Alignement         : {ev['answer_query_alignment']}/10")
+    print(f"Score global       : {ev['overall_score']}/10")
+    print(f"Risque hallucination: {ev['hallucination_risk']}")
+
+    # Print sources
+    if response["sources"]:
+        print(f"\n── Sources ─────────────────────────────")
+        for src in response["sources"]:
+            print(f"  - {src}")
+
+    # Save assistant message
+    messages.append({
+        "role":       "assistant",
+        "content":    answer,
+        "timestamp":  ts,
+        "evaluation": response["evaluation"],
+        "sources":    response["sources"],
+    })
+
+    return answer
+
+
+
+
+
+
+
+
+
+
 # Run in terminal not notebook
 nvidia-smi
 
