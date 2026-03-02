@@ -1,3 +1,60 @@
+# ── Already loaded at top of notebook ───────────────────────
+# tokenizer, embed_model = load_embedding_model()  ← already done
+
+# ── Embedding function using what is already loaded ─────────
+class Qwen3EmbeddingFunction(EmbeddingFunction):
+    def __init__(self, is_query=False):
+        self.is_query  = is_query
+        self.dimension = 2048
+
+    def __call__(self, input: List[str]) -> List[List[float]]:
+        if isinstance(input, str):
+            input = [input]
+
+        if self.is_query:
+            input = [CFG["QUERY_INSTRUCTION"] + t for t in input]
+
+        encoded = tokenizer(
+            input,
+            padding=True,
+            truncation=True,
+            max_length=8192,
+            return_tensors="pt",
+        ).to(embed_model.device)
+
+        with torch.no_grad():
+            out = embed_model(**encoded, output_hidden_states=True)
+
+        last_idx   = encoded["attention_mask"].sum(dim=1) - 1
+        batch      = torch.arange(len(input), device=embed_model.device)
+        embeddings = out.hidden_states[-1][batch, last_idx, :]
+        embeddings = torch.nn.functional.normalize(embeddings, p=2, dim=-1)
+
+        return embeddings.cpu().float().tolist()
+
+
+# ── Create the two functions ─────────────────────────────────
+doc_embedding_function   = Qwen3EmbeddingFunction(is_query=False)
+query_embedding_function = Qwen3EmbeddingFunction(is_query=True)
+
+# ── Collection ───────────────────────────────────────────────
+collection = chroma_client.get_or_create_collection(
+    name="my_documents_qwen3",
+    embedding_function=doc_embedding_function,
+    metadata={
+        "hnsw:space":           "cosine",
+        "hnsw:construction_ef": 200,
+        "hnsw:M":               16,
+    }
+)
+
+print(f"Collection ready: {collection.count
+
+
+
+
+
+
 def load_embedding_model():
     from transformers import AutoTokenizer, AutoModel
     
