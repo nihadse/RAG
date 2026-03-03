@@ -1,3 +1,48 @@
+class BankRetriever:
+    def __init__(
+        self,
+        collection,
+        chat_history = None,
+        k: int        = CFG["DENSE_K"],
+        rerank_k: int = CFG["RERANK_K"],
+    ):
+        self.collection   = collection
+        self.chat_history = chat_history or []
+        self.k            = k
+        self.reranker     = BM25Reranker(k=rerank_k)
+
+    def _embed_query(self, text: str) -> list[float]:
+        # BGE-M3 with query instruction
+        instruction = "Generate representation for this sentence to retrieve relevant articles: " + text
+        return embedding_function([instruction])[0]
+
+    def get_relevant_documents(self, query: str) -> list[dict]:
+        full_query = (
+            " ".join(self.chat_history[-6:]) + " " + query
+            if self.chat_history
+            else query
+        )
+
+        query_vec = self._embed_query(full_query)
+
+        results = self.collection.query(
+            query_embeddings=[query_vec],
+            n_results=min(self.k, self.collection.count()),
+            include=["documents", "metadatas"],
+        )
+
+        dense_docs = [
+            {"text": doc, "metadata": meta}
+            for doc, meta in zip(
+                results["documents"][0],
+                results["metadatas"][0],
+            )
+        ]
+
+        return self.reranker.rerank(full_query, dense_docs
+
+
+
 from chromadb import EmbeddingFunction
 from typing import List
 
