@@ -1,3 +1,38 @@
+def rag_pipeline(
+    query: str,
+    collection,
+    llm,
+    chat_history: list[str],
+    temp_chunks = None,
+) -> dict:
+    retriever = BankRetriever(
+        collection=collection,
+        chat_history=chat_history,
+        k=CFG["DENSE_K"],
+        rerank_k=CFG["RERANK_K"],
+    )
+    context = retriever.get_relevant_documents(query)
+
+    if temp_chunks:
+        context = [
+            {"text": chunk, "metadata": {"source": "DOCUMENT_TEMPORAIRE", "page": "?"}}
+            for chunk in temp_chunks
+        ] + context
+
+    answer     = generate_response(query, context, chat_history, llm)
+    evaluation = evaluate_response(query, answer, context)
+    sources    = extract_sources(context)
+
+    return {
+        "answer":     answer,
+        "context":    context,
+        "evaluation": evaluation,
+        "sources":    sources,
+        "timestamp":  datetime.datetime.now(),
+    }
+
+
+
 # ── Get all filenames without fetching everything at once ───
 def get_all_sources(collection) -> list[str]:
     batch_size = 1000
