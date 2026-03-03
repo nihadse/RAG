@@ -1,3 +1,16 @@
+Search directly by keyword in ChromaDB
+results = collection.get(
+    where_document={"$contains": "A0010"},
+    include=["documents", "metadatas"],
+)
+
+print(f"Chunks containing A0010: {len(results['documents'])}")
+for doc, meta in zip(results["documents"], results["metadatas"]):
+    print(f"\nSource: {meta.get('source','?')}")
+    print(f"Text  : {doc[:300]}")
+
+
+
 # Test retrieval directly without going through the full pipeline
 question = "A0010"
 
