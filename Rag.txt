@@ -1,3 +1,13 @@
+if document_type == "annexe_2":   # ← change from ordre_de_virement
+    hints = """Field format hints:
+- BNP PARIBAS EL-Djazair Agence Mostaghanem 87310 DOMICILIATION: 
+  If this stamp/header appears on the page, put "Oui". If not found, put "Non".
+"""
+
+
+
+
+
 def store_chunks_in_chroma1(chunks):
     """Stores new chunks in ChromaDB while avoiding duplicates."""
     existing_sources  = set()
