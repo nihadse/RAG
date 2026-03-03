@@ -1,3 +1,8 @@
+print(f"GPU used  : {torch.cuda.memory_allocated(0)/1e9:.1f} GB")
+print(f"GPU total : {torch.cuda.get_device_properties(0).total_memory/1e9:.1f} GB")
+print(f"GPU free  : {(torch.cuda.get_device_properties(0).total_memory - torch.cuda.memory_allocated(0))/1e9:.1f} GB")
+
+
 def generate_response(query: str, context: list[dict], chat_history: list[str], llm) -> str:
     prompt = build_prompt(query, context, chat_history)
     
