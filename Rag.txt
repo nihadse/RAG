@@ -1,3 +1,21 @@
+# Test retrieval directly without going through the full pipeline
+question = "A0010"
+
+results = collection.query(
+    query_embeddings=[embedding_function(["Generate representation for this sentence to retrieve relevant articles: " + question])[0]],
+    n_results=10,
+    include=["documents", "metadatas"],
+)
+
+for i, (doc, meta) in enumerate(zip(results["documents"][0], results["metadatas"][0])):
+    print(f"\n── Result {i+1} ──────────────────────────")
+    print(f"Source : {meta.get('source','?')}")
+    print(f"Text   : {doc[:300]}")
+
+
+
+
+
 def build_prompt(query: str, context: list[dict], chat_history: list[str]) -> str:
     history_block = "\n".join(chat_history[-6:]) if chat_history else "Aucun historique."
 
