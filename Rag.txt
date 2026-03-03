@@ -1,3 +1,45 @@
+def store_chunks_in_chroma1(chunks):
+    """Stores new chunks in ChromaDB while avoiding duplicates."""
+    existing_sources  = set()
+    existing_metadata = collection.get(include=["metadatas"])["metadatas"]
+    if existing_metadata:
+        existing_sources = {meta["source"] for meta in existing_metadata}
+
+    new_chunks = [chunk for chunk in chunks if chunk.metadata["source"] not in existing_sources]
+
+    if not new_chunks:
+        print("No new chunks to add.")
+        return
+
+    print(f"Storing {len(new_chunks)} new chunks in ChromaDB...")
+
+    for i in tqdm(range(0, len(new_chunks), 5000), desc="Processing batches"):
+        batch     = new_chunks[i : i + 5000]
+        metadatas = [{
+            "source": chunk.metadata["source"],
+            "page":   chunk.metadata.get("page", 
+                      chunk.metadata.get("start_index", "?")),  # ← added
+        } for chunk in batch]
+        texts      = [chunk.page_content for chunk in batch]
+        embeddings = model.encode(texts, batch_size=512)
+        ids        = [f"{md['source']}_{i+j}" for j, md in enumerate(metadatas)]
+
+        collection.add(
+            documents=texts,
+            embeddings=embeddings,
+            metadatas=metadatas,
+            ids=ids,
+        )
+
+    print("Chunks successfully stored in ChromaDB!")
+
+
+
+
+
+
+
+
 class BankRetriever:
     def __init__(
         self,
