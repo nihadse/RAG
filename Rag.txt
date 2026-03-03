@@ -1,3 +1,30 @@
+# ── Get all filenames without fetching everything at once ───
+def get_all_sources(collection) -> list[str]:
+    batch_size = 1000
+    total      = collection.count()
+    sources    = set()
+
+    for offset in range(0, total, batch_size):
+        results = collection.get(
+            limit=batch_size,
+            offset=offset,
+            include=["metadatas"],
+        )
+        for meta in results["metadatas"]:
+            if meta.get("source"):
+                sources.add(meta["source"])
+
+    return sorted(sources)
+
+
+# ── Run it ──────────────────────────────────────────────────
+filenames = get_all_sources(collection)
+print(f"Total documents: {len(filenames)}")
+for f in filenames:
+    print(f"  - {f}")
+
+
+
 class BankRetriever:
     def __init__(
         self,
