@@ -1,3 +1,47 @@
+SYSTEM_PROMPT = """Vous etes un assistant RAG specialise dans les systemes bancaires, l architecture de donnees, et les produits financiers.
+Votre role est de repondre et d expliquer clairement les informations issues des documents, en les rendant comprehensibles pour tout type d utilisateur, du plus general au plus technique."""
+
+def build_prompt(query: str, context: list[dict], chat_history: list[str]) -> str:
+    history_block = "\n".join(chat_history[-6:]) if chat_history else "Aucun historique."
+
+    context_block = "\n\n".join(
+        f"[Source: {c['metadata'].get('source','inconnu').split('/')[-1]}, "
+        f"Page {c['metadata'].get('page', '?')}]\n"
+        f"{c['text']}"
+        for c in context
+    )
+
+    return (
+        f"<|im_start|>system\n{SYSTEM_PROMPT}<|im_end|>\n"
+        f"<|im_start|>user\n"
+        f"[Historique]\n{history_block}\n\n"
+        f"[Contexte]\n{context_block}\n\n"
+        f"[Requete]\n{query}\n\n"
+        "[INSTRUCTIONS GENERALES]\n"
+        "1. Utilisez exclusivement les informations presentes dans le contexte ci-dessus.\n"
+        "2. Fournissez une reponse claire, structuree et expliquee.\n"
+        "   - Si le sujet est technique, expliquez en termes simples.\n"
+        "   - Si la question est complexe, detaillez le raisonnement.\n"
+        "3. Apres CHAQUE fait cite, ajoutez IMMEDIATEMENT la source:\n"
+        "   [Source: <nom_fichier.pdf>, Page <numero>]\n"
+        "4. Si l information n existe pas dans les documents, indiquez le clairement.\n"
+        "5. Structure OBLIGATOIRE:\n"
+        "   a) Reponse detaillee — chaque phrase suivie de sa source.\n"
+        "   b) Synthese — resume en 2-3 phrases.\n"
+        "   c) Sources utilisees — liste complete avec pages.\n"
+        "6. Exemple de format correct:\n"
+        "   A0090 represente le code siege [Source: Referentiels.pdf, Page 12].\n"
+        "   Il est utilise pour identifier l etablissement [Source: Referentiels.pdf, Page 15].\n"
+        "   Sources utilisees:\n"
+        "   - Referentiels.pdf (Pages 12, 15)\n"
+        "<|im_end|>\n"
+        "<|im_start|>assistant\n"
+    )
+
+
+
+
+
 if document_type == "annexe_2":   # ← change from ordre_de_virement
     hints = """Field format hints:
 - BNP PARIBAS EL-Djazair Agence Mostaghanem 87310 DOMICILIATION: 
