@@ -1,3 +1,37 @@
+def generate_response(query: str, context: list[dict], chat_history: list[str], llm) -> str:
+    prompt = build_prompt(query, context, chat_history)
+    
+    # Tokenize
+    inputs = processor(
+        text=[prompt],
+        return_tensors="pt",
+    ).to(llm.device)
+    
+    # Generate
+    with torch.no_grad():
+        output_ids = llm.generate(
+            **inputs,
+            max_new_tokens=CFG["MAX_NEW_TOKENS"],
+            temperature=CFG["TEMPERATURE"],
+            do_sample=True,
+        )
+    
+    # Decode only new tokens
+    generated = output_ids[:, inputs["input_ids"].shape[1]:]
+    return processor.batch_decode(generated, skip_special_tokens=True)[0].strip()
+Also make sure processor is loaded. Add this where you load the model:
+from transformers import AutoProcessor
+
+processor = AutoProcessor.from_pretrained(
+    CFG["LLM_PATH"],
+    trust_remote_code=True,
+)
+print("Processor loaded")
+
+
+
+
+
 collection = load_collection()
 print(f"ChromaDB connected: {collection.count():,} chunks")
 
