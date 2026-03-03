@@ -1,3 +1,67 @@
+collection = load_collection()
+print(f"ChromaDB connected: {collection.count():,} chunks")
+
+llm = load_llm()
+
+chat_history = []
+sessions     = {}
+current_id   = str(uuid.uuid4())
+sessions[current_id] = {"title": "Test session", "messages": []}
+
+
+def chat(user_input: str):
+    ts       = datetime.datetime.now().isoformat()
+    messages = sessions[current_id]["messages"]
+
+    if sessions[current_id]["title"] == "Test session":
+        sessions[current_id]["title"] = user_input[:45]
+
+    messages.append({"role": "user", "content": user_input, "timestamp": ts})
+    print(f"\nYou: {user_input}")
+
+    history = [
+        f"{m['role'].capitalize()}: {m['content']}"
+        for m in messages[-6:]
+    ]
+
+    response = rag_pipeline(
+        query=user_input,
+        collection=collection,
+        llm=llm,               # ← just llm, nothing else
+        chat_history=history,
+        temp_chunks=None,
+    )
+
+    answer = response["answer"]
+    ev     = response["evaluation"]
+
+    print(f"\nAssistant: {answer}")
+    print(f"\n── Métriques ───────────────────────────")
+    print(f"Pertinence docs    : {ev['document_relevance']}/10")
+    print(f"Diversité sources  : {ev['source_diversity']}/10")
+    print(f"Alignement         : {ev['answer_query_alignment']}/10")
+    print(f"Score global       : {ev['overall_score']}/10")
+    print(f"Risque hallucination: {ev['hallucination_risk']}")
+
+    if response["sources"]:
+        print(f"\n── Sources ─────────────────────────────")
+        for src in response["sources"]:
+            print(f"  - {src}")
+
+    messages.append({
+        "role":       "assistant",
+        "content":    answer,
+        "timestamp":  ts,
+        "evaluation": response["evaluation"],
+        "sources":    response["sources"],
+    })
+
+    return answer
+
+
+
+
+
 def rag_pipeline(
     query: str,
     collection,
