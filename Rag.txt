@@ -2,6 +2,88 @@ class BankRetriever:
     def __init__(
         self,
         collection,
+        chat_history  = None,
+        k: int        = CFG["DENSE_K"],
+        rerank_k: int = CFG["RERANK_K"],
+    ):
+        self.collection   = collection
+        self.chat_history = chat_history or []
+        self.k            = k
+        self.reranker     = BM25Reranker(k=rerank_k)
+
+    def _embed_query(self, text: str) -> list[float]:
+        instruction = (
+            "Generate representation for this sentence "
+            "to retrieve relevant articles: " + text
+        )
+        return embedding_function([instruction])[0]
+
+    def get_relevant_documents(self, query: str) -> list[dict]:
+        full_query = (
+            " ".join(self.chat_history) + " " + query
+            if self.chat_history
+            else query
+        )
+
+        # ── 1. Semantic search ───────────────────────────────
+        query_vec = self._embed_query(full_query)
+        semantic_results = self.collection.query(
+            query_embeddings=[query_vec],
+            n_results=min(self.k * 5, self.collection.count()),
+            include=["documents", "metadatas"],
+        )
+        semantic_docs = [
+            {"text": doc, "metadata": meta}
+            for doc, meta in zip(
+                semantic_results["documents"][0],
+                semantic_results["metadatas"][0],
+            )
+        ]
+
+        # ── 2. Keyword search — finds exact codes ────────────
+        try:
+            keyword_results = self.collection.get(
+                where_document={"$contains": query},
+                include=["documents", "metadatas"],
+            )
+            keyword_docs = [
+                {"text": doc, "metadata": meta}
+                for doc, meta in zip(
+                    keyword_results["documents"],
+                    keyword_results["metadatas"],
+                )
+            ]
+            print(f"Keyword found: {len(keyword_docs)} chunks")
+        except Exception:
+            keyword_docs = []
+
+        # ── 3. Merge keyword first then semantic ─────────────
+        seen, unique_docs = set(), []
+        for doc in keyword_docs + semantic_docs:
+            key = doc["text"][:100]
+            if key not in seen:
+                seen.add(key)
+                unique_docs.append(doc)
+
+        # ── 4. BM25 rerank ───────────────────────────────────
+        return self.reranker.rerank(full_query, unique_docs)
+Test it:
+retriever = BankRetriever(collection=collection)
+docs      = retriever.get_relevant_documents("A0010")
+
+print(f"Total docs: {len(docs)}")
+for i, doc in enumerate(docs[:5]):
+    print(f"\n── {i+1} ──────────────────────────")
+    print(f"Source : {doc['metadata'].get('source','?')}")
+    print(f"Text   : {doc['text'][:300]}")
+
+
+
+
+class BankRetriever:
+    def __init__(
+        self,
+        collection,
         chat_history = None,
         k: int        = CFG["DENSE_K"],
         rerank_k: int = CFG["RERANK_K"],
