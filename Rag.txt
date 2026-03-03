@@ -1,3 +1,73 @@
+class BankRetriever:
+    def __init__(
+        self,
+        collection,
+        chat_history = None,
+        k: int        = CFG["DENSE_K"],
+        rerank_k: int = CFG["RERANK_K"],
+    ):
+        self.collection   = collection
+        self.chat_history = chat_history or []
+        self.k            = k
+        self.reranker     = BM25Reranker(k=rerank_k)
+
+    def get_relevant_documents(self, query: str) -> list[dict]:
+        # Build full query with history
+        full_query = (
+            " ".join(self.chat_history) + " " + query
+            if self.chat_history
+            else query
+        )
+
+        # ── Semantic search — ChromaDB handles embedding ─────
+        semantic_results = self.collection.query(
+            query_texts=[full_query],     # ← let ChromaDB embed it
+            n_results=min(self.k * 5, self.collection.count()),
+            include=["documents", "metadatas"],
+        )
+        semantic_docs = [
+            {"text": doc, "metadata": meta}
+            for doc, meta in zip(
+                semantic_results["documents"][0],
+                semantic_results["metadatas"][0],
+            )
+        ]
+
+        # ── Keyword search — catches exact codes like A0010 ──
+        try:
+            keyword_results = self.collection.get(
+                where_document={"$contains": query},
+                include=["documents", "metadatas"],
+            )
+            keyword_docs = [
+                {"text": doc, "metadata": meta}
+                for doc, meta in zip(
+                    keyword_results["documents"],
+                    keyword_results["metadatas"],
+                )
+            ]
+        except Exception:
+            keyword_docs = []
+
+        # ── Merge — keyword first, then semantic ─────────────
+        all_docs = keyword_docs + semantic_docs
+
+        # Remove duplicates
+        seen, unique_docs = set(), []
+        for doc in all_docs:
+            key = doc["text"][:100]
+            if key not in seen:
+                seen.add(key)
+                unique_docs.append(doc)
+
+        # ── BM25 rerank ──────────────────────────────────────
+        return self.reranker.rerank(full_query, unique_docs)
+
+
+
+
+
+
 Search directly by keyword in ChromaDB
 results = collection.get(
     where_document={"$contains": "A0010"},
