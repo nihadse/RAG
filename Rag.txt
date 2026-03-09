@@ -1,3 +1,14 @@
+import gc
+
+while True:
+    collected = gc.collect()
+    print(f"Collected objects: {collected}")
+    
+    if collected == 0:
+        break
+
+
+
 import os
 from datetime import datetime
 
