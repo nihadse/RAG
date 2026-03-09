@@ -1,3 +1,31 @@
+import os
+from datetime import datetime
+
+# Base directories
+PDF_FOLDER = "/mnt/Dossier_agence/test_stamp/"
+JSON_SAVE_DIR = "/mnt/Dossier_agence/json/"
+
+# Get current date
+date_str = datetime.now().strftime("%d_%m_%Y")
+
+# Create folder name
+folder_name = f"Nihad_{date_str}"
+
+# Full paths
+pdf_path = os.path.join(PDF_FOLDER, folder_name)
+json_path = os.path.join(JSON_SAVE_DIR, folder_name)
+
+# Create folders
+os.makedirs(pdf_path, exist_ok=True)
+os.makedirs(json_path, exist_ok=True)
+
+print("PDF folder created:", pdf_path)
+print("JSON folder created:", json_path)
+
+
+
+
+
 SYSTEM_PROMPT = """Vous etes un assistant RAG specialise dans les systemes bancaires, l architecture de donnees, et les produits financiers.
 Votre role est de repondre et d expliquer clairement les informations issues des documents, en les rendant comprehensibles pour tout type d utilisateur, du plus general au plus technique."""
 
