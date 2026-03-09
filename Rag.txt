@@ -1,5 +1,37 @@
 import os
 from datetime import datetime
+import os
+import zipfile
+from datetime import datetime
+
+# Base directory
+base_path = "/mnt/"
+
+# Current date
+date_str = datetime.now().strftime("%d_%m_%Y")
+
+# Create extraction folder
+extract_path = os.path.join(base_path, f"pdf_{date_str}")
+os.makedirs(extract_path, exist_ok=True)
+
+zip_path = "/mnt/Dossier_agence/01-2026.zip"
+
+# Extract while removing internal folder
+with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+    for member in zip_ref.namelist():
+        filename = os.path.basename(member)
+
+        if not filename:
+            continue
+
+        source = zip_ref.open(member)
+        target = open(os.path.join(extract_path, filename), "wb")
+
+        with source, target:
+            target.write(source.read())
+
+print("Extraction completed.")
+
 
 BASE_DIR = "/mnt/Dossier_agence/"
 
