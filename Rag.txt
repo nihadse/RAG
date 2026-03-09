@@ -1,3 +1,28 @@
+import os
+from datetime import datetime
+
+BASE_DIR = "/mnt/Dossier_agence/"
+
+# create unique run name
+timestamp = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
+RUN_FOLDER = os.path.join(BASE_DIR, f"Nihad_{timestamp}")
+
+# create folders
+JSON_FOLDER = os.path.join(RUN_FOLDER, "json")
+STRUCTURED_FOLDER = os.path.join(RUN_FOLDER, "structured")
+
+os.makedirs(JSON_FOLDER, exist_ok=True)
+os.makedirs(STRUCTURED_FOLDER, exist_ok=True)
+
+# Excel output
+OUTPUT_EXCEL = os.path.join(RUN_FOLDER, "output.xlsx")
+
+print("Run folder:", RUN_FOLDER)
+
+
+
+
+
 import gc
 
 while True:
