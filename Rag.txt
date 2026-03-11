@@ -1,3 +1,18 @@
+with open('/mnt/ordre_de_virement_template.json', 'r', encoding='utf-8') as f:
+    template_data = json.load(f)
+
+# Convert to text for the prompt
+TEMPLATE_TEXT = json.dumps(template_data, ensure_ascii=False, indent=2)
+Then pass it as before:
+prompt = build_prompt_for_page(
+    page_text, 
+    document_type, 
+    template_text=TEMPLATE_TEXT if document_type == "ordre_de_virement" else None
+)
+
+
+
+
 # Convert first page of template to image
 doc = fitz.open("/mnt/Ordre de Virement à l'étranger_.pdf")
 page = doc[0]
