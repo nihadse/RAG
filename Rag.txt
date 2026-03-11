@@ -1,3 +1,24 @@
+# Convert first page of template to image
+doc = fitz.open("/mnt/Ordre de Virement à l'étranger_.pdf")
+page = doc[0]
+pix = page.get_pixmap(dpi=150)
+template_image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+
+# Step 2: OCR it
+template_text = ocr_page(template_image)
+
+# Step 3: Save
+with open('/mnt/ordre_de_virement_template.txt', 'w', encoding='utf-8') as f:
+    f.write(template_text)
+
+print(template_text)
+
+
+
+
+
+
+
 # Step 1: Convert empty template PDF to image
 template_pages = convert_from_path('/content/drive/MyDrive/templates/empty_template.pdf', dpi=150)
 template_image = template_pages[0]  # only page 1 (ordre_de_virement)
