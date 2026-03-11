@@ -1,3 +1,64 @@
+def build_prompt_for_page(page_text: str, document_type: str, template_text: str = None) -> str:
+    schema = get_schema(document_type)
+    
+    hints = ""
+    if document_type == "ordre_de_virement":
+        hints = """
+Field Format hints:
+- Siège: exactly 5 digits
+- Racine: exactly 8 digits  
+- Ordinal: exactly 3 digits
+- Devise: letters only
+- Clé: exactly 2 digits
+- Adresse SWIFT: letters only
+- Références du paiement: composed of month, year, and "Part 3" or "Part 2"
+"""
+    
+    # Add template comparison instructions
+    template_instruction = ""
+    if template_text:
+        template_instruction = f"""
+TEMPLATE REFERENCE (EMPTY FORM):
+The following text is from the EMPTY template form - these are DEFAULT/PLACEHOLDER values, NOT real data:
+---
+{template_text[:2000]}  # Limit length
+---
+
+EXTRACTION RULES:
+1. Compare the FILLED document against this TEMPLATE
+2. If a value in the filled doc MATCHES the template → it's likely a placeholder, IGNORE it or mark as "template_default"
+3. Look for HANDWRITTEN text, different fonts, or corrections near template fields
+4. Only extract values that DIFFER from the template or are clearly added by hand
+5. If amount field shows "32" (template default) but "500" is handwritten nearby → extract "500"
+"""
+    
+    prompt = f"""You are an expert document information extraction system.
+
+Document type: {document_type.replace('_', ' ').upper()}
+Document language: French/Arabic
+
+{template_instruction}
+
+Return ONLY valid JSON matching the schema exactly.
+
+{hints}
+
+Schema:
+{json.dumps(schema, ensure_ascii=False, indent=2)}
+
+OCR TEXT:
+{page_text}
+
+Extract only real filled values, ignore template defaults."""
+    
+    return prompt
+
+
+
+
+
+
+
 zip_name = os.path.splitext(os.path.basename(zip_path))[0]
 
 
