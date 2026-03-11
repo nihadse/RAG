@@ -1,3 +1,23 @@
+# Step 1: Convert empty template PDF to image
+template_pages = convert_from_path('/content/drive/MyDrive/templates/empty_template.pdf', dpi=150)
+template_image = template_pages[0]  # only page 1 (ordre_de_virement)
+
+# Step 2: Run OCR on it once to get the text
+template_text = ocr_page(template_image)
+
+# Step 3: Save it so you don't repeat this every time
+with open('/content/drive/MyDrive/templates/ordre_de_virement_template.txt', 'w', encoding='utf-8') as f:
+    f.write(template_text)
+
+print(template_text)  # verify it looks correct
+Then in your main pipeline, load it once at the top:
+# Load template text once before processing all PDFs
+with open('/content/drive/MyDrive/templates/ordre_de_virement_template.txt', 'r', encoding='utf-8') as f:
+    TEMPLATE_TEXT = f.read()
+
+
+
+
 def build_prompt_for_page(page_text: str, document_type: str, template_text: str = None) -> str:
     schema = get_schema(document_type)
     
