@@ -1,3 +1,9 @@
+IIF(IsNull([Row+1:Sum2]), [Sum1], [Sum1] + [Row+1:Sum2])
+
+
+
+
+
 IIF(IsNull([Row+1:Sum2]), [Sum2], [Sum2] + [Row+1:Sum2])
 
 
