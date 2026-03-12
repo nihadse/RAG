@@ -1,3 +1,9 @@
+IIF([id_tiers] = [Row+1:id_tiers], [510] + [Row+1:520], [510] + 0)
+
+
+
+
+
 IIF(IsNull([Row+1:Sum2]), [Sum1], [Sum1] + [Row+1:Sum2])
 
 
