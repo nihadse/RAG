@@ -1,3 +1,7 @@
+IIF(IsNull([Row+1:Sum]), [Sum], [Row+1:Sum] + [Sum])
+
+
+
 with open('/mnt/ordre_de_virement_template.json', 'r', encoding='utf-8') as f:
     template_data = json.load(f)
 
