@@ -1,3 +1,319 @@
+Got you — you do not want a presentation-style summary or a passation note. You want it rewritten as project documentation, meaning something structured, clear, and usable by a coworker who may continue or understand the project later.
+
+Here’s a rewritten documentation-style version in French:
+
+
+---
+
+Documentation du projet
+
+Détection des communautés de fraude liées aux cartes Visa
+
+
+---
+
+1. Présentation générale du projet
+
+Ce projet a été développé par l’équipe Data dans le cadre de la lutte contre la fraude aux cartes Visa.
+La fraude aux cartes Visa représente un enjeu majeur à l’échelle mondiale, avec des pertes financières considérables chaque année. En Algérie, cette problématique prend également de l’ampleur, notamment à travers des schémas de fraude permettant le transfert illicite de fonds hors du pays.
+
+L’objectif principal de ce projet est de mettre en place une solution capable d’identifier des communautés de fraudeurs utilisant des cartes Visa dans le cadre d’opérations suspectes, en particulier via des retraits ou transactions réalisés à travers différents points ATM et différentes localités.
+
+Le projet repose sur une approche combinant analyse de données, théorie des graphes et apprentissage automatique, afin de détecter des schémas collectifs de fraude qui ne peuvent pas être identifiés par les systèmes classiques de détection basés uniquement sur l’analyse de transactions isolées.
+
+
+---
+
+2. Contexte métier
+
+Le système de détection de fraude déjà en place au niveau de la banque, NETRIVIEL, est principalement conçu pour identifier des transactions individuelles suspectes.
+Cette approche reste pertinente pour certains cas simples, mais elle présente des limites face à des mécanismes de fraude plus organisés.
+
+En pratique, les fraudeurs mettent en place des stratégies collaboratives leur permettant de contourner les règles de détection traditionnelles. Au lieu d’effectuer des opérations isolées facilement repérables, ils construisent des communautés au sein desquelles plusieurs individus participent à la fraude, directement ou indirectement.
+
+Ces réseaux peuvent inclure :
+
+des porteurs de cartes qui mettent leurs cartes à disposition ;
+
+des individus qui orchestrent les opérations ;
+
+des retraits ou transactions répartis sur plusieurs cartes, plusieurs dates et plusieurs localisations ;
+
+des profils jouant des rôles différents au sein d’une même structure frauduleuse.
+
+
+Dans ce contexte, une approche classique par transaction ne suffit plus. Il devient nécessaire d’adopter une vision orientée réseau afin d’identifier les liens entre les opérations et les individus impliqués.
+
+
+---
+
+3. Problématique
+
+La problématique principale de ce projet est la suivante :
+
+Comment détecter automatiquement des communautés de fraudeurs à partir d’un grand volume de transactions Visa, alors que les systèmes existants sont principalement conçus pour détecter des anomalies individuelles ?
+
+Cette problématique est renforcée par plusieurs difficultés :
+
+le volume élevé des données ;
+
+la diversité des variables disponibles ;
+
+la complexité des relations entre les acteurs ;
+
+la difficulté à identifier les membres centraux ou les têtes de réseau ;
+
+l’évolution continue des stratégies de fraude.
+
+
+
+---
+
+4. Objectifs du projet
+
+Les objectifs du projet sont les suivants :
+
+4.1. Objectif principal
+
+Développer une solution d’intelligence artificielle permettant de détecter des communautés de fraude liées à l’utilisation de cartes Visa.
+
+4.2. Objectifs spécifiques
+
+Exploiter les historiques de transactions pour identifier des comportements suspects collectifs ;
+
+Détecter les liens entre cartes, clients, transactions et localisations ATM ;
+
+Construire des graphes représentant les relations entre les différentes entités ;
+
+Identifier des communautés à l’intérieur de ces graphes ;
+
+Aider les équipes métier et conformité à investiguer les cas suspects ;
+
+Réduire le temps nécessaire à l’identification de réseaux de fraude.
+
+
+
+---
+
+5. Périmètre des données
+
+Le projet s’appuie sur des données transactionnelles historiques issues des opérations liées aux cartes Visa.
+
+Les données exploitées couvrent notamment :
+
+environ 1 000 000 de lignes de transactions ;
+
+près de 5 années d’historique, soit environ 1800 jours ;
+
+environ 20 000 clients ;
+
+plusieurs points ATM et différentes localités ;
+
+les informations nécessaires à l’analyse des transactions, des porteurs de cartes et des relations potentielles entre opérations.
+
+
+La volumétrie importante des données rend indispensable l’utilisation d’outils adaptés au traitement, à l’exploration et à la modélisation.
+
+
+---
+
+6. Principe de fraude identifié
+
+L’analyse métier réalisée dans le cadre du projet a mis en évidence un mode opératoire basé sur la création de communautés organisées.
+
+Les fraudeurs ont compris que les systèmes traditionnels de détection sont surtout efficaces pour repérer des transactions isolées anormales. Pour contourner ces systèmes, ils répartissent les opérations entre plusieurs cartes et plusieurs individus.
+
+Le scénario observé peut être résumé comme suit :
+
+1. constitution d’un groupe ou réseau de participants ;
+
+
+2. mise à disposition de cartes Visa par certains porteurs ;
+
+
+3. utilisation coordonnée de ces cartes pour effectuer des transactions ou retraits frauduleux ;
+
+
+4. dispersion des opérations dans le temps ou dans l’espace afin de réduire la visibilité du schéma global ;
+
+
+5. maintien d’un niveau de suspicion faible au niveau de chaque transaction prise séparément.
+
+
+
+Ce fonctionnement justifie l’utilisation d’une approche orientée réseau, dans laquelle les relations entre entités deviennent un élément central de la détection.
+
+
+---
+
+7. Approche méthodologique
+
+La solution développée repose sur une combinaison de plusieurs approches complémentaires.
+
+7.1. Nettoyage et préparation des données
+
+Une première étape a consisté à préparer les données pour les rendre exploitables.
+Cette phase inclut :
+
+la suppression ou correction des erreurs ;
+
+le traitement des incohérences ;
+
+l’élimination des données aberrantes ;
+
+la structuration des données nécessaires à l’analyse.
+
+
+Cette étape a été réalisée avec Alteryx.
+
+7.2. Exploration des données
+
+Une phase d’exploration a ensuite été menée afin de mieux comprendre :
+
+la structure des transactions ;
+
+les variables les plus pertinentes ;
+
+les localisations ATM ;
+
+les liens potentiels entre opérations et clients.
+
+
+Cette étape a été effectuée avec Domino Data Lab.
+
+7.3. Modélisation
+
+La modélisation repose sur deux composantes principales :
+
+a. Apprentissage automatique
+
+L’apprentissage automatique a été utilisé pour identifier des schémas de fraude complexes à partir des données historiques.
+Cette approche permet de mettre en évidence des comportements atypiques ou des combinaisons de variables difficilement détectables à l’œil nu.
+
+b. Théorie des graphes
+
+La théorie des graphes a été utilisée pour représenter les relations entre les différentes entités du projet, telles que :
+
+les cartes ;
+
+les clients ;
+
+les transactions ;
+
+les ATM ;
+
+les localisations.
+
+
+Cette représentation permet d’analyser la structure des interactions et d’identifier des communautés d’entités fortement connectées, susceptibles de correspondre à des réseaux de fraude.
+
+7.4. Détection des communautés
+
+Une fois le graphe construit, l’objectif est d’identifier les sous-ensembles d’entités fortement liées entre elles.
+Ces regroupements sont ensuite analysés comme des communautés potentielles de fraude.
+
+Cette approche permet non seulement de détecter des groupes suspects, mais aussi d’identifier :
+
+les nœuds centraux ;
+
+les profils les plus connectés ;
+
+les acteurs potentiellement structurants dans le réseau.
+
+
+7.5. Validation métier
+
+Les résultats des modèles ont été validés avec l’équipe Conformité.
+Cette étape a permis de confirmer la pertinence des communautés détectées et d’évaluer la capacité de la solution à répondre aux besoins métier.
+
+
+---
+
+8. Outils utilisés
+
+Les principaux outils utilisés dans le cadre du projet sont les suivants :
+
+Alteryx : utilisé pour le nettoyage, la préparation et la transformation des données ;
+
+Domino Data Lab : utilisé pour l’exploration des données et le développement des modèles ;
+
+Techniques de machine learning : utilisées pour l’identification de schémas de fraude ;
+
+Théorie des graphes / analyse de réseaux : utilisée pour la construction et l’analyse des communautés de fraude.
+
+
+
+---
+
+9. Résultats obtenus
+
+Les résultats obtenus montrent que la solution développée est capable d’identifier efficacement des réseaux de fraude à partir des données transactionnelles historiques.
+
+Les principaux apports observés sont :
+
+détection de communautés de fraude non visibles à travers une analyse transaction par transaction ;
+
+amélioration de la compréhension des relations entre porteurs, cartes, ATM et opérations ;
+
+capacité à mettre en évidence des structures organisées ;
+
+validation positive des résultats par l’équipe conformité ;
+
+réduction significative du temps nécessaire à la détection de ces communautés.
+
+
+La solution a ainsi démontré sa valeur dans un cadre réel d’exploitation bancaire.
+
+
+---
+
+10. Limites et points d’attention
+
+Même si la solution a montré des résultats satisfaisants, plusieurs points d’attention doivent être pris en compte :
+
+la qualité des résultats dépend fortement de la qualité des données d’entrée ;
+
+l’évolution des schémas de fraude peut nécessiter une mise à jour régulière des modèles ;
+
+certaines communautés détectées peuvent nécessiter une analyse métier complémentaire avant confirmation ;
+
+l’identification de la tête de réseau reste l’un des aspects les plus sensibles et complexes.
+
+
+
+---
+
+11. Conclusion
+
+Ce projet a permis de mettre en place une approche innovante pour la détection des communautés de fraude liées aux cartes Visa.
+Contrairement aux systèmes classiques centrés sur les transactions individuelles, la solution développée adopte une vision globale et relationnelle de la fraude.
+
+En combinant l’analyse des données, l’apprentissage automatique et la théorie des graphes, la banque dispose désormais d’un dispositif plus avancé pour identifier les réseaux organisés et renforcer ses capacités de prévention et d’investigation.
+
+Cette documentation constitue une base de compréhension du projet, de son contexte, de son fonctionnement général et de ses résultats.
+
+
+---
+
+I can also make this into a real professional documentation format with sections like:
+
+Introduction / Objectif / Sources de données / Méthodologie / Architecture / Résultats / Limites / Recommandations / Annexes
+
+which would look much more like an actual internal Word document.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 IIF([id_tiers] = [Row+1:id_tiers] AND [Reference_denotage] = [Row+1:Reference_denotage], [510] + [Row+1:520], [510] + 0)
 
 
