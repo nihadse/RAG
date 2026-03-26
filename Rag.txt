@@ -1,5 +1,44 @@
 Règles de gestion – APA Leasing
 
+Dans le cadre de l’APA Leasing, les règles de gestion définissent la logique de calcul des montants comptables à partir de conditions appliquées sur les libellés d’opération et les racines comptables.
+
+1. Traitement des opérations “Factclient” (510)
+
+Lorsque le libellé d’opération contient “Factclient” et que la racine comptable est 870411-000, le montant comptabilisé correspond au montant du mouvement comptable. Sinon, le montant est considéré comme nul.
+
+2. Traitement des opérations “Factclient” (520)
+
+Lorsque le libellé d’opération contient “Factclient” et que la racine comptable est 870411-001, le montant comptabilisé correspond également au montant du mouvement comptable. Sinon, le montant est nul.
+
+3. Traitement des écritures de type 416 (539)
+
+Pour les écritures dont la racine se termine par 416, le montant est retraité en neutralisant la TVA (19%) :
+le montant est calculé en divisant le mouvement par 1,19 puis en le rendant négatif.
+
+4. Consolidation des écritures 416 (310)
+
+Toujours pour les écritures de type 416, un calcul de consolidation est effectué en additionnant le montant retraité et en appliquant un signe négatif pour obtenir le résultat final.
+
+5. Périmètre des comptes concernés
+
+Les traitements s’appliquent sur les mouvements liés aux comptes suivants :
+
+09100-870411-000
+
+09100-870411-001
+
+09100-836562-031
+
+
+
+---
+
+Ces règles permettent d’assurer un traitement cohérent des opérations comptables et la production fiable des résultats de l’APA Leasing.
+
+
+
+Règles de gestion – APA Leasing
+
 Dans le cadre de l’APA Leasing, les règles de gestion appliquées permettent de traiter et de calculer les montants comptables à partir de conditions sur les libellés d’opération et les racines comptables.
 
 1. Traitement des opérations “Factclient”
