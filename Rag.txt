@@ -1,3 +1,40 @@
+Règles de gestion – APA Leasing
+
+Dans le cadre de l’APA Leasing, les règles de gestion appliquées permettent de traiter et de calculer les montants comptables à partir de conditions sur les libellés d’opération et les racines comptables.
+
+1. Traitement des opérations “Factclient”
+
+Lorsque le champ lib_operation contient “Factclient”, le système distingue deux cas selon la racine comptable :
+
+Pour la racine 870411-800, le montant retenu est le Montant_mvt_comptable.
+
+Pour la racine 870411-001, le montant retenu est également le Montant_mvt_comptable.
+
+
+2. Traitement des lignes liées à la racine 416
+
+Pour les écritures dont la racine se termine par 416, le montant est retraité en excluant la TVA, avec un ajustement du type :
+
+Montant = - (Montant_mvt_416 / 1.19)
+
+
+Un calcul complémentaire est ensuite appliqué pour consolider ces montants.
+
+3. Calcul de contrôle
+
+Le résultat final de contrôle est obtenu par la somme des deux composantes principales :
+
+Contrôle = 510 + 520
+
+
+
+---
+
+Ces règles assurent le traitement cohérent des données comptables et la production des résultats de l’APA Leasing.
+
+
+
+
 pip install torch --index-url https://download.pytorch.org/whl/cu128 --upgrade
 Then verify:
 
