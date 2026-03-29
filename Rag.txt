@@ -1,3 +1,8 @@
+Vous trouverez automatiquement les résultats après l’exécution de l’application via ce lien.
+
+
+
+
 Les codes 000, 001 et 031 couvrent principalement les montants des comptes suivants :
 09100-870411-000, 09100-870411-001 et 09100-836562-031.
 
