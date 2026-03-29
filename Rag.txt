@@ -1,3 +1,45 @@
+Parfait — voici la version corrigée avec cette précision intégrée de manière naturelle et professionnelle 👇
+
+
+---
+
+Règles de gestion – APA Leasing
+
+Dans le cadre de l’APA Leasing, les règles de gestion mises en place permettent d’automatiser le traitement des agios réservés et de leur reprise, en se basant sur les données issues des outils existants et des écritures comptables associées.
+
+1. Logique de calcul (Alteryx APA)
+
+Les calculs sont effectués selon des conditions sur les libellés d’opération et les racines comptables :
+
+510 : lorsque lib_operation contient “Factclient” et que la racine est 870411-000, le montant retenu correspond au Montant_mvt_comptable associé à ce compte, sinon 0.
+
+520 : lorsque lib_operation contient “Factclient” et que la racine est 870411-001, le montant retenu correspond au Montant_mvt_comptable associé à ce compte, sinon 0.
+
+
+👉 Ainsi, le champ Montant_mvt_comptable correspond aux montants comptables des comptes 870411-000 (capital) et 870411-001 (intérêts).
+
+539 : pour les racines se terminant par 416, le montant est retraité en HT : (Montant_mvt_416 / 1,19) × (-1).
+
+310 : pour ces mêmes racines, un calcul complémentaire est appliqué : (Montant_mvt_416 + 539) × (-1).
+
+
+Le périmètre couvre principalement les comptes :
+09100-870411-000, 09100-870411-001 et 09100-836562-031.
+
+
+---
+
+Le reste du document (périmètre, fréquence, outils, etc.) reste inchangé.
+
+
+---
+
+Si tu veux, je peux aussi ajouter une petite phrase ultra clean style audit du type :
+👉 “Les montants utilisés correspondent aux flux comptabilisés sur les comptes produits capital et intérêts.”
+
+
+
+
 Interne
 
 Bonjour Mouna,
