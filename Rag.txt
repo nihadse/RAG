@@ -1,3 +1,24 @@
+Bonjour à toutes et à tous,
+
+Je vous remercie pour votre retour ainsi que pour votre validation globale du livrable.
+
+Je vous confirme que l’ensemble des ajustements demandés a été pris en compte et implémenté de manière rigoureuse et professionnelle, conformément à vos recommandations, à savoir :
+
+- La suppression de la condition liée aux références contrats (dénotage), afin d’inclure l’ensemble des produits concernés ;
+- L’ajout de la condition relative aux clients douteux (ratings 11 et 12) basée sur le sous-solde.
+
+Les modifications ont été intégrées avec soin, en veillant à garantir la cohérence, la fiabilité des résultats ainsi que la conformité avec les besoins exprimés lors de nos échanges.
+
+Le livrable est désormais finalisé et prêt à être exploité.
+
+Je reste bien entendu à votre disposition pour toute précision complémentaire.
+
+Cordialement,
+Nihad Senhadji
+
+
+
+
 Vous trouverez automatiquement les résultats après l’exécution de l’application via ce lien.
 
 
