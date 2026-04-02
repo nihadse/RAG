@@ -1,3 +1,40 @@
+Voici la reformulation en format paragraphes fluides 👇
+
+
+---
+
+Les défis actuels
+
+Aujourd’hui, le volume important de documentation constitue un véritable frein opérationnel. Les équipes perdent un temps considérable à effectuer des recherches manuelles longues et peu efficaces, parcourant parfois plus de 15 000 pages pour trouver une information. Cette situation est aggravée par la dispersion des données, non centralisées et difficiles d’accès, ce qui génère une frustration croissante chez les collaborateurs et impacte directement leur productivité.
+
+
+---
+
+Les risques majeurs liés à la recherche
+
+Ces difficultés engendrent des risques importants dans le fonctionnement quotidien. La perte de temps devient excessive, notamment en raison de la navigation complexe entre de multiples fichiers issus de différentes sources comme ATLAS. Retrouver l’information pertinente devient de plus en plus difficile, ce qui conduit souvent à des résultats incohérents, incomplets, voire inexistants selon les mots-clés utilisés. Cette situation crée également une dépendance accrue aux collègues pour obtenir des informations fiables et précises.
+
+
+---
+
+La solution proposée
+
+La solution RAG DZ repose sur la mise en place d’une base de connaissances centralisée intégrant l’ensemble de la documentation ATLAS. Elle permet d’effectuer des recherches intelligentes et contextualisées au sein des documents, tout en offrant une interface conversationnelle intuitive facilitant l’accès à l’information. Grâce à une mise à jour continue des contenus, le système garantit des réponses fiables, pertinentes et toujours à jour.
+
+
+---
+
+CHATBOT
+
+Le chatbot permet aux utilisateurs de poser leurs questions en langage naturel et d’obtenir instantanément des réponses précises, directement appuyées et référencées par la documentation ATLAS. Il simplifie considérablement l’accès à l’information tout en réduisant le temps de recherche et en améliorant l’efficacité des équipes.
+
+
+---
+
+Si tu veux, je peux encore le rendre plus percutant (style pitch CEO / slide) ou plus technique (version data/AI) 👍
+
+
+
 Voici une reformulation plus fluide, professionnelle et impactante 👇
 
 
