@@ -1,3 +1,69 @@
+Voici une reformulation plus fluide, professionnelle et impactante 👇
+
+
+---
+
+Les défis actuels
+
+Un volume documentaire massif entraînant une perte de temps considérable.
+
+Des recherches manuelles longues et inefficaces : les équipes consacrent plusieurs heures à parcourir plus de 15 000 pages.
+
+Une information dispersée, non centralisée et difficilement exploitable.
+
+Une frustration croissante des collaborateurs, impactant directement leur productivité.
+
+
+
+---
+
+Les risques majeurs liés à la recherche
+
+Une perte de temps excessive dans les activités quotidiennes.
+
+Une navigation complexe entre de multiples fichiers issus de différentes sources (ATLAS).
+
+Une difficulté accrue à localiser rapidement l’information pertinente.
+
+
+Conséquences :
+
+Informations introuvables, incomplètes ou obsolètes.
+
+Résultats incohérents, dépendants des mots-clés utilisés.
+
+Forte dépendance aux collègues pour accéder à des informations fiables.
+
+
+
+---
+
+La solution proposée
+
+RAG DZ s’appuie sur une base de connaissances centralisée regroupant l’ensemble de la documentation ATLAS.
+
+Recherche intelligente et contextualisée dans les documents.
+
+Interface conversationnelle intuitive pour un accès rapide et simplifié à l’information.
+
+Mise à jour continue avec les nouvelles documentations, garantissant des réponses fiables et актуelles.
+
+
+
+---
+
+CHATBOT
+
+Posez une question, obtenez une réponse instantanée,
+appuyée et référencée par la documentation ATLAS.
+
+
+---
+
+Si tu veux, je peux aussi transformer ça en slide PowerPoint ultra impactante ou en pitch oral pour présentation 👀
+
+
+
 Madame/Monsieur,
 Je vous informe par la présente que j’ai officiellement démissionné de mon poste au sein de la banque.
 Je tiens à vous remercier sincèrement pour votre accompagnement et les opportunités d’apprentissage que j’ai eues durant cette expérience.
