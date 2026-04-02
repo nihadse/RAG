@@ -1,3 +1,31 @@
+Demande de lettre de recommandation
+
+Monsieur le Secrétaire Général,
+
+Je me permets de vous adresser la présente afin de solliciter votre bienveillance pour l’établissement d’une lettre de recommandation en ma faveur, suite à ma décision de quitter mes fonctions au sein de la banque.
+
+Je me présente, Nihad Senhadji. J’ai évolué au sein du département Data, dans l’équipe de M. Omar, où j’ai débuté en tant que Data Analyst.
+
+Au cours de mon expérience professionnelle, j’ai eu l’opportunité de contribuer activement à plusieurs projets stratégiques à forte valeur ajoutée, notamment dans le domaine de la data science et de l’intelligence artificielle. J’ai notamment été à l’origine et acteur principal de plusieurs cas d’usage innovants, tels que :
+
+- Le projet AI Sentinilia, dédié à la détection de communautés de fraude à travers des approches avancées de graphes et d’analyse relationnelle.
+- Le projet DECAD, axé sur l’exploitation intelligente des données pour améliorer la prise de décision.
+- Le développement d’un chatbot RAG (Retrieval-Augmented Generation) permettant d’optimiser l’accès à l’information et d’automatiser les réponses aux requêtes internes.
+- Divers cas d’usage en analytics, visant à améliorer la performance opérationnelle et la valorisation des données au sein de l’organisation.
+
+Ces initiatives ont contribué à renforcer l’efficacité des processus internes, à réduire les tâches manuelles et à positionner la banque dans une dynamique d’innovation technologique.
+
+Dans ce contexte, et compte tenu de votre position ainsi que de votre connaissance des orientations stratégiques de la banque, je serais honorée de pouvoir bénéficier d’une lettre de recommandation de votre part, mettant en avant mon engagement, mes compétences techniques et ma contribution aux projets structurants.
+
+Je reste bien entendu à votre disposition pour toute information complémentaire ou pour vous transmettre les éléments nécessaires à la rédaction de cette lettre.
+
+Je vous prie d’agréer, Monsieur le Secrétaire Général, l’expression de ma haute considération.
+
+Nihad Senhadji
+
+
+
+
 Voici la reformulation en format paragraphes fluides 👇
 
 
