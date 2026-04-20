@@ -1,3 +1,16 @@
+
+This dashboard focuses on BTS (Base Transceiver Station) issues and stability tracking across regions.
+
+
+
+This dashboard tracks Incident Management (IM) performance and SLA compliance.
+
+
+
+
+
+
+
 Detailed view of current network outages (RAN) for operational follow-up.
 
 Monitor sites with outages longer than 24 hours to prioritize critical incidents.
