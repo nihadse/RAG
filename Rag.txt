@@ -1,3 +1,6 @@
+“This dashboard is used to monitor and analyze network outages by region, technology, duration, and responsibility to support operational decision-making and incident management.
+
+
 708647
 
 
