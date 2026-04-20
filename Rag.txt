@@ -1,3 +1,8 @@
+Detailed view of current network outages (RAN) for operational follow-up.
+
+Monitor sites with outages longer than 24 hours to prioritize critical incidents.
+
+
 “This dashboard is used to monitor and analyze network outages by region, technology, duration, and responsibility to support operational decision-making and incident management.
 
 
