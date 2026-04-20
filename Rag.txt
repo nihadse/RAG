@@ -1,3 +1,12 @@
+This dashboard is focused on alarm handling, acknowledgment performance, and automation filtering in RAN (Radio Access Network)
+
+This dashboard tracks Preventive Maintenance (PM) execution progress across regions.
+
+This dashboard compares planned vs actual maintenance activity over time
+
+
+
+
 
 This dashboard focuses on BTS (Base Transceiver Station) issues and stability tracking across regions.
 
