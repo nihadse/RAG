@@ -1,3 +1,7 @@
+This dashboard appears to be a performance monitoring report focused on OLA (On-Level Agreement) rates across different operational categories over a selected date range.
+
+
+
 This dashboard is focused on alarm handling, acknowledgment performance, and automation filtering in RAN (Radio Access Network)
 
 This dashboard tracks Preventive Maintenance (PM) execution progress across regions.
