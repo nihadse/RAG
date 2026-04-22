@@ -1,3 +1,115 @@
+Here are the correct answers for Questions 33–40, with clear explanations:
+
+
+---
+
+Question 33
+
+Which qualifications are required before accessing the customer network?
+Answer: A, B, D (PPCC, CSC, CQ exam)
+BCG is not a required qualification for access.
+
+
+---
+
+Question 34
+
+Three approvals include:
+Answer: A, B, C (TD approval, PM approval, Customer approval)
+“Project team approval” is not part of the official “three approvals.”
+
+
+---
+
+Question 35
+
+After rollback and root cause not found, what should be done?
+Answer: B, C, D
+
+Stop related changes
+
+Stop same batch/scenario
+
+Let R&D simulate and analyze
+Re-performing blindly (A) is not allowed.
+
+
+
+---
+
+Question 36
+
+Correct statements about severity level and reviewers:
+Answer: A, B, C
+
+≤4 → Project team
+
+5–7 → TD
+
+8–13 → GTAC/MV
+Option D is incorrect.
+
+
+
+---
+
+Question 37
+
+NetCare emergency mode applies to:
+Answer: A, H
+
+Urgent recovery needed
+
+Accident occurs
+All others (virus, faster access, routine work, no RFC, etc.) are NOT valid.
+
+
+
+---
+
+Question 38
+
+After which steps can WFM task NOT be cancelled?
+Answer: C, D, E (Implement, Verify, Monitor)
+Once execution starts, cancellation is no longer allowed.
+
+
+---
+
+Question 39
+
+Operations NOT compliant with GTS Cooperation Strategy White Paper:
+Answer: A, B, D
+
+Subcontractors handling core features ❌
+
+Leased engineers designing/optimizing ❌
+
+Leased employees acting as TD ❌
+Option C is acceptable.
+
+
+
+---
+
+Question 40
+
+Correct statements about observation phase after change:
+Answer: A, B, C, D (All correct)
+All listed practices follow standard procedure.
+
+
+---
+
+✅ You now have the full set (1–40) correct.
+
+If you want a quick cheat sheet (patterns to memorize so you pass future Huawei exams easily), I can give you that next—it will save you a lot of time.
+
+
+
+
+
+
 Here are the correct answers with each question clearly written:
 
 
