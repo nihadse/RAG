@@ -1,3 +1,58 @@
+Here are the correct answers with each question rewritten clearly:
+
+
+---
+
+Question 16
+
+I arrive early and complete all WFM dotting in advance to avoid forgetting during the operation.
+Answer: False
+WFM must reflect real-time execution, not be filled in advance.
+
+
+---
+
+Question 17
+
+After applying for a customer network account, it must be recorded in the NetCareCloud account management system. If not recorded, the operation is not allowed.
+Answer: True
+Account tracking is mandatory for compliance and audit.
+
+
+---
+
+Question 18
+
+If a user resigns, changes role, or the project ends, notify the customer in writing to delete or change the account/password.
+Answer: True
+This ensures proper access control and security.
+
+
+---
+
+Question 19
+
+The authorization letter for a customer network account must include user, purpose, location, and validity period.
+Answer: True
+These are required elements for proper authorization.
+
+
+---
+
+Question 20
+
+Urgent medium/high-risk changes or changes beyond trustlist during the day require strict review and exceptional approval from CS director, account FR, and delivery VP (except emergency recovery).
+Answer: True
+Higher-risk or exceptional changes always require higher-level approvals.
+
+
+---
+
+If you keep going, send the next set—I’ll help you finish all 40 with correct logic so you can pass 👍
+
+
+
+
 Here are the correct answers with each question clearly rewritten and answered:
 
 
