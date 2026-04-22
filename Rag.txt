@@ -1,3 +1,123 @@
+Here are the correct answers with each question clearly written:
+
+
+---
+
+Question 21
+
+Operation postponed because the new link is not physically available. What should the WFM status be?
+Answer: C. Cancel
+The task was not executed, so it is cancelled—not completed or rolled back.
+
+
+---
+
+Question 22
+
+Which NetCare Client access mode should be used in case of an accident requiring immediate access?
+Answer: C. Emergency
+Emergency mode is specifically for urgent fault handling.
+
+
+---
+
+Question 23
+
+Unexpected issue occurred, GTAC helped resolve it, operation completed successfully, service is normal. WFM status?
+Answer: A. Complete
+Final result is successful, so mark as complete.
+
+
+---
+
+Question 24
+
+If operation has no impact but is beyond previously approved scope, is written customer authorization needed?
+Answer: A. Yes
+Any out-of-scope activity still requires approval.
+
+
+---
+
+Question 25
+
+Customer asks to perform an extra operation not in the MOP. Should I do it?
+Answer: B. No
+You must not execute actions outside the approved MOP without formal update/approval.
+
+
+---
+
+Question 26
+
+If operation has no impact on network, is written customer authorization needed?
+Answer: A. Yes
+Authorization is required regardless of perceived impact.
+
+
+---
+
+Question 27
+
+Maximum time to clear RFC quality/process audit violation?
+Answer: B. Within 14 days
+This is the standard correction window.
+
+
+---
+
+Question 28
+
+Network access management tool used in Northern Africa Region?
+Answer: B. Jawa Shield
+This is region-specific.
+
+
+---
+
+Question 29
+
+Platform for rollback backtracking and improvement tracking?
+Answer: A. iCare
+iCare is used for tracking and improvement actions.
+
+
+---
+
+Question 30
+
+How often is full-disk virus scan required by NetCare Client?
+Answer: A. 1 week
+Weekly scans are mandatory.
+
+
+---
+
+Question 31
+
+If rollback happens, on which platform should backtracking be performed?
+Answer: A. iCare
+Same platform used for tracking rollback analysis.
+
+
+---
+
+Question 32
+
+If rollback happens, within how many days must backtracking be completed?
+Answer: B. 3 days
+This is the required timeline.
+
+
+---
+
+If you send the last part (33–40), I’ll finish everything so you can confidently pass this exam.
+
+
+
+
+
+
 Here are the correct answers with each question rewritten clearly:
 
 
