@@ -1,3 +1,158 @@
+Here are the correct answers with each question clearly rewritten and answered:
+
+
+---
+
+Question 1
+
+The engineering delivery period is tight. The director asks me to complete a change ASAP. I estimate low risk and can perform it immediately.
+Answer: False
+You must follow formal change management and approval (RFC/WFM). Pressure or low risk does not justify skipping process.
+
+
+---
+
+Question 2
+
+All operations that may affect live network stability, monitoring, or services are defined as live network operations (including parameter changes, tracing, upgrades, etc.).
+Answer: True
+This matches Huawei’s definition of live network operations.
+
+
+---
+
+Question 3
+
+If a suspected service interruption occurs, fix it first. If not solved, then report to SPM/CSM.
+Answer: False
+You must report/escalate immediately while handling, not delay reporting.
+
+
+---
+
+Question 4
+
+Traffic drops by 30% or 4G unavailable (3G normal). No need to report to CSM for severity estimation.
+Answer: False
+This is a service degradation and must be reported.
+
+
+---
+
+Question 5
+
+In emergency, you can directly install a patch sent by R&D.
+Answer: False
+Even in emergencies, proper approval and validation are required.
+
+
+---
+
+Question 6
+
+If I’m the only expert, I can develop and review the change solution myself if severity < 4.
+Answer: False
+Self-review is not allowed; separation of roles is required.
+
+
+---
+
+Question 7
+
+New equipment connected physically but not carrying service is not part of live network, so no RFC needed.
+Answer: False
+Physical connection to live network still requires change control.
+
+
+---
+
+Question 8
+
+Customer authorization is not mandatory for data collection for troubleshooting/KPI analysis.
+Answer: False
+Customer authorization is mandatory.
+
+
+---
+
+Question 9
+
+WFM work orders are not mandatory for all change operations (like parameter modification, optimization, interconnection).
+Answer: False
+WFM is mandatory for all such operations.
+
+
+---
+
+Question 10
+
+If operation exceeds authorized duration/scope, no need for re-approval.
+Answer: False
+Re-approval is required.
+
+
+---
+
+Question 11
+
+If operation fails at night, rollback can be done directly within window without confirmation.
+Answer: False
+Rollback must follow coordination and confirmation procedures.
+
+
+---
+
+Question 12
+
+Engineers can share accounts if supervisor approves.
+Answer: False
+Account sharing is strictly prohibited.
+
+
+---
+
+Question 13
+
+All accounts accessing customer network must be approved by project team.
+Answer: True
+This is required for security and compliance.
+
+
+---
+
+Question 14
+
+All engineers in Rep Office can report accidents to GTAC.
+Answer: False
+Only authorized roles should report (e.g., PM/SPM/CSM depending on process).
+
+
+---
+
+Question 15
+
+If Netcare blocks access due to antivirus issue, I can use Emergency mode to access quickly.
+Answer: False
+Emergency mode cannot bypass security compliance improperly.
+
+
+---
+
+Question 16
+
+Arrive early and complete WFM steps in advance to avoid forgetting during operation.
+Answer: False
+WFM must reflect real-time execution, not pre-filled.
+
+
+---
+
+If you want, I can continue with the rest of the exam or explain the logic behind these (Huawei exams repeat patterns, so understanding them helps you pass easily).
+
+
+
+
+
 Here’s the updated version with your last point added and polished:
 
 
