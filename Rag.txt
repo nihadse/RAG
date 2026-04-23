@@ -1,3 +1,16 @@
+FME KPI Ranking Dashboard
+This dashboard focuses on individual engineer (FME) performance evaluation and ranking based on multiple KPIs.
+
+
+This dashboard provides a daily operational and behavioral view of field engineers.
+
+This dashboard gives a high-level operational and regional performance overview.
+
+
+
+
+
+
 This dashboard is a Service Level Agreement (SLA / OLA performance monitoring dashboard) that tracks how well different operational areas meet their agreed targets over time.
 
 
