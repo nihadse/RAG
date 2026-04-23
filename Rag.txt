@@ -1,3 +1,13 @@
+
+This dashboard provides a high-level view of operational efficiency KPIs, mainly focused on automation, incident handling, and performance improvement.
+
+
+
+This dashboard focuses on Network Operations Center (NOC) automation performance and work order lifecycle efficiency
+
+
+
+
 FME KPI Ranking Dashboard
 This dashboard focuses on individual engineer (FME) performance evaluation and ranking based on multiple KPIs.
 
