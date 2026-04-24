@@ -1,3 +1,7 @@
+This dashboard is an incident management / SLA performance dashboard that tracks ticket activity and response efficiency over a selected time rang
+
+
+
 
 This dashboard provides a high-level view of operational efficiency KPIs, mainly focused on automation, incident handling, and performance improvement.
 
