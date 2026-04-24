@@ -1,3 +1,9 @@
+This dashboard summarizes CRT status with key metrics for completed, running, and canceled requests. It includes a monthly trend showing CRT volume growth over time. It also compares completed and ongoing CRTs across different teams.
+
+
+
+
+
 Displays key indicators related to automation in network operations.
 
 
