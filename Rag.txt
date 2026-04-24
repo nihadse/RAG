@@ -1,3 +1,15 @@
+Incident Management Dashboard:
+Provides an overview of incident handling activities and performance.
+Focuses on response times, resolution processes, and SLA tracking.
+Used to monitor how efficiently incidents are managed across severity levels.
+Operation Efficiency Dashboard:
+Displays operational performance related to automation and workflow execution.
+Focuses on ticket handling efficiency, dispatching, and process optimization.
+Used to assess how effectively operations are executed and improved.
+
+
+
+
 This is a comprehensive Work Force Management (WFM) & Work Order (WO) performance dashboard
 
 
