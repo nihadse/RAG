@@ -1,3 +1,6 @@
+Displays key indicators related to automation in network operations.
+
+
 Incident Management Dashboard:
 Provides an overview of incident handling activities and performance.
 Focuses on response times, resolution processes, and SLA tracking.
