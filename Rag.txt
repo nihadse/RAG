@@ -1,3 +1,8 @@
+This dashboard monitors outages exceeding 24 hours, showing counts of physical and logical down sites. It breaks down outages by region, technology, responsibility, and owner.
+
+
+
+
 This dashboard provides an overview of alarm statistics across different vendors and systems. It displays total alarms by severity (critical, major, minor), along with daily alarm records and their status
 
 
