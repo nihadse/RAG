@@ -1,3 +1,7 @@
+This dashboard provides an overview of alarm statistics across different vendors and systems. It displays total alarms by severity (critical, major, minor), along with daily alarm records and their status
+
+
+
 This dashboard monitors the MS L4 OLA rate over time, including non-working hours. It displays daily trends for both global and 24-hour OLA performance
 
 
