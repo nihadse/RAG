@@ -1,3 +1,7 @@
+This dashboard presents NOC automation performance across processes such as alarm handling, ticket creation, dispatching, and closure. It includes timing metrics for CM-WO activities at different stages. 
+
+
+
 This NOC dashboard provides an overview of network operations, including site availability, incident management, and change management.
 
 
