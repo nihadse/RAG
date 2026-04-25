@@ -1,3 +1,23 @@
+Dashboard 1 (NOC Report):
+This dashboard provides a consolidated overview of incident performance over a selected period, focusing on overall operational trends and service quality
+
+
+Dashboard 2 (NOC Dashboard):
+This dashboard offers a real-time view of incident and change activities, highlighting system status and ongoing operations
+
+
+Dashboard 3 (SASCC CM Dashboard):
+This dashboard presents an overview of change management activities, showing workload distribution and operational flow across teams and regions
+
+
+
+
+
+
+
+
+
+
 This dashboard focuses on closed change requests, showing their volume and how they are handled across different statuses and priorities.
 It provides insight into processing efficiency and overall progress of changes from execution to closure.
 
