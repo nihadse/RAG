@@ -1,3 +1,16 @@
+Dashboard 1 (Huawei Teams CRs Workload):
+This dashboard provides an overview of change request workload across teams, highlighting activity distribution and team involvement. It helps visualize how work is spread and managed across different operators.
+
+Dashboard 2 (CR General Status):
+This dashboard presents a global view of change request activity over time, showing overall trends and distribution across teams. It supports monitoring of workload evolution and general operational flow.
+
+Dashboard 3 (Huawei Teams CRTs Workload):
+This dashboard focuses on CRT workload across teams, giving a clear view of task distribution and team contributions. It helps track how responsibilities are handled across different groups.
+
+
+
+
+
 Dashboard 1 (NOC Report):
 This dashboard provides a consolidated overview of incident performance over a selected period, focusing on overall operational trends and service quality
 
