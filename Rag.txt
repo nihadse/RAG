@@ -3,6 +3,11 @@ It also provides a quarterly view of open tickets, helping track workload trends
 
 
 
+This dashboard shows open incidents distribution across teams and priority levels while highlighting workload and critical areas.
+It also provides a quarterly view of open tickets, helping track workload trends and evolution over time.
+
+
+
 Dashboard 1 (Huawei Teams CRs Workload):
 This dashboard provides an overview of change request workload across teams, highlighting activity distribution and team involvement. It helps visualize how work is spread and managed across different operators.
 
