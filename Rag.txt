@@ -1,3 +1,9 @@
+This dashboard shows PLM activities with task details, assignments, and current statuses across operations.
+It highlights task distribution, regional workload, and how activities progress from creation to completion.
+
+
+
+
 This dashboard shows ongoing incidents, including the total number and their distribution across different operational groups.
 
 
