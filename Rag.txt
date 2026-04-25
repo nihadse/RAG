@@ -1,3 +1,8 @@
+This dashboard shows change request activity with filters by status, ticket stage, type, and priority. It displays the number of created CRs across different categories and highlights the percentage of emergency changes
+
+
+
+
 This dashboard presents NOC automation performance across processes such as alarm handling, ticket creation, dispatching, and closure. It includes timing metrics for CM-WO activities at different stages. 
 
 
