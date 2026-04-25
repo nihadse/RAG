@@ -1,3 +1,7 @@
+This dashboard provides a detailed alarm report with filtering options by domain, vendor, region, and severity. It
+
+
+
 This dashboard monitors outages exceeding 24 hours, showing counts of physical and logical down sites. It breaks down outages by region, technology, responsibility, and owner.
 
 
