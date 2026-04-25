@@ -1,3 +1,8 @@
+This NOC dashboard provides an overview of network operations, including site availability, incident management, and change management.
+
+
+
+
 This dashboard provides a detailed alarm report with filtering options by domain, vendor, region, and severity. It
 
 
