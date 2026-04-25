@@ -1,3 +1,7 @@
+This dashboard focuses on closed change requests, showing their volume and how they are handled across different statuses and priorities.
+It provides insight into processing efficiency and overall progress of changes from execution to closure.
+
+
 This dashboard shows incident activity with filtering options by status, region, and fault level for detailed analysis.
 It visualizes incident volume, response behavior, and how incidents progress between running and completed states.
 
