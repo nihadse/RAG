@@ -1,3 +1,8 @@
+This dashboard provides an overview of incident SLA performance, showing total tickets, those within SLA, and those exceeding SLA. It includes trends of incidents over time and distribution by fault levels. It also highlights average handling time and compares SLA compliance across different severity levels.
+
+
+
+
 This dashboard provides an overview of network operations, covering site availability, incident handling, and change management
 
 
