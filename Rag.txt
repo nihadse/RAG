@@ -1,4 +1,93 @@
 SELECT
+    TO_CHAR(CLOSE_DAY, 'YYYY-MM-DD') AS T,
+    SUM(AUTO_CLOSE_COUNTER) AS AUTO_CLOSE_COUNTER,
+    SUM(TT_COUNTER) AS TT_COUNTER,
+
+    CASE
+        WHEN SUM(TT_COUNTER) < 1 THEN 1
+        ELSE FLOOR(
+            SUM(AUTO_CLOSE_COUNTER) / SUM(TT_COUNTER) * 10000
+        ) / 10000
+    END AS AUTO_CLOSE
+
+FROM
+    $(if(
+        timeType = 'Monthly',
+        'RPT_INNER.T_OOREDOO_TT_MONTH',
+        'RPT_INNER.T_OOREDOO_TT_DAY'
+    ))
+
+WHERE
+    ${if(timeType='Monthly', 'CLOSE_MONTH', 'CLOSE_DAY')} >=
+    '$(switch(
+        inarray(timeType, ["Monthly","Weekly"]),
+        1, if(len(startTimeMonth) > 0,
+              CONCATENATE(startTimeMonth, "-01"),
+              ""),
+        2, FORMAT(
+              DATEDELTA(startTimeWeek, weekday(startTimeWeek)),
+              "yyyy-MM-dd"
+           ),
+        0, FORMAT(startTime, "yyyy-MM-dd")
+    ))'
+
+AND
+    ${if(timeType='Monthly', 'CLOSE_MONTH', 'CLOSE_DAY')} <=
+    '$(switch(
+        inarray(timeType, ["Monthly","Weekly"]),
+        1, FORMAT(
+              DATEDELTA(
+                  MONTHDELTA(
+                      FORMAT(CONCATENATE(endTimeMonth, "-01"), "yyyy-MM-01"),
+                      1
+                  ),
+                  -1
+              ),
+              "yyyy-MM-dd 23:59:59"
+           ),
+        2, FORMAT(
+              DATEDELTA(
+                  endTimeWeek,
+                  7 - weekday(endTimeWeek) - 1
+              ),
+              "yyyy-MM-dd 23:59:59"
+           ),
+        0, FORMAT(endTime, "yyyy-MM-dd 23:59:59")
+    ))'
+
+$(if(
+    len(outageTT_alarm) = 0 ||
+    outageTT_alarm = "" ||
+    outageTT_alarm = "all",
+    "",
+    " AND UPPER(ALARMNAME) IN (" + outageTT_alarm + ") "
+))
+
+$(if(
+    len(outageTT_sitedownflag) = 0 ||
+    outageTT_sitedownflag = "" ||
+    outageTT_sitedownflag = "all",
+    "",
+    " AND UPPER(SITEDOWNFLAG) IN (" + outageTT_sitedownflag + ") "
+))
+
+$(if(
+    len(fault_level_filter) = 0 ||
+    fault_level_filter = "" ||
+    fault_level_filter = "all",
+    "",
+    " AND FAULT_LEVEL IN (" + fault_level_filter + ") "
+))
+
+GROUP BY
+    TO_CHAR(CLOSE_DAY, 'YYYY-MM-DD')
+
+ORDER BY
+    T;
+
+
+
+SELECT
     TO_CHAR(CREATE_DAY, 'YYYY-MM-DD') AS T,
     SUM(AUTO_TT_COUNTER) AS AUTO_TT_COUNTER,
     SUM(TT_COUNTER) AS TT_COUNTER,
