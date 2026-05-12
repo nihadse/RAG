@@ -1,1 +1,17 @@
+Dear [Name],
+
+I hope you are doing well.
+
+I am currently working on a project to develop a chatbot using iStudio, and I wanted to ask if you have any experience or recommendations regarding this topic.
+
+More specifically, I would like to know whether it is possible to integrate or call external LLM APIs (such as OpenAI or other language models) directly from iStudio, and if there is a standard or recommended approach to achieve this within the platform.
+
+If you have any documentation, examples, or guidance on how to implement such an integration in iStudio, I would greatly appreciate your help.
+
+Thank you in advance for your time and support.
+
+Best regards,
+Nihad
+
+
 .
