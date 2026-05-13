@@ -1,3 +1,23 @@
+Subject: Dashboard & AI Chatbot – Status Update
+
+Dear Samer Azmy,
+
+Following our discussion, please find the required updates. The dashboard link is accessible via VPN at the following link: [Insert Dashboard Link], and the PDF report is attached for your reference.
+
+Here is the list of KPIs that have been implemented in the dashboard: the agreed KPIs are now fully available and operational, with the exception of one remaining item, Topo Restoration, which is still under development and pending completion.
+
+Regarding the AI chatbot, we are currently working on the feasibility of its implementation for this dashboard to ensure proper integration and alignment with the required use case and will provide further updates accordingly.
+
+Please let me know if you need any further information.
+
+Kind regards,
+SENHADJI NIHAD
+
+
+
+
+
+
 SELECT
     TO_CHAR(DATA_TIME, 'YYYY-MM-DD') AS DATA_DAY,
 
