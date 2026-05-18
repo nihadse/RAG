@@ -1,3 +1,9 @@
+SELECT 
+    CAST('2026-05-03 14:53:01' AS TIMESTAMP) 
+  - CAST('2026-03-23 08:05:03' AS TIMESTAMP) AS diff
+FROM dual;
+
+
 Subject: Weekly KPI Report – Ooredoo Algeria Region Status (2026)
 
 Dear Team,
