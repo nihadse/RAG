@@ -1,4 +1,27 @@
 SELECT
+    duration,
+    CASE
+        WHEN (
+            CAST(SPLIT_PART(SPLIT_PART(duration, ' ', 2), ':', 1) AS INTEGER)
+          + CAST(SPLIT_PART(SPLIT_PART(duration, ' ', 2), ':', 2) AS INTEGER) / 60.0
+        ) < 2
+        THEN 'Less than 2 hours'
+
+        WHEN (
+            CAST(SPLIT_PART(SPLIT_PART(duration, ' ', 2), ':', 1) AS INTEGER)
+          + CAST(SPLIT_PART(SPLIT_PART(duration, ' ', 2), ':', 2) AS INTEGER) / 60.0
+        ) <= 4
+        THEN 'From 2 to 4 hours'
+
+        ELSE 'More than 4 hours'
+    END AS duration_category
+FROM your_table_name;
+
+
+
+
+
+SELECT
     durationcolumn,
     CASE
         WHEN EXTRACT(DAY FROM durationcolumn) * 24
