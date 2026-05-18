@@ -1,4 +1,21 @@
 SELECT
+    col1,
+    col2,
+    col3,
+    durationcolumn,
+    CASE
+        WHEN durationcolumn < (2.0/24) THEN 'Less than 2 hours'
+        WHEN durationcolumn <= (4.0/24) THEN 'From 2 to 4 hours'
+        ELSE 'More than 4 hours'
+    END AS duration_category
+FROM your_table_name;
+
+
+
+
+
+
+SELECT
     CASE
         WHEN durationcolumn < (2.0/24) THEN 'Less than 2 hours'
         WHEN durationcolumn <= (4.0/24) THEN 'From 2 to 4 hours'
