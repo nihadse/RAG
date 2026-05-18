@@ -1,3 +1,13 @@
+SELECT
+    CASE
+        WHEN durationcolumn < (2.0/24) THEN 'Less than 2 hours'
+        WHEN durationcolumn <= (4.0/24) THEN 'From 2 to 4 hours'
+        ELSE 'More than 4 hours'
+    END AS duration_category
+FROM your_table_name;
+
+
+
 SELECT 
     CAST('2026-05-03 14:53:01' AS TIMESTAMP) 
   - CAST('2026-03-23 08:05:03' AS TIMESTAMP) AS diff
