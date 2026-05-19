@@ -1,3 +1,25 @@
+Dear Team,
+
+Please find attached the Minutes of Meeting regarding the automation of the manual file and the cleaning phase of the dashboard platform.
+
+Attendees: Fethi and Henj
+
+- For the cleaning phase of the dashboard platform, I will coordinate with Toufik from Ooredoo to identify the dashboards currently being used and the required dashboards.
+
+- Fethi will perform the analysis of the Excel file to determine the exact business and reporting requirements.
+
+- Another meeting will be scheduled to finalize the dataset structure and validate the data organization.
+
+- Lai will investigate why there is a difference between the number of impacted site quantities and the impacted site list.
+
+Please let me know if any additional points need to be added.
+
+Best regards,
+Nihad Senhadji
+
+
+
+
 SELECT
     duration,
     CASE
