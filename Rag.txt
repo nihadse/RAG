@@ -1,3 +1,21 @@
+WHERE COALESCE(
+    CASE
+        WHEN C.OPERATE_PHASE = 'dispatch'
+            THEN C.CURRENTOPERATOR
+        ELSE C.LASTOPERATOR
+    END,
+    ''
+) NOT IN (
+    'user:Sid-ALIDAMOUS',
+    'user:MOHAMED_IMAMHADJIED',
+    'user:AyoubSaoucha',
+    'user:ArezkiAmrouche'
+)
+
+
+
+
+
 Dear Team,
 
 Please find attached the Minutes of Meeting regarding the automation of the manual file and the cleaning phase of the dashboard platform.
