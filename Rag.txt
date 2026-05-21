@@ -1,3 +1,30 @@
+Dear All,
+
+Following our previous discussions regarding the automation of the Lynda dashboard, I would like to share with you the first automated part of the dashboard, which was previously prepared manually every month.
+
+As this reporting process is sensitive and requires a high level of precision, we considered automating it through a dashboard solution in order to improve reliability, efficiency, and consistency of the delivered results.
+
+Please find below the KPIs that have already been completed and integrated into the dashboard. Additionally, all related calculations and measures based on the two data sources used have been implemented.
+
+The next step will be the validation of these KPIs and measures to ensure that all calculations are correct. Therefore, your feedback and review would be highly appreciated.
+
+The second part of the dashboard will be treated next week.
+
+Once the dashboard is fully finalized and validated, it will be automatically generated and sent by email every month.
+
+You will also find attached:
+
+- The first automated version in PDF format
+- The Excel working file
+
+Thank you for your support and feedback.
+
+Best regards,
+SENHADJI NIHAD
+
+
+
+
 WHERE COALESCE(
     CASE
         WHEN C.OPERATE_PHASE = 'dispatch'
