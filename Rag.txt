@@ -1,3 +1,5 @@
+These results were achieved following several work sessions conducted with Oussama and Lynda.
+
 Dear All,
 
 Following our previous discussions regarding the automation of the Lynda dashboard, I would like to share with you the first automated part of the dashboard, which was previously prepared manually every month.
