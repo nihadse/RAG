@@ -1,89 +1,20 @@
-These results were achieved following several work sessions conducted with Oussama and Lynda.
+Dear [Name],
 
-Dear All,
+Please find below the public link to the dashboard:
 
-Following our previous discussions regarding the automation of the Lynda dashboard, I would like to share with you the first automated part of the dashboard, which was previously prepared manually every month.
+[Insert dashboard link here]
 
-As this reporting process is sensitive and requires a high level of precision, we considered automating it through a dashboard solution in order to improve reliability, efficiency, and consistency of the delivered results.
-
-Please find below the KPIs that have already been completed and integrated into the dashboard. Additionally, all related calculations and measures based on the two data sources used have been implemented.
-
-The next step will be the validation of these KPIs and measures to ensure that all calculations are correct. Therefore, your feedback and review would be highly appreciated.
-
-The second part of the dashboard will be treated next week.
-
-Once the dashboard is fully finalized and validated, it will be automatically generated and sent by email every month.
-
-You will also find attached:
-
-- The first automated version in PDF format
-- The Excel working file
-
-Thank you for your support and feedback.
+Please let me know if you have any issue accessing it.
 
 Best regards,
-SENHADJI NIHAD
-
-
-
-
-WHERE COALESCE(
-    CASE
-        WHEN C.OPERATE_PHASE = 'dispatch'
-            THEN C.CURRENTOPERATOR
-        ELSE C.LASTOPERATOR
-    END,
-    ''
-) NOT IN (
-    'user:Sid-ALIDAMOUS',
-    'user:MOHAMED_IMAMHADJIED',
-    'user:AyoubSaoucha',
-    'user:ArezkiAmrouche'
-)
+[Your Name]
 
 
 
 
 
-Dear Team,
-
-Please find attached the Minutes of Meeting regarding the automation of the manual file and the cleaning phase of the dashboard platform.
-
-Attendees: Fethi and Henj
-
-- For the cleaning phase of the dashboard platform, I will coordinate with Toufik from Ooredoo to identify the dashboards currently being used and the required dashboards.
-
-- Fethi will perform the analysis of the Excel file to determine the exact business and reporting requirements.
-
-- Another meeting will be scheduled to finalize the dataset structure and validate the data organization.
-
-- Lai will investigate why there is a difference between the number of impacted site quantities and the impacted site list.
-
-Please let me know if any additional points need to be added.
-
-Best regards,
-Nihad Senhadji
 
 
-
-
-SELECT
-    duration,
-    CASE
-        WHEN (
-            CAST(SPLIT_PART(SPLIT_PART(duration, ' ', 2), ':', 1) AS INTEGER)
-          + CAST(SPLIT_PART(SPLIT_PART(duration, ' ', 2), ':', 2) AS INTEGER) / 60.0
-        ) < 2
-        THEN 'Less than 2 hours'
-
-        WHEN (
-            CAST(SPLIT_PART(SPLIT_PART(duration, ' ', 2), ':', 1) AS INTEGER)
-          + CAST(SPLIT_PART(SPLIT_PART(duration, ' ', 2), ':', 2) AS INTEGER) / 60.0
-        ) <= 4
-        THEN 'From 2 to 4 hours'
-
-        ELSE 'More than 4 hours'
-    END AS duration_category
 FROM your_table_name;
 
 
