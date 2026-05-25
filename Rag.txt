@@ -1,3 +1,49 @@
+SELECT
+    f.*,
+    tm_current.TEAM_NAME AS CurrentOperator_Team,
+    u_current.USER_NAME AS CurrentOperator_UserName,
+    tm_last.TEAM_NAME AS LastOperator_Team,
+    u_last.USER_NAME AS LastOperator_UserName,
+    IFNULL(f.SITE_PRIORITY, 'N/A') AS SITE_PRIORITY
+
+FROM mateinfo_1002.t_rt_dm_trouble_tt_trouble_effvjz@thhq5 f
+
+LEFT JOIN mateinfo_1002.t_rt_dm_user_tea_user_team_15468f1f5oqi6 tm_current
+    ON REPLACE(
+        REPLACE(
+            TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(f.currentoperator, ';', 1), ':', -1)),
+            'user',
+            ''
+        ),
+        'group',
+        ''
+    ) = tm_current.USERACCOUNT
+
+LEFT JOIN mateinfo_1002.t_rt_dm_user_tea_user_team_15468f1f5oqi6 tm_last
+    ON REPLACE(
+        REPLACE(
+            TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(f.lastoperator, ';', 1), ':', -1)),
+            'user',
+            ''
+        ),
+        'groups',
+        ''
+    ) = tm_last.USERACCOUNT
+
+-- Current operator username
+LEFT JOIN SERVICE_GAM.SYS_USER u_current
+    ON u_current.LOGIN_ID = REPLACE(f.currentoperator, 'user:', '')
+
+-- Last operator username
+LEFT JOIN SERVICE_GAM.SYS_USER u_last
+    ON u_last.LOGIN_ID = REPLACE(f.lastoperator, 'user:', '')
+
+ORDER BY f.CREATETIME DESC;
+
+
+
+
+
 Dear [Name],
 
 Please find below the public link to the dashboard:
