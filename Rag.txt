@@ -1,3 +1,33 @@
+Dear All,
+
+Please find attached the most updated version of the dashboard, including the latest KPI measures and calculation updates.
+
+You will also find attached the dashboard reports for:
+
+- April 2026 (2026-04)
+- May 2026 (2026-05)
+
+The dashboard has been updated based on the latest developments and KPI measurement adjustments discussed during our review sessions.
+
+For easy access, the dashboard is also available through the following link:
+
+[Insert Dashboard Link Here]
+
+Please review the updated version and let me know if you have any comments or observations.
+
+Regarding the reporting section, we have already conducted a review and validation session with Lynda. Currently, I am working on the development and automation of the remaining reporting components to complete the dashboard.
+
+Thank you for your support and feedback.
+
+Best regards,
+
+Nihad Senhadji
+
+
+
+
+
+
 SELECT
     f.*,
     tm_current.TEAM_NAME AS CurrentOperator_Team,
