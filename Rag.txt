@@ -1,1 +1,28 @@
+Dear Manager and Stakeholders,
+
+Please find below the current progress status:
+
+Activity| Status / Next Milestone| Target Date
+Performance Workload Data Dashboard| Development completed, finalization in progress| 14/06
+Data Cleaning Process| Ongoing| 10/06
+Dashboard Problem Management| Review session with Bouchra| 08/06
+Front Office Service 7x24 Network Monitoring & Supervision SLA/KPI Dashboard| Final review with Samer| In Progress
+Regional KPI Dashboard Development| Under review| In Progress
+Training Sessions| Ongoing| As Planned
+NOC Projects| Ongoing delivery and support activities| In Progress
+
+Key updates:
+
+- Continued development and enhancement of operational dashboards.
+- Progress made on KPI reporting and performance monitoring initiatives.
+- Active collaboration with stakeholders through review and validation sessions.
+- Ongoing support of NOC-related projects and operational improvements.
+- Participation in training sessions to support knowledge development and project execution.
+
+Please let me know if additional details are required.
+
+Best regards,
+[Your Name]
+
+
 .
