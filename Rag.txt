@@ -1,3 +1,45 @@
+import polars as pl
+from pathlib import Path
+
+group_cols = [
+    "Vendor",
+    "Network Type",
+    "Level-2 Alarm Name",
+    "EMS Name",
+    "Alarm Source",
+    "Alarm severity",
+    "Alarm Name"
+]
+
+stats_list = []
+
+for file in Path(folder).glob("*.csv"):
+
+    print(f"Processing {file.name}")
+
+    stats = (
+        pl.read_csv(file)
+        .group_by(group_cols)
+        .len()
+    )
+
+    stats_list.append(stats)
+
+final_stats = (
+    pl.concat(stats_list)
+    .group_by(group_cols)
+    .agg(pl.col("len").sum().alias("Count"))
+    .sort("Count", descending=True)
+)
+
+final_stats.write_excel("Alarm_Statistics.xlsx")
+
+
+
+
+
+
+
 Dear Manager and Stakeholders,
 
 Please find below the current progress status:
