@@ -1,85 +1,27 @@
-Dear PM,
 
-Please find attached the requested file.
+Good morning everyone,
 
-The file contains the following columns:
+Today I will present the AUTIN Automation Efficiency KPI Overview for Weeks 24 and 25. The dashboard highlights our performance across four key areas: Fault Management, Incident Management, Workforce Management, and Operational Efficiency.
 
-1. Alarm Name
-2. Alarm Source
-3. Vendor
-4. EMS Name
-5. Network Type
-6. Alarm Severity
-7. Count
+Starting with Fault Management, our Alarm Compression Rate reached 86.3%, which is slightly below the baseline target of 90%. However, the overall trend is positive, and continuous optimization activities are underway to further improve alarm correlation and reduce redundant alarms. On the other hand, the Alarms-to-Incidents Rate stands at only 0.01%, significantly better than the 1% baseline, demonstrating the effectiveness of our automation in preventing unnecessary incident generation.
 
-Additionally, the analysis identified:
+Moving to Incident Management, the automation performance remains strong across most KPIs. Auto-Created Trouble Tickets achieved 97.53%, exceeding the 90% baseline. Auto TT Dispatch reached 93.4% against an 80% target, while Auto Closed TTs achieved 66.21%, above the 60% baseline. In addition, End-to-End Auto Handled Tickets reached 69.3%, outperforming the 50% target.
 
-- 4,764 unique Alarm Names
-- 13 unique EMS Names
-- 33,243 unique Alarm Sources
-- 4 Alarm Severity levels
-- 10 Network Types
+The only KPI slightly below target is Auto RCA, which achieved 55.94% compared to the 63% baseline. To address this gap, we are finalizing the Auto Topology implementation, which is expected to improve root cause identification accuracy and increase automation efficiency. We are also working on integrating 5G use cases into our automation rules to further expand automation coverage.
 
-As discussed previously, the Prob Name and Domain columns were not found in the source files and therefore could not be included in the analysis.
+For Workforce Management, performance remains very strong. Auto Created Work Orders reached 67.64%, well above the 55% baseline. Auto Work Order Dispatch Rate achieved 100%, surpassing the 90% target, and the Right Field Dispatch Rate reached 86.41%, exceeding the 70% baseline. These results demonstrate the effectiveness of automation in optimizing workforce allocation and dispatch operations.
 
-Kindly let me know if any further adjustments are required.
+Looking at Operational Efficiency, we continue to maintain excellent service performance. The Closed Trouble Ticket Rate stands at 97.24%, above the 90% baseline. Response SLA Fulfillment reached 96%, very close to the 97% target, while Network Availability remains outstanding at 99%, meeting the baseline objective. Finally, the Incident-to-Corrective Maintenance Rate remains stable at 24%, significantly above the baseline of 39%, indicating healthy operational performance and effective maintenance processes.
 
-Best regards,
-Nihad Senhadji
+To conclude, the overall results for Weeks 24 and 25 demonstrate that the majority of KPIs are performing above baseline and following the expected trend. Key focus areas moving forward will be improving the Alarm Compression Rate, increasing Auto RCA performance, and accelerating 5G automation integration to further enhance operational efficiency and automation maturity.
 
-
-
-import polars as pl
-from pathlib import Path
-
-group_cols = [
-    "Vendor",
-    "Network Type",
-    "Level-2 Alarm Name",
-    "EMS Name",
-    "Alarm Source",
-    "Alarm severity",
-    "Alarm Name"
-]
-
-stats_list = []
-
-for file in Path(folder).glob("*.csv"):
-
-    print(f"Processing {file.name}")
-
-    stats = (
-        pl.read_csv(file)
-        .group_by(group_cols)
-        .len()
-    )
-
-    stats_list.append(stats)
-
-final_stats = (
-    pl.concat(stats_list)
-    .group_by(group_cols)
-    .agg(pl.col("len").sum().alias("Count"))
-    .sort("Count", descending=True)
-)
-
-final_stats.write_excel("Alarm_Statistics.xlsx")
+Thank you, and I am happy to take any questions.
 
 
 
 
 
 
-
-Dear Manager and Stakeholders,
-
-Please find below the current progress status:
-
-Activity| Status / Next Milestone| Target Date
-Performance Workload Data Dashboard| Development completed, finalization in progress| 14/06
-Data Cleaning Process| Ongoing| 10/06
-Dashboard Problem Management| Review session with Bouchra| 08/06
-Front Office Service 7x24 Network Monitoring & Supervision SLA/KPI Dashboard| Final review with Samer| In Progress
 Regional KPI Dashboard Development| Under review| In Progress
 Training Sessions| Ongoing| As Planned
 NOC Projects| Ongoing delivery and support activities| In Progress
